@@ -1,6 +1,7 @@
 # Data
 *.fa
 *.pkl*
+data/
 
 # Pycharm
 .idea/
