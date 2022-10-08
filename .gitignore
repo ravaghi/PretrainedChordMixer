@@ -1,7 +1,10 @@
 # Data
 *.fa
-*.pkl*
-data/
+*.pkl
+
+# Logs
+outputs/
+wandb/
 
 # Pycharm
 .idea/
