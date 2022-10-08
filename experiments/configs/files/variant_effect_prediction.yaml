@@ -1,0 +1,3 @@
+train_data: variant_effect_prediction/label811_49_train.csv
+val_data: variant_effect_prediction/label811_49_val.csv
+test_data: variant_effect_prediction/label811_49_test.csv

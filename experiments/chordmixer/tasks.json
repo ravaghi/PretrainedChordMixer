@@ -1,0 +1,38 @@
+{
+  "Carassius vs. Labeo": {
+    "classes": [
+      "carassius",
+      "labeo"
+    ],
+    "category_name": "Other vertebrate",
+    "name_raw": "gbvrt",
+    "max_seq_len": 100101
+  },
+  "Danio vs. Cyprinus": {
+    "classes": [
+      "danio",
+      "cyprinus"
+    ],
+    "category_name": "Other vertebrate",
+    "name_raw": "gbvrt",
+    "max_seq_len": 261943
+  },
+  "Mus vs. Rattus": {
+    "classes": [
+      "mus",
+      "rattus"
+    ],
+    "category_name": "Rodent",
+    "name_raw": "gbrod",
+    "max_seq_len": 261093
+  },
+  "Sus vs. Bos": {
+    "classes": [
+      "sus",
+      "bos"
+    ],
+    "category_name": "Other mammalian",
+    "name_raw": "gbmam",
+    "max_seq_len": 447010
+  }
+}

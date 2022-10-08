@@ -1,0 +1,22 @@
+defaults:
+  - files: taxonomy_classification
+  - _self_
+
+hyperparams:
+  epoch: 30
+  batch_size: 1
+  vocab_size: 20
+  track_size: 16
+  embedding_size: 360
+  hidden_size: 196
+  mlp_dropout: 0
+  layer_dropout: 0
+  learning_rate: 0.0001
+  n_classes: 2
+
+paths:
+  data: data
+
+wandb:
+  entity: ravaghi
+  project: PDT

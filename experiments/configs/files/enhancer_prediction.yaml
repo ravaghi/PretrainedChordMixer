@@ -1,0 +1,3 @@
+train_data: enhancer_prediction/vista_enhancer_train.csv
+val_data: enhancer_prediction/vista_enhancer_val.csv
+test_data: enhancer_prediction/vista_enhancer_test.csv
