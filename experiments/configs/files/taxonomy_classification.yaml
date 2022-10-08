@@ -1,2 +1,0 @@
-train_data: taxonomy_classification/carassius_vs_labeo/carassius_labeo_train.pkl
-test_data: taxonomy_classification/carassius_vs_labeo/carassius_labeo_test.pkl
