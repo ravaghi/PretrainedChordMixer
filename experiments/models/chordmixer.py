@@ -112,10 +112,8 @@ class ChordMixerBlock(nn.Module):
 
 class ChordMixer(nn.Module):
     def __init__(self,
-                 problem,
                  vocab_size,
                  max_seq_len,
-                 embedding_size,
                  track_size,
                  hidden_size,
                  mlp_dropout,
@@ -124,7 +122,6 @@ class ChordMixer(nn.Module):
                  ):
         super(ChordMixer, self).__init__()
         self.max_n_layers = math.ceil(np.log2(max_seq_len))
-        self.problem = problem
         n_tracks = math.ceil(np.log2(max_seq_len))
         embedding_size = int(n_tracks * track_size)
         # Init embedding layer
@@ -161,11 +158,7 @@ class ChordMixer(nn.Module):
             # equal lengths mode
             n_layers = self.max_n_layers
 
-        # use linear layer instead of embbedding layer for adding
-        if self.problem == 'adding':
-            data = self.linear(data)
-        else:
-            data = self.embedding(data)
+        data = self.embedding(data)
         for layer in range(n_layers):
             data = self.chordmixer_blocks[layer](data, lengths)
 

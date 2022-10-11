@@ -1,15 +1,20 @@
 defaults:
-  - wandb: wandb
   - _self_
+  - model: chordmixer
+  - loss: cross_entropy
+  - optimizer: adam
+  - dataset: taxonomy_classification
+  - dataloader: chordmixer_dataloader
+  - trainer: chordmixer_trainer
+  - wandb: wandb
 
-hyperparams:
-  epoch: 30
-  batch_size: 1
-  vocab_size: 20
-  track_size: 16
-  embedding_size: 360
-  hidden_size: 196
-  mlp_dropout: 0
-  layer_dropout: 0
-  learning_rate: 0.0001
-  n_classes: 2
+general:
+  device_id: 0
+  init_weights: true
+  compute_class_weights: true
+  log_every_n_steps: 100
+  max_epochs: 50
+
+hydra:
+  run:
+    dir: ${hydra:runtime.cwd}/../outputs

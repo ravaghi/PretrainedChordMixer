@@ -1,7 +1,7 @@
-import pandas as pd
-import os
-import torch
 from torch.utils.data import Dataset, DataLoader
+import pandas as pd
+import torch
+import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -45,6 +45,16 @@ def shuffle_batches(df):
     return pd.concat(batch_bins).reset_index(drop=True)
 
 
+def concater_collate(batch):
+    """
+    Packs a batch into a long sequence
+    """
+    (xx, yy, lengths, bins) = zip(*batch)
+    xx = torch.cat(xx, 0)
+    yy = torch.tensor(yy)
+    return xx, yy, list(lengths), list(bins)
+
+
 class DatasetCreator(Dataset):
     def __init__(self, df, batch_size, var_len=False):
         if var_len:
@@ -68,31 +78,26 @@ class DatasetCreator(Dataset):
         return len(self.df)
 
 
-def concater_collate(batch):
-    """
-    Packs a batch into a long sequence
-    """
-    (xx, yy, lengths, bins) = zip(*batch)
-    xx = torch.cat(xx, 0)
-    yy = torch.tensor(yy)
-    return xx, yy, list(lengths), list(bins)
+class ChordMixerDataLoader:
+    def __init__(self, data_path, dataset_name, batch_size):
+        self.data_path = data_path
+        self.dataset_name = dataset_name
+        self.batch_size = batch_size
 
+    def create_dataloader(self):
+        data_path = os.path.join(self.data_path, self.dataset_name)
+        dataframe = pd.read_pickle(data_path)
 
-def create_dataloader(data_path, data_file, batch_size):
-    dataset_path = os.path.join(BASE_DIR, data_path, data_file)
-    dataframe = pd.read_pickle(dataset_path)
-
-    dataset = DatasetCreator(
-        df=dataframe,
-        batch_size=batch_size,
-        var_len=True
-    )
-
-    return DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        collate_fn=concater_collate,
-        drop_last=False,
-        num_workers=4
-    )
+        dataset = DatasetCreator(
+            df=dataframe,
+            batch_size=self.batch_size,
+            var_len=True
+        )
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            collate_fn=concater_collate,
+            drop_last=False,
+            num_workers=4
+        )

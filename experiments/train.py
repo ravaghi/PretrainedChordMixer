@@ -1,60 +1,37 @@
-import os
 import hydra
 import torch
-import wandb
-from torch import nn, optim
+from hydra.utils import instantiate
 
-from models.chordmixer import ChordMixer
-from chordmixer.dataloader import create_dataloader
-from chordmixer.utils import init_weights
-from utils import init_run, get_max_seq_len, get_class_weights, train, evaluate
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from utils.utils import init_run, init_weights, get_class_weights
 
 
-@hydra.main(config_path="configs", config_name="chordmixer", version_base=None)
+@hydra.main(config_path="configs", version_base=None)
 def main(config):
-    init_run(config)
+    device = init_run(config)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    max_seq_len = get_max_seq_len(config.paths.data, config.files.train_data, config.files.test_data)
+    model = instantiate(config.model).to(device)
 
-    model = ChordMixer(
-        problem='genbank',
-        vocab_size=config.hyperparams.vocab_size,
-        max_seq_len=max_seq_len,
-        embedding_size=config.hyperparams.embedding_size,
-        track_size=config.hyperparams.track_size,
-        hidden_size=config.hyperparams.hidden_size,
-        mlp_dropout=config.hyperparams.mlp_dropout,
-        layer_dropout=config.hyperparams.layer_dropout,
-        n_class=config.hyperparams.n_classes
-    )
+    if config.general.init_weights:
+        model.apply(init_weights)
 
-    model = model.to(device)
-    model.apply(init_weights)
-    wandb.watch(model)
+    if config.general.compute_class_weights:
+        class_weights = get_class_weights(config.dataset.path, config.dataset.train_data, "label")
+        class_weights = torch.tensor(class_weights, dtype=torch.float).to(device)
+        criterion = instantiate(config.loss, weight=class_weights)
+    else:
+        criterion = instantiate(config.loss)
 
-    class_weights = get_class_weights(config.paths.data, config.files.train_data)
-    criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weights, dtype=torch.float).to(device), reduction='mean')
-    optimizer = optim.Adam(model.parameters(), lr=config.hyperparams.learning_rate)
+    optimizer = instantiate(config.optimizer, params=model.parameters())
 
-    train_dataloader = create_dataloader(
-        data_path=config.paths.data,
-        data_file=config.files.train_data,
-        batch_size=config.hyperparams.batch_size,
-    )
-    test_dataloader = create_dataloader(
-        data_path=config.paths.data,
-        data_file=config.files.test_data,
-        batch_size=config.hyperparams.batch_size,
-    )
+    train_dataloader = instantiate(config.dataloader, dataset_name=config.dataset.train_data).create_dataloader()
+    val_dataloader = instantiate(config.dataloader, dataset_name=config.dataset.val_data).create_dataloader()
 
-    for epoch in range(config.hyperparams.epoch):
-        train(model=model, train_dataloader=train_dataloader, device=device, current_epoch_nr=epoch,
-              criterion=criterion, optimizer=optimizer)
-        evaluate(model=model, test_dataloader=test_dataloader, device=device, current_epoch_nr=epoch,
-                 criterion=criterion)
+    trainer = instantiate(config.trainer, model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader,
+                          device=device, criterion=criterion, optimizer=optimizer)
+
+    for epoch in range(config.general.max_epochs):
+        trainer.train(current_epoch_nr=epoch)
+        trainer.evaluate(current_epoch_nr=epoch)
 
 
 if __name__ == '__main__':

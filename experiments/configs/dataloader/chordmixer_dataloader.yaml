@@ -1,0 +1,4 @@
+_target_: dataloaders.chordmixer.ChordMixerDataLoader
+data_path: ${dataset.path}
+dataset_name: ???
+batch_size: ${dataset.batch_size}
