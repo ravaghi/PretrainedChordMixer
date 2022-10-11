@@ -9,6 +9,7 @@ defaults:
   - wandb: wandb
 
 general:
+  seed: 42
   device_id: 0
   init_weights: true
   compute_class_weights: true
