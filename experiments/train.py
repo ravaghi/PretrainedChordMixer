@@ -9,7 +9,7 @@ from utils.utils import init_run, init_weights, get_class_weights
 def main(config):
     device = init_run(config)
 
-    model = instantiate(config.model).to(device)
+    model = instantiate(config=config.model).to(device)
 
     if config.general.init_weights:
         model.apply(init_weights)
@@ -17,17 +17,24 @@ def main(config):
     if config.general.compute_class_weights:
         class_weights = get_class_weights(config.dataset.path, config.dataset.train_data, "label")
         class_weights = torch.tensor(class_weights, dtype=torch.float).to(device)
-        criterion = instantiate(config.loss, weight=class_weights)
+        criterion = instantiate(config=config.loss, weight=class_weights)
     else:
-        criterion = instantiate(config.loss)
+        criterion = instantiate(config=config.loss)
 
-    optimizer = instantiate(config.optimizer, params=model.parameters())
+    optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
-    train_dataloader = instantiate(config.dataloader, dataset_name=config.dataset.train_data).create_dataloader()
-    val_dataloader = instantiate(config.dataloader, dataset_name=config.dataset.val_data).create_dataloader()
+    train_dataloader = instantiate(config=config.dataloader, dataset_name=config.dataset.train_data).create_dataloader()
+    val_dataloader = instantiate(config=config.dataloader, dataset_name=config.dataset.val_data).create_dataloader()
 
-    trainer = instantiate(config.trainer, model=model, train_dataloader=train_dataloader, val_dataloader=val_dataloader,
-                          device=device, criterion=criterion, optimizer=optimizer)
+    trainer = instantiate(
+        config=config.trainer,
+        model=model,
+        train_dataloader=train_dataloader,
+        val_dataloader=val_dataloader,
+        device=device,
+        criterion=criterion,
+        optimizer=optimizer
+    )
 
     for epoch in range(config.general.max_epochs):
         trainer.train(current_epoch_nr=epoch)

@@ -3,7 +3,7 @@ defaults:
   - model: chordmixer
   - loss: cross_entropy
   - optimizer: adam
-  - dataset: taxonomy_classification
+  - dataset: ???
   - dataloader: chordmixer_dataloader
   - trainer: chordmixer_trainer
   - wandb: wandb
@@ -14,7 +14,7 @@ general:
   init_weights: true
   compute_class_weights: true
   log_every_n_steps: 100
-  max_epochs: 50
+  max_epochs: 25
 
 hydra:
   run:

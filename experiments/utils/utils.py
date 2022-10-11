@@ -22,9 +22,9 @@ def seed_everything(seed=42):
 def init_run(config):
     seed_everything(config.general.seed)
 
-    print("-" * 20 + " configs " + "-" * 20)
+    print("-" * 30 + " config " + "-" * 30)
     print(OmegaConf.to_yaml(config))
-    print("-" * 20 + " configs " + "-" * 20)
+    print("-" * 30 + " config " + "-" * 30)
 
     device = f'cuda:{config.general.device_id}' if torch.cuda.is_available() else 'cpu'
     print(f'Using device: {device}')
