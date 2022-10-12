@@ -1,0 +1,5 @@
+name: TaxonomyClassificationSusVsBus
+path: ${hydra:runtime.cwd}/../data/taxonomy_classification
+train_data: sus_bus_train.pkl
+val_data: sus_bus_val.pkl
+batch_size: 2
