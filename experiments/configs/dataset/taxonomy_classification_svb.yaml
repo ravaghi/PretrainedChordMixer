@@ -2,4 +2,5 @@ name: TaxonomyClassificationSusVsBos
 path: ${hydra:runtime.cwd}/../data/taxonomy_classification
 train_data: sus_bos_train.pkl
 val_data: sus_bos_val.pkl
+max_seq_len: 447010
 batch_size: 2

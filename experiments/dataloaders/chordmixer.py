@@ -98,6 +98,5 @@ class ChordMixerDataLoader:
             batch_size=self.batch_size,
             shuffle=False,
             collate_fn=concater_collate,
-            drop_last=False,
-            num_workers=4
+            drop_last=False
         )

@@ -26,7 +26,7 @@ def init_run(config):
     print(OmegaConf.to_yaml(config))
     print("-" * 30 + " config " + "-" * 30)
 
-    device = f'cuda:{config.general.device_id}' if torch.cuda.is_available() else 'cpu'
+    device = f'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'Using device: {device}')
 
     wandb.init(project=config.wandb.project,

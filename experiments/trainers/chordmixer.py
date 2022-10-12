@@ -45,14 +45,14 @@ class ChordMixerTrainer:
             loop.set_postfix(train_acc=round(correct / total, 2),
                              train_loss=round(running_loss / total, 2))
             
-            if (idx + 1) % self.log_every_n_steps == 0:
-                wandb.log({'train_loss': running_loss / (idx + 1)})
-                wandb.log({'train_accuracy': correct / total})
+            # if (idx + 1) % self.log_every_n_steps == 0:
+            #     wandb.log({'train_loss': running_loss / (idx + 1)})
+            #     wandb.log({'train_accuracy': correct / total})
 
         train_accuracy = correct / total
         train_loss = running_loss / num_batches
-        wandb.log({'train_loss': train_loss})
-        wandb.log({'train_accuracy': train_accuracy})
+        wandb.log({'train_loss': train_loss}, step=current_epoch_nr)
+        wandb.log({'train_accuracy': train_accuracy}, step=current_epoch_nr)
 
     def evaluate(self, current_epoch_nr):
         self.model.eval()
@@ -64,7 +64,7 @@ class ChordMixerTrainer:
         total = 0
 
         with torch.no_grad():
-            loop = tqdm(enumerate(self.val_dataloader), total=num_batches, position=0, leave=True, ascii=False)
+            loop = tqdm(enumerate(self.val_dataloader), total=num_batches)
             for idx, (x, y, seq_len, _bin) in loop:
                 x = x.to(self.device)
                 y = y.to(self.device)
@@ -82,11 +82,11 @@ class ChordMixerTrainer:
                 loop.set_postfix(val_acc=round(correct / total, 2),
                                  val_loss=round(running_loss / total, 2))
                 
-                if (idx + 1) % self.log_every_n_steps == 0:
-                    wandb.log({'val_loss': running_loss / (idx + 1)})
-                    wandb.log({'val_accuracy': correct / total})
+                # if (idx + 1) % self.log_every_n_steps == 0:
+                #     wandb.log({'val_loss': running_loss / (idx + 1)})
+                #     wandb.log({'val_accuracy': correct / total})
 
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
-        wandb.log({'validation_loss': validation_loss})
-        wandb.log({'validation_accuracy': validation_accuracy})
+        wandb.log({'val_loss': validation_loss}, step=current_epoch_nr)
+        wandb.log({'val_accuracy': validation_accuracy}, step=current_epoch_nr)
