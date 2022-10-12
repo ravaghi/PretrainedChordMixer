@@ -33,7 +33,8 @@ def main(config):
         val_dataloader=val_dataloader,
         device=device,
         criterion=criterion,
-        optimizer=optimizer
+        optimizer=optimizer,
+        log_every_n_steps=config.general.log_every_n_steps
     )
 
     for epoch in range(config.general.max_epochs):
