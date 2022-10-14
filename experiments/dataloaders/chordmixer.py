@@ -1,10 +1,12 @@
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
+import numpy as np
 import torch
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+DNA_BASE_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7, 'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14}
 
 def complete_batch(df, batch_size):
     """
@@ -55,6 +57,22 @@ def concater_collate(batch):
     return xx, yy, list(lengths), list(bins)
 
 
+def process_enhancer_prediction_dataframe(dataframe):
+    dataframe["new_seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base.upper()] for base in x]))
+    dataframe = dataframe.drop(columns=["sequence"])
+    dataframe = dataframe.rename(columns={"new_seq": "sequence"})
+    
+    dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
+    
+    percentiles = [i * 0.1 for i in range(10)] + [.95, .99, .995]
+    bins = np.quantile(dataframe['len'], percentiles)
+    bin_labels = [i for i in range(len(bins) - 1)]
+    dataframe['bin'] = pd.cut(dataframe['len'], bins=bins, labels=bin_labels)
+    dataframe = dataframe[['sequence', 'label', 'len', 'bin']]
+    
+    return dataframe
+
+
 class DatasetCreator(Dataset):
     def __init__(self, df, batch_size, var_len=False):
         if var_len:
@@ -79,14 +97,20 @@ class DatasetCreator(Dataset):
 
 
 class ChordMixerDataLoader:
-    def __init__(self, data_path, dataset_name, batch_size):
+    def __init__(self, data_path, dataset, dataset_name, batch_size):
         self.data_path = data_path
+        self.dataset = dataset
         self.dataset_name = dataset_name
         self.batch_size = batch_size
 
     def create_dataloader(self):
-        data_path = os.path.join(self.data_path, self.dataset_name)
-        dataframe = pd.read_pickle(data_path)
+        data_path = os.path.join(self.data_path, self.dataset)
+        
+        if "taxonomy" in self.dataset_name.lower():
+            dataframe = pd.read_pickle(data_path)
+        elif "enhancer" in self.dataset_name.lower():
+            dataframe = pd.read_csv(data_path)
+            dataframe = process_enhancer_prediction_dataframe(dataframe)
 
         dataset = DatasetCreator(
             df=dataframe,

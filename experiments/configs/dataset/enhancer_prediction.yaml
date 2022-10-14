@@ -1,3 +1,7 @@
 name: EnhancerPrediction
-train_data_path: ${hydra:runtime.cwd}/../data/enhancer_predction/vista_enhancer_train.csv
-val_data_path: ${hydra:runtime.cwd}/../data/enhancer_predction/vista_enhancer_val.csv
+path: ${hydra:runtime.cwd}/../data/enhancer_prediction
+train_data: vista_enhancer_train.csv
+val_data: vista_enhancer_val.csv
+test_data: vista_enhancer_test.csv
+max_seq_len: 8062
+batch_size: 4

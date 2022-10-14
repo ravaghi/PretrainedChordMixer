@@ -26,7 +26,7 @@ def init_run(config):
     print(OmegaConf.to_yaml(config))
     print("-" * 30 + " config " + "-" * 30)
 
-    device = f'cuda' if torch.cuda.is_available() else 'cpu'
+    device = f'cuda:{config.general.device_id}' if torch.cuda.is_available() else 'cpu'
     print(f'Using device: {device}')
 
     wandb.init(project=config.wandb.project,
@@ -38,17 +38,17 @@ def init_run(config):
     return device
 
 
-def get_max_seq_len(train_data_path, test_data_path, len_col_name):
-    train_data = pd.read_pickle(train_data_path)
-    test_data = pd.read_pickle(test_data_path)
-
-    return max(max(train_data[len_col_name]), max(test_data[len_col_name]))
-
-
-def get_class_weights(path, train_data, y_col_name):
+def get_class_weights(dataset_name, path, train_data):
     train_data_path = os.path.join(path, train_data)
-    train_data = pd.read_pickle(train_data_path)
-    return compute_class_weight('balanced', classes=[0, 1], y=train_data[y_col_name])
+    
+    if "taxonomy" in dataset_name.lower():
+        train_data = pd.read_pickle(train_data_path)
+        class_weights = compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])
+    elif "enhancer" in dataset_name.lower():
+        train_data = pd.read_csv(train_data_path)
+        class_weights = compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])
+        
+    return class_weights
 
 
 def init_weights(model):

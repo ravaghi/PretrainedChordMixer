@@ -15,7 +15,7 @@ def main(config):
         model.apply(init_weights)
 
     if config.general.compute_class_weights:
-        class_weights = get_class_weights(config.dataset.path, config.dataset.train_data, "label")
+        class_weights = get_class_weights(config.dataset.name, config.dataset.path, config.dataset.train_data)
         class_weights = torch.tensor(class_weights, dtype=torch.float).to(device)
         criterion = instantiate(config=config.loss, weight=class_weights)
     else:
@@ -23,8 +23,8 @@ def main(config):
 
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
-    train_dataloader = instantiate(config=config.dataloader, dataset_name=config.dataset.train_data).create_dataloader()
-    val_dataloader = instantiate(config=config.dataloader, dataset_name=config.dataset.val_data).create_dataloader()
+    train_dataloader = instantiate(config=config.dataloader, dataset=config.dataset.train_data, dataset_name=config.dataset.name).create_dataloader()
+    val_dataloader = instantiate(config=config.dataloader, dataset=config.dataset.val_data, dataset_name=config.dataset.name).create_dataloader()
 
     trainer = instantiate(
         config=config.trainer,
