@@ -78,7 +78,7 @@ def process_variant_effect_prediction_dataframe(dataframe):
     sequence_path = os.path.join(BASE_DIR, "data", "variant_effect_prediction", "hg38.fa")
     sequences = SeqIO.to_dict(SeqIO.parse(sequence_path, "fasta"))
     
-    dataframe["sequence"] = dataframe.apply(lambda x: sequences[x.chr].seq[x.pos-20_000:x.pos+20_000], axis=1)
+    dataframe["sequence"] = dataframe.apply(lambda x: str(sequences[x.chr].seq[x.pos-20_000:x.pos+20_000]), axis=1)
     
     dataframe["new_seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base.upper()] for base in x]))
     dataframe = dataframe.drop(columns=["sequence"])
