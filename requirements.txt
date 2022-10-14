@@ -1,3 +1,4 @@
+biopython==1.79
 hydra-core==1.2.0
 matplotlib==3.5.3
 numpy==1.21.6

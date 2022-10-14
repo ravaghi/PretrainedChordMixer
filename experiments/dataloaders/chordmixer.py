@@ -1,4 +1,5 @@
 from torch.utils.data import Dataset, DataLoader
+from Bio import SeqIO
 import pandas as pd
 import numpy as np
 import torch
@@ -73,6 +74,27 @@ def process_enhancer_prediction_dataframe(dataframe):
     return dataframe
 
 
+def process_variant_effect_prediction_dataframe(dataframe):
+    sequence_path = os.path.join(BASE_DIR, "data", "variant_effect_prediction", "hg38.fa")
+    sequences = SeqIO.to_dict(SeqIO.parse(sequence_path, "fasta"))
+    
+    dataframe["sequence"] = dataframe.apply(lambda x: sequences[x.chr].seq[x.pos-20_000:x.pos+20_000], axis=1)
+    
+    dataframe["new_seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base.upper()] for base in x]))
+    dataframe = dataframe.drop(columns=["sequence"])
+    dataframe = dataframe.rename(columns={"new_seq": "sequence"})
+    
+    dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
+    
+    percentiles = [i * 0.1 for i in range(10)] + [.95, .99, .995]
+    bins = np.quantile(dataframe['len'], percentiles)
+    bin_labels = [i for i in range(len(bins) - 1)]
+    dataframe['bin'] = pd.cut(dataframe['len'], bins=bins, labels=bin_labels)
+    dataframe = dataframe[['sequence', 'label', 'len', 'bin']]
+    
+    return dataframe
+
+
 class DatasetCreator(Dataset):
     def __init__(self, df, batch_size, var_len=False):
         if var_len:
@@ -111,6 +133,11 @@ class ChordMixerDataLoader:
         elif "enhancer" in self.dataset_name.lower():
             dataframe = pd.read_csv(data_path)
             dataframe = process_enhancer_prediction_dataframe(dataframe)
+        elif "variant" in self.dataset_name.lower():
+            dataframe = pd.read_csv(data_path)
+            dataframe = process_variant_effect_prediction_dataframe(dataframe)
+        else:
+            raise ValueError(f"Dataset {self.dataset_name} name not recognized")
 
         dataset = DatasetCreator(
             df=dataframe,

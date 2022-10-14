@@ -43,12 +43,10 @@ def get_class_weights(dataset_name, path, train_data):
     
     if "taxonomy" in dataset_name.lower():
         train_data = pd.read_pickle(train_data_path)
-        class_weights = compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])
-    elif "enhancer" in dataset_name.lower():
+    else:
         train_data = pd.read_csv(train_data_path)
-        class_weights = compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])
         
-    return class_weights
+    return compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])
 
 
 def init_weights(model):

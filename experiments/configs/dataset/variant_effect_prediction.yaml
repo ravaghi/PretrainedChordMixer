@@ -1,3 +1,9 @@
 name: VariantEffectPrediction
-train_data_path: ${hydra:runtime.cwd}/../data/variant_effect_prediction/label811_49_train.csv
-val_data_path: ${hydra:runtime.cwd}/../data/variant_effect_prediction/label811_49_val.csv
+path: ${hydra:runtime.cwd}/../data/variant_effect_prediction
+train_data: label811_49_train.csv
+val_data: label811_49_val.csv
+test_data: label811_49_test.csv
+max_seq_len: 40000
+vocab_size: 20
+n_class: 2
+batch_size: 2

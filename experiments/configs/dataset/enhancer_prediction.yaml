@@ -6,4 +6,4 @@ test_data: vista_enhancer_test.csv
 max_seq_len: 8062
 vocab_size: 5
 n_class: 2
-batch_size: 4
+batch_size: 2
