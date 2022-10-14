@@ -3,4 +3,6 @@ path: ${hydra:runtime.cwd}/../data/taxonomy_classification
 train_data: sus_bos_train.pkl
 val_data: sus_bos_val.pkl
 max_seq_len: 447010
+vocab_size: 20
+n_class: 2
 batch_size: 1

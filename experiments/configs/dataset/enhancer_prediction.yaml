@@ -4,4 +4,6 @@ train_data: vista_enhancer_train.csv
 val_data: vista_enhancer_val.csv
 test_data: vista_enhancer_test.csv
 max_seq_len: 8062
+vocab_size: 5
+n_class: 2
 batch_size: 4
