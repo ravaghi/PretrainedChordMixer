@@ -2,7 +2,7 @@ name: TaxonomyClassificationCarassiusVsLabeo
 path: ${hydra:runtime.cwd}/../data/taxonomy_classification
 train_data: carassius_labeo_train.pkl
 val_data: carassius_labeo_val.pkl
-variable_length: false
+variable_length: true
 max_seq_len: 100101
 vocab_size: 20
 n_class: 2

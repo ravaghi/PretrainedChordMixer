@@ -85,6 +85,7 @@ def process_variant_effect_prediction_dataframe(dataframe):
     dataframe = dataframe.rename(columns={"new_seq": "sequence"})
     
     dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
+    dataframe = dataframe[dataframe["len"] > 1000]
     
     # percentiles = [i * 0.1 for i in range(10)] + [.95, .99, .995]
     # bins = np.quantile(dataframe['len'], percentiles)
