@@ -1,6 +1,7 @@
 _target_: models.chordmixer.ChordMixer
 vocab_size: ${dataset.vocab_size}
 max_seq_len: ${dataset.max_seq_len}
+variable_length: ${dataset.variable_length}
 track_size: 16
 hidden_size: 196
 mlp_dropout: 0

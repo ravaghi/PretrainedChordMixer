@@ -86,10 +86,11 @@ def process_variant_effect_prediction_dataframe(dataframe):
     
     dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
     
-    percentiles = [i * 0.1 for i in range(10)] + [.95, .99, .995]
-    bins = np.quantile(dataframe['len'], percentiles)
-    bin_labels = [i for i in range(len(bins) - 1)]
-    dataframe['bin'] = pd.cut(dataframe['len'], bins=bins, labels=bin_labels)
+    # percentiles = [i * 0.1 for i in range(10)] + [.95, .99, .995]
+    # bins = np.quantile(dataframe['len'], percentiles)
+    # bin_labels = [i for i in range(len(bins) - 1)]
+    # dataframe['bin'] = pd.cut(dataframe['len'], bins=bins, labels=bin_labels)
+    dataframe['bin'] = 1
     dataframe = dataframe[['sequence', 'label', 'len', 'bin']]
     
     return dataframe

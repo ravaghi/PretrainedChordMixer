@@ -27,9 +27,12 @@ class ChordMixerTrainer:
             x = x.to(self.device)
             y = y.to(self.device)
 
-            y_hat = self.model(x, seq_len)
+            if self.model.variable_length:
+                y_hat = self.model(x, seq_len)
+            else:
+                y_hat = self.model(x)
+                
             loss = self.criterion(y_hat, y)
-
             loss.backward()
 
             self.optimizer.step()
@@ -69,7 +72,11 @@ class ChordMixerTrainer:
                 x = x.to(self.device)
                 y = y.to(self.device)
 
-                y_hat = self.model(x, seq_len)
+                if self.model.variable_length:
+                    y_hat = self.model(x, seq_len)
+                else:
+                    y_hat = self.model(x)
+                
                 loss = self.criterion(y_hat, y)
                 
                 running_loss += loss.item()

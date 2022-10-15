@@ -114,6 +114,7 @@ class ChordMixer(nn.Module):
     def __init__(self,
                  vocab_size,
                  max_seq_len,
+                 variable_length,
                  track_size,
                  hidden_size,
                  mlp_dropout,
@@ -122,6 +123,7 @@ class ChordMixer(nn.Module):
                  ):
         super(ChordMixer, self).__init__()
         self.max_n_layers = math.ceil(np.log2(max_seq_len))
+        self.variable_length = variable_length
         n_tracks = math.ceil(np.log2(max_seq_len))
         embedding_size = int(n_tracks * track_size)
         # Init embedding layer
