@@ -1,6 +1,7 @@
 # Data
 *.fa
 *.pkl
+*.model
 
 # Logs
 outputs/
