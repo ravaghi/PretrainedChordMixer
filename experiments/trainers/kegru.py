@@ -41,7 +41,7 @@ class KeGruTrainer:
             
             running_loss += loss.item()
             total += y.size(0)
-           
+            
             predictions = y_hat.cpu().detach().numpy().reshape(y_hat.shape[0])
             targets = y.cpu().numpy().reshape(y_hat.shape[0])
             
@@ -70,11 +70,11 @@ class KeGruTrainer:
 
         num_batches = len(self.val_dataloader)
 
-        running_loss = 0
+        running_loss = 0.0
         correct = 0
         total = 0
         
-        train_aucs = []
+        val_aucs = []
 
         with torch.no_grad():
             loop = tqdm(enumerate(self.val_dataloader), total=num_batches)
@@ -88,12 +88,12 @@ class KeGruTrainer:
                 
                 running_loss += loss.item()
                 total += y.size(0)
-            
+                
                 predictions = y_hat.cpu().detach().numpy().reshape(y_hat.shape[0])
                 targets = y.cpu().numpy().reshape(y_hat.shape[0])
                 
                 cur_auc = metrics.roc_auc_score(targets, predictions)
-                train_aucs.append(cur_auc)
+                val_aucs.append(cur_auc)
                 
                 cur_accuracy = (predictions > 0.5) == targets
                 correct += np.sum(cur_accuracy)
@@ -107,7 +107,7 @@ class KeGruTrainer:
 
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
-        val_auc = np.mean(train_aucs)
+        val_auc = np.mean(val_aucs)
         wandb.log({'val_loss': validation_loss}, step=current_epoch_nr)
         wandb.log({'val_accuracy': validation_accuracy}, step=current_epoch_nr)
         wandb.log({'val_auc': val_auc}, step=current_epoch_nr)
