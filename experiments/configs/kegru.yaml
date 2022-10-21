@@ -1,6 +1,7 @@
 defaults:
   - _self_
   - model: kegru
+  - loss: binary_cross_entropy
   - optimizer: kegru_adam
   - dataset: ???
   - dataloader: kegru

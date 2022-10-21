@@ -13,12 +13,16 @@ DNA_BASE_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
 DNA_BASE_DICT_REVERSED = {0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M', 8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'}
 
 
-def pad_sequences(dataframe):
+def pad_sequences(dataframe, strategy="mean"):
     max_seq_len = dataframe["sequence"].apply(lambda x: len(x)).max()
     mean_seq_len = dataframe["sequence"].apply(lambda x: len(x)).mean()
     mean_seq_len = int(math.ceil(mean_seq_len))
     dataframe["sequence"] = dataframe["sequence"].str.pad(max_seq_len, side="right", fillchar="A")
-    dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x[:mean_seq_len].upper())
+    
+    if strategy == "mean":
+        dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x[:mean_seq_len].upper())
+    elif strategy == "max":
+        dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x.upper())
     return dataframe
 
 
@@ -32,7 +36,7 @@ def process_taxonomy_classification_dataframe(dataframe):
 
 
 def process_enhancer_prediction_dataframe(dataframe):
-    dataframe = pad_sequences(dataframe)
+    dataframe = pad_sequences(dataframe, "max")
     return dataframe[["sequence", "label"]]
 
 
@@ -53,7 +57,9 @@ class DatasetCreator(Dataset):
         self.embeddings = embeddings
     
         kmers = self.generate_kmers(data)
-        self.idx_data = torch.LongTensor(np.asarray([self.convert_data_to_index(kmer) for kmer in kmers]))
+        kmer_indices = [self.convert_data_to_index(kmer) for kmer in kmers]
+        kmer_indices = np.asarray(kmer_indices)
+        self.idx_data = torch.LongTensor(kmer_indices)
         self.labels = torch.from_numpy(np.asarray([[y] for y in data.label.to_list()], dtype=np.float32))
         self.len = len(self.idx_data)
 
@@ -68,15 +74,17 @@ class DatasetCreator(Dataset):
         for kmer in kmers:
             if kmer in self.embeddings:
                 idx_data.append(self.embeddings.key_to_index[kmer])
+            else:
+                idx_data.append(1)
         return idx_data
     
     def generate_kmers(self, data):
         sequences = data.sequence.to_list()
         kmers = []
-        for sequence in sequences:
+        for seq in sequences:
             temp_kmers = []
-            for i in range(0, (len(sequence) - self.kmer_length) + 1, self.stride):
-                temp_kmers.append(sequence[i:i + self.kmer_length])
+            for i in range(0, (len(seq) - self.kmer_length) + 1, self.stride):
+                temp_kmers.append(seq[i:i + self.kmer_length])
             kmers.append(temp_kmers)
         return kmers
 

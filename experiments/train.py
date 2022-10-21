@@ -31,13 +31,6 @@ def main(config):
 
     train_dataloader = instantiate(config=config.dataloader, dataset=config.dataset.train_data, dataset_name=config.dataset.name).create_dataloader()
     val_dataloader = instantiate(config=config.dataloader, dataset=config.dataset.val_data, dataset_name=config.dataset.name).create_dataloader()
-    
-    for i, (data, label) in enumerate(train_dataloader):
-        print(data.shape)
-        print(label.shape)
-        print(data)
-        print(label.T)
-        exit()
 
     trainer = instantiate(
         config=config.trainer,

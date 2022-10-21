@@ -52,7 +52,7 @@ class KeGruTrainer:
             correct += np.sum(cur_accuracy)
 
             loop.set_description(f'Epoch {current_epoch_nr + 1}')
-            loop.set_postfix(auc=round(cur_auc, 2))
+            loop.set_postfix(train_auc=round(cur_auc, 2))
             
             # if (idx + 1) % self.log_every_n_steps == 0:
             #     wandb.log({'train_loss': running_loss / (idx + 1)})
@@ -99,7 +99,7 @@ class KeGruTrainer:
                 correct += np.sum(cur_accuracy)
 
                 loop.set_description(f'Epoch {current_epoch_nr + 1}')
-                loop.set_postfix(auc=round(cur_auc, 2))
+                loop.set_postfix(val_auc=round(cur_auc, 2))
                 
                 # if (idx + 1) % self.log_every_n_steps == 0:
                 #     wandb.log({'val_loss': running_loss / (idx + 1)})
