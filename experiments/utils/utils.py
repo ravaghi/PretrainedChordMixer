@@ -29,11 +29,11 @@ def init_run(config):
     device = f'cuda:{config.general.device_id}' if torch.cuda.is_available() else 'cpu'
     print(f'Using device: {device}')
 
-    wandb.init(project=config.wandb.project,
-               entity=config.wandb.entity,
-               config=OmegaConf.to_container(config, resolve=True),
-               name=config.wandb.name.split(".")[-1],
-               dir=BASE_DIR)
+    # wandb.init(project=config.wandb.project,
+    #            entity=config.wandb.entity,
+    #            config=OmegaConf.to_container(config, resolve=True),
+    #            name=config.wandb.name.split(".")[-1],
+    #            dir=BASE_DIR)
 
     return device
 

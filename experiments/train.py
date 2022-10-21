@@ -20,11 +20,24 @@ def main(config):
         criterion = instantiate(config=config.loss, weight=class_weights)
     else:
         criterion = instantiate(config=config.loss)
-
-    optimizer = instantiate(config=config.optimizer, params=model.parameters())
+        
+    try:
+        # Used in KeGru
+        model_params = [model.hidden_weights, model.hidden_bias] + [param for param in model.parameters()]
+    except AttributeError:
+        model_params = model.parameters()
+        
+    optimizer = instantiate(config=config.optimizer, params=model_params)
 
     train_dataloader = instantiate(config=config.dataloader, dataset=config.dataset.train_data, dataset_name=config.dataset.name).create_dataloader()
     val_dataloader = instantiate(config=config.dataloader, dataset=config.dataset.val_data, dataset_name=config.dataset.name).create_dataloader()
+    
+    for i, (data, label) in enumerate(train_dataloader):
+        print(data.shape)
+        print(label.shape)
+        print(data)
+        print(label.T)
+        exit()
 
     trainer = instantiate(
         config=config.trainer,

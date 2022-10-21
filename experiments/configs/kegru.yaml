@@ -1,17 +1,16 @@
 defaults:
   - _self_
-  - model: chordmixer
-  - loss: cross_entropy
-  - optimizer: adam
+  - model: kegru
+  - optimizer: kegru_adam
   - dataset: ???
-  - dataloader: chordmixer
-  - trainer: chordmixer
+  - dataloader: kegru
+  - trainer: kegru
   - wandb: wandb
 
 general:
   seed: 42
   device_id: 0
-  init_weights: true
+  init_weights: false
   compute_class_weights: true
   log_every_n_steps: 100
   max_epochs: 30

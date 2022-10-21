@@ -1,0 +1,8 @@
+_target_: models.kegru.KeGru
+num_layers: 1
+hidden_size: 50
+kmer_embedding_path: ${dataloader.kmer_embedding_path}
+kmer_embedding_name: ${dataloader.kmer_embedding_name}
+embedding_size: ${dataloader.embedding_size}
+dropout: 0.5
+device_id: ${general.device_id}
