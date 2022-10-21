@@ -6,4 +6,3 @@ variable_length: true
 max_seq_len: 447010
 vocab_size: 20
 n_class: 2
-batch_size: 1

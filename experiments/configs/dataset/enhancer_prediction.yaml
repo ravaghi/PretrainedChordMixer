@@ -7,4 +7,3 @@ variable_length: true
 max_seq_len: 8062
 vocab_size: 5
 n_class: 2
-batch_size: 2
