@@ -23,6 +23,8 @@ def pad_sequences(dataframe, strategy="mean"):
         dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x[:mean_seq_len].upper())
     elif strategy == "max":
         dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x.upper())
+    elif strategy == "constant":
+        dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x[10_000:20_000].upper())
     return dataframe
 
 
@@ -44,8 +46,8 @@ def process_variant_effect_prediction_dataframe(dataframe):
     sequence_path = os.path.join(BASE_DIR, "data", "variant_effect_prediction", "hg38.fa")
     sequences = SeqIO.to_dict(SeqIO.parse(sequence_path, "fasta"))
     dataframe["sequence"] = dataframe.apply(lambda x: str(sequences[x.chr].seq[x.pos-20_000:x.pos+20_000]), axis=1)  
-    dataframe = pad_sequences(dataframe) 
-    dataframe = dataframe.reset_index(drop=True)
+    dataframe = pad_sequences(dataframe, "constant") 
+    dataframe = dataframe.sample(frac=1).reset_index(drop=True)
     return dataframe[["sequence", "label"]]
 
 
@@ -115,6 +117,10 @@ class KeGruDataLoader:
             dataframe = process_variant_effect_prediction_dataframe(dataframe)
         else:
             raise ValueError(f"Dataset {self.dataset_name} name not recognized")
+        
+        print("-" * 30 + " config " + "-" * 30)
+        print("Sequence length: ", dataframe["sequence"].apply(lambda x: len(x)).max())
+        print("-" * 30 + " config " + "-" * 30)
         
         # Load pretrained embeddings
         model_path = os.path.join(self.kmer_embedding_path, self.kmer_embedding_name)
