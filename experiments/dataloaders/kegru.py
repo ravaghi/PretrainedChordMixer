@@ -118,10 +118,6 @@ class KeGruDataLoader:
         else:
             raise ValueError(f"Dataset {self.dataset_name} name not recognized")
         
-        print("-" * 30 + " config " + "-" * 30)
-        print("Sequence length: ", dataframe["sequence"].apply(lambda x: len(x)).max())
-        print("-" * 30 + " config " + "-" * 30)
-        
         # Load pretrained embeddings
         model_path = os.path.join(self.kmer_embedding_path, self.kmer_embedding_name)
         model = gensim.models.Word2Vec.load(model_path)
