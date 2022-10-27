@@ -37,11 +37,6 @@ def process_taxonomy_classification_dataframe(dataframe):
     return dataframe[["sequence", "label"]]
 
 
-def process_enhancer_prediction_dataframe(dataframe):
-    dataframe = pad_sequences(dataframe, "max")
-    return dataframe[["sequence", "label"]]
-
-
 def process_variant_effect_prediction_dataframe(dataframe):
     sequence_path = os.path.join(BASE_DIR, "data", "variant_effect_prediction", "hg38.fa")
     sequences = SeqIO.to_dict(SeqIO.parse(sequence_path, "fasta"))
@@ -49,7 +44,6 @@ def process_variant_effect_prediction_dataframe(dataframe):
     dataframe = pad_sequences(dataframe, "constant") 
     dataframe = dataframe.sample(frac=1).reset_index(drop=True)
     return dataframe[["sequence", "label"]]
-
 
 
 class DatasetCreator(Dataset):
@@ -109,9 +103,6 @@ class KeGruDataLoader:
         if "taxonomy" in self.dataset_name.lower():
             dataframe = pd.read_pickle(data_path)
             dataframe = process_taxonomy_classification_dataframe(dataframe)
-        elif "enhancer" in self.dataset_name.lower():
-            dataframe = pd.read_csv(data_path)
-            dataframe = process_enhancer_prediction_dataframe(dataframe)
         elif "variant" in self.dataset_name.lower():
             dataframe = pd.read_csv(data_path)
             dataframe = process_variant_effect_prediction_dataframe(dataframe)

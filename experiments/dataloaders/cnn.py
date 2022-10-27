@@ -41,13 +41,6 @@ def process_taxonomy_classification_dataframe(dataframe, dataset_name):
     print(dataframe)
     return dataframe[["sequence", "label"]]
 
-
-def process_enhancer_prediction_dataframe(dataframe):
-    dataframe = pad_sequences(dataframe, max_len=5000)
-    dataframe = convert_base_to_index(dataframe)
-    return dataframe[["sequence", "label"]]
-
-
 def process_variant_effect_prediction_dataframe(dataframe):
     sequence_path = os.path.join(BASE_DIR, "data", "variant_effect_prediction", "hg38.fa")
     sequences = SeqIO.to_dict(SeqIO.parse(sequence_path, "fasta"))
@@ -70,9 +63,6 @@ class CNNDataLoader:
         if "taxonomy" in self.dataset_name.lower():
             dataframe = pd.read_pickle(data_path)
             dataframe = process_taxonomy_classification_dataframe(dataframe, self.dataset_name)
-        elif "enhancer" in self.dataset_name.lower():
-            dataframe = pd.read_csv(data_path)
-            dataframe = process_enhancer_prediction_dataframe(dataframe)
         elif "variant" in self.dataset_name.lower():
             dataframe = pd.read_csv(data_path)
             dataframe = process_variant_effect_prediction_dataframe(dataframe)

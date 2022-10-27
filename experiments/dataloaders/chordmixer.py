@@ -58,22 +58,6 @@ def concater_collate(batch):
     return xx, yy, list(lengths), list(bins)
 
 
-def process_enhancer_prediction_dataframe(dataframe):
-    dataframe["new_seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base.upper()] for base in x]))
-    dataframe = dataframe.drop(columns=["sequence"])
-    dataframe = dataframe.rename(columns={"new_seq": "sequence"})
-    
-    dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
-    
-    percentiles = [i * 0.1 for i in range(10)] + [.95, .99, .995]
-    bins = np.quantile(dataframe['len'], percentiles)
-    bin_labels = [i for i in range(len(bins) - 1)]
-    dataframe['bin'] = pd.cut(dataframe['len'], bins=bins, labels=bin_labels)
-    dataframe = dataframe[['sequence', 'label', 'len', 'bin']]
-    
-    return dataframe
-
-
 def process_variant_effect_prediction_dataframe(dataframe):
     sequence_path = os.path.join(BASE_DIR, "data", "variant_effect_prediction", "hg38.fa")
     sequences = SeqIO.to_dict(SeqIO.parse(sequence_path, "fasta"))
@@ -132,9 +116,6 @@ class ChordMixerDataLoader:
         
         if "taxonomy" in self.dataset_name.lower():
             dataframe = pd.read_pickle(data_path)
-        elif "enhancer" in self.dataset_name.lower():
-            dataframe = pd.read_csv(data_path)
-            dataframe = process_enhancer_prediction_dataframe(dataframe)
         elif "variant" in self.dataset_name.lower():
             dataframe = pd.read_csv(data_path)
             dataframe = process_variant_effect_prediction_dataframe(dataframe)
