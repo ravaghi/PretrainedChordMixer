@@ -1,0 +1,21 @@
+defaults:
+  - _self_
+  - model: poolformer
+  - loss: cross_entropy
+  - optimizer: poolformer_adam
+  - dataset: ???
+  - dataloader: poolformer
+  - trainer: poolformer
+  - wandb: wandb
+
+general:
+  seed: 42
+  device_id: 0
+  init_weights: true
+  compute_class_weights: true
+  log_every_n_steps: 100
+  max_epochs: 30
+
+hydra:
+  run:
+    dir: ${hydra:runtime.cwd}/../outputs
