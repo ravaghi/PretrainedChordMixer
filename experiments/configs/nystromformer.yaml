@@ -1,0 +1,21 @@
+defaults:
+  - _self_
+  - model: nystromformer
+  - loss: cross_entropy
+  - optimizer: nystromformer_adam
+  - dataset: ???
+  - dataloader: nystromformer
+  - trainer: nystromformer
+  - wandb: wandb
+
+general:
+  seed: 42
+  device_id: 0
+  init_weights: false
+  compute_class_weights: true
+  log_every_n_steps: 100
+  max_epochs: 30
+
+hydra:
+  run:
+    dir: ${hydra:runtime.cwd}/../outputs
