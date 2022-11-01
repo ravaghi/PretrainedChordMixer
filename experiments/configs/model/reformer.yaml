@@ -1,0 +1,9 @@
+_target_: models.reformer.Reformer
+vocab_size: ${dataset.vocab_size}
+embedding_size: 64
+num_heads: 2
+num_layers: 1
+const_vector_length: 16000
+n_class: ${dataset.n_class}
+pooling: flatten
+device_id: ${general.device_id}
