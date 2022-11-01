@@ -1,6 +1,7 @@
 biopython==1.79
 gensim==4.2.0
 hydra-core==1.2.0
+linformer==0.2.1
 matplotlib==3.5.3
 numpy==1.21.6
 nystrom-attention==0.0.11
