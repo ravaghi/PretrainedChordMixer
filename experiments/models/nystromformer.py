@@ -4,14 +4,15 @@ from nystrom_attention import Nystromformer as NystromformerModel
 
 
 class Nystromformer(nn.Module):
-    def __init__(self, vocab_size, embedding_size, num_heads, num_layers, const_vector_length, n_class, pooling, device_id):
+    def __init__(self, vocab_size, embedding_size, num_heads, num_layers, const_vector_length, n_class, pooling,
+                 device_id):
         super(Nystromformer, self).__init__()
         self.device = f"cuda:{device_id}" if torch.cuda.is_available() else "cpu"
         self.encoder = nn.Embedding(vocab_size, embedding_size)
         self.posenc = nn.Embedding(const_vector_length, embedding_size)
         self.nystromformermodel = NystromformerModel(
             dim=embedding_size,
-            dim_head=int(embedding_size/num_heads),
+            dim_head=int(embedding_size / num_heads),
             heads=num_heads,
             depth=num_layers,
             num_landmarks=256,  # number of landmarks
@@ -21,13 +22,14 @@ class Nystromformer(nn.Module):
         self.pooling = pooling
         self.final = nn.Linear(embedding_size, n_class)
         if self.pooling == 'flatten':
-            self.final = nn.Linear(embedding_size*const_vector_length, n_class)
+            self.final = nn.Linear(embedding_size * const_vector_length, n_class)
         self.linear = nn.Linear(2, embedding_size, bias=True)
 
     def forward(self, x):
         x = self.encoder(x)
-        positions = torch.arange(0, self.const_vector_length).expand(x.size(0), self.const_vector_length).to(self.device)
-        #x = self.dropout1(x)
+        positions = torch.arange(0, self.const_vector_length).expand(x.size(0), self.const_vector_length).to(
+            self.device)
+        # x = self.dropout1(x)
         x = self.posenc(positions) + x
         x = self.nystromformermodel(x)
         if self.pooling == 'avg':

@@ -9,11 +9,12 @@ defaults:
   - wandb: wandb
 
 general:
+  name: Nystromformer
   seed: 42
   device_id: 0
   init_weights: false
   compute_class_weights: true
-  log_every_n_steps: 100
+  batch_size: 4
   max_epochs: 30
 
 hydra:

@@ -4,8 +4,8 @@ from tqdm import tqdm
 import gensim
 import os
 
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def get_sequences_list():
     sequences_list = []
@@ -16,7 +16,7 @@ def get_sequences_list():
         if len(sequence_str) < 1000_000:
             sequences_list.append(sequence_str)
         else:
-            sequences_list.append(sequence_str[:1000_000])    
+            sequences_list.append(sequence_str[:1000_000])
 
     return sequences_list
 
@@ -34,11 +34,12 @@ def generate_kmers(sequences, kmer_length, stride):
 def generate_kmer_embeddings(sequences, kmer_length, stride, embedding_size, epochs):
     model_name = "K{}_S{}_L{}.model".format(kmer_length, stride, embedding_size)
     kmers = generate_kmers(sequences, kmer_length, stride)
-    model = gensim.models.Word2Vec(kmers, vector_size=embedding_size, workers=multiprocessing.cpu_count()-1)
+    model = gensim.models.Word2Vec(kmers, vector_size=embedding_size, workers=multiprocessing.cpu_count() - 1)
     print(f"Training {model_name}...")
     model.train(kmers, total_examples=len(kmers), epochs=epochs)
     model.save(model_name)
-    
+
+
 if __name__ == "__main__":
     sequences = get_sequences_list()
     for kmer_length in [5, 4, 6]:

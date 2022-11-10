@@ -1,4 +1,4 @@
 _target_: dataloaders.nystromformer.NystromformerDataLoader
 data_path: ${dataset.path}
 dataset: ???
-batch_size: 4
+batch_size: ${general.batch_size}

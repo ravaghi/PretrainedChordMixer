@@ -9,8 +9,10 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-DNA_BASE_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7, 'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14}
-DNA_BASE_DICT_REVERSED = {0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M', 8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'}
+DNA_BASE_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7, 'W': 8, 'K': 9, 'S': 10, 'B': 11,
+                 'H': 12, 'D': 13, 'V': 14}
+DNA_BASE_DICT_REVERSED = {0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M', 8: 'W', 9: 'K', 10: 'S',
+                          11: 'B', 12: 'H', 13: 'D', 14: 'V'}
 
 
 def pad_sequences(dataframe, strategy="mean"):
@@ -18,7 +20,7 @@ def pad_sequences(dataframe, strategy="mean"):
     mean_seq_len = dataframe["sequence"].apply(lambda x: len(x)).mean()
     mean_seq_len = int(math.ceil(mean_seq_len))
     dataframe["sequence"] = dataframe["sequence"].str.pad(max_seq_len, side="right", fillchar="A")
-    
+
     if strategy == "mean":
         dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x[:mean_seq_len].upper())
     elif strategy == "max":
@@ -29,7 +31,8 @@ def pad_sequences(dataframe, strategy="mean"):
 
 
 def process_taxonomy_classification_dataframe(dataframe):
-    dataframe["new_sequences"] = dataframe["sequence"].apply(lambda x: "".join([DNA_BASE_DICT_REVERSED[base] for base in x]))
+    dataframe["new_sequences"] = dataframe["sequence"].apply(
+        lambda x: "".join([DNA_BASE_DICT_REVERSED[base] for base in x]))
     dataframe = dataframe.drop(columns=["sequence", "len", "bin"])
     dataframe = dataframe.rename(columns={"new_sequences": "sequence"})
     dataframe = pad_sequences(dataframe)
@@ -40,18 +43,18 @@ def process_taxonomy_classification_dataframe(dataframe):
 def process_variant_effect_prediction_dataframe(dataframe):
     sequence_path = os.path.join(BASE_DIR, "data", "variant_effect_prediction", "hg38.fa")
     sequences = SeqIO.to_dict(SeqIO.parse(sequence_path, "fasta"))
-    dataframe["sequence"] = dataframe.apply(lambda x: str(sequences[x.chr].seq[x.pos-20_000:x.pos+20_000]), axis=1)  
-    dataframe = pad_sequences(dataframe, "constant") 
+    dataframe["sequence"] = dataframe.apply(lambda x: str(sequences[x.chr].seq[x.pos - 20_000:x.pos + 20_000]), axis=1)
+    dataframe = pad_sequences(dataframe, "constant")
     dataframe = dataframe.sample(frac=1).reset_index(drop=True)
     return dataframe[["sequence", "label"]]
 
 
 class DatasetCreator(Dataset):
-    def __init__(self, data, embeddings, kmer_length, stride):        
+    def __init__(self, data, embeddings, kmer_length, stride):
         self.kmer_length = kmer_length
         self.stride = stride
         self.embeddings = embeddings
-    
+
         kmers = self.generate_kmers(data)
         kmer_indices = [self.convert_data_to_index(kmer) for kmer in kmers]
         kmer_indices = np.asarray(kmer_indices)
@@ -73,7 +76,7 @@ class DatasetCreator(Dataset):
             else:
                 idx_data.append(1)
         return idx_data
-    
+
     def generate_kmers(self, data):
         sequences = data.sequence.to_list()
         kmers = []
@@ -86,7 +89,8 @@ class DatasetCreator(Dataset):
 
 
 class KeGruDataLoader:
-    def __init__(self, data_path, dataset, dataset_name, batch_size, kmer_length, stride, embedding_size, kmer_embedding_path, kmer_embedding_name):
+    def __init__(self, data_path, dataset, dataset_name, batch_size, kmer_length, stride, embedding_size,
+                 kmer_embedding_path, kmer_embedding_name):
         self.data_path = data_path
         self.dataset = dataset
         self.dataset_name = dataset_name
@@ -99,7 +103,7 @@ class KeGruDataLoader:
 
     def create_dataloader(self):
         data_path = os.path.join(self.data_path, self.dataset)
-        
+
         if "taxonomy" in self.dataset_name.lower():
             dataframe = pd.read_pickle(data_path)
             dataframe = process_taxonomy_classification_dataframe(dataframe)
@@ -108,14 +112,14 @@ class KeGruDataLoader:
             dataframe = process_variant_effect_prediction_dataframe(dataframe)
         else:
             raise ValueError(f"Dataset {self.dataset_name} name not recognized")
-        
+
         # Load pretrained embeddings
         model_path = os.path.join(self.kmer_embedding_path, self.kmer_embedding_name)
         model = gensim.models.Word2Vec.load(model_path)
         word_vectors = model.wv
 
         dataset = DatasetCreator(dataframe, word_vectors, self.kmer_length, self.stride)
-        
+
         return DataLoader(
             dataset,
             batch_size=self.batch_size,

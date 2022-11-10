@@ -10,8 +10,14 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-DNA_BASE_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7, 'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14}
-DNA_BASE_DICT_REVERSED = {0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M', 8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'}
+DNA_BASE_DICT = {
+    'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
+    'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14
+}
+DNA_BASE_DICT_REVERSED = {
+    0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M',
+    8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'
+}
 
 
 def seed_everything(seed=42):
@@ -26,10 +32,10 @@ def init_run(config):
     seed_everything(config.general.seed)
 
     wandb.init(project=config.wandb.project,
-                entity=config.wandb.entity,
-                config=OmegaConf.to_container(config, resolve=True),
-                name=config.wandb.name.split(".")[-1],
-                dir=BASE_DIR)
+               entity=config.wandb.entity,
+               config=OmegaConf.to_container(config, resolve=True),
+               name=config.wandb.name,
+               dir=BASE_DIR)
 
     print("-" * 30 + " config " + "-" * 30)
     print(OmegaConf.to_yaml(config))
@@ -43,12 +49,12 @@ def init_run(config):
 
 def get_class_weights(dataset_name, path, train_data):
     train_data_path = os.path.join(path, train_data)
-    
+
     if "taxonomy" in dataset_name.lower():
         train_data = pd.read_pickle(train_data_path)
     else:
         train_data = pd.read_csv(train_data_path)
-        
+
     return compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])
 
 

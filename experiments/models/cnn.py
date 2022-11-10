@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+
 class CNN(nn.Module):
     def __init__(self, vocab_size, feature_size):
         super(CNN, self).__init__()
@@ -12,13 +13,13 @@ class CNN(nn.Module):
         self.conv1 = nn.Conv1d(in_channels=2,
                                out_channels=100,
                                kernel_size=6,
-                               stride = 3,
-                               padding = 1)
+                               stride=3,
+                               padding=1)
         self.conv2 = nn.Conv1d(in_channels=100,
                                out_channels=400,
                                kernel_size=6,
-                               stride = 3,
-                               padding = 1)
+                               stride=3,
+                               padding=1)
 
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool1d(3, 2, 1)
@@ -35,8 +36,7 @@ class CNN(nn.Module):
         num_features = 1
         for s in size:
             num_features *= s
-        return num_features        
-
+        return num_features
 
     def forward(self, x):
         x = x.to(torch.int64)

@@ -7,7 +7,9 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-DNA_BASE_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7, 'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14}
+DNA_BASE_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7, 'W': 8, 'K': 9, 'S': 10, 'B': 11,
+                 'H': 12, 'D': 13, 'V': 14}
+
 
 def complete_batch(df, batch_size):
     """
@@ -61,23 +63,23 @@ def concater_collate(batch):
 def process_variant_effect_prediction_dataframe(dataframe):
     sequence_path = os.path.join(BASE_DIR, "data", "variant_effect_prediction", "hg38.fa")
     sequences = SeqIO.to_dict(SeqIO.parse(sequence_path, "fasta"))
-    
-    dataframe["sequence"] = dataframe.apply(lambda x: str(sequences[x.chr].seq[x.pos-20_000:x.pos+20_000]), axis=1)
-    
+
+    dataframe["sequence"] = dataframe.apply(lambda x: str(sequences[x.chr].seq[x.pos - 20_000:x.pos + 20_000]), axis=1)
+
     dataframe["new_seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base.upper()] for base in x]))
     dataframe = dataframe.drop(columns=["sequence"])
     dataframe = dataframe.rename(columns={"new_seq": "sequence"})
-    
+
     dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
     dataframe = dataframe[dataframe["len"] > 1000]
-    
+
     # percentiles = [i * 0.1 for i in range(10)] + [.95, .99, .995]
     # bins = np.quantile(dataframe['len'], percentiles)
     # bin_labels = [i for i in range(len(bins) - 1)]
     # dataframe['bin'] = pd.cut(dataframe['len'], bins=bins, labels=bin_labels)
     dataframe['bin'] = 1
     dataframe = dataframe[['sequence', 'label', 'len', 'bin']]
-    
+
     return dataframe
 
 
@@ -113,7 +115,7 @@ class ChordMixerDataLoader:
 
     def create_dataloader(self):
         data_path = os.path.join(self.data_path, self.dataset)
-        
+
         if "taxonomy" in self.dataset_name.lower():
             dataframe = pd.read_pickle(data_path)
         elif "variant" in self.dataset_name.lower():

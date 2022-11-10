@@ -26,6 +26,7 @@ class FastaStringExtractor:
     def close(self):
         return self.fasta.close()
 
+
 def variant_sequence_extractor(chr, pos, ref, alt, length, fasta_extractor):
     variant = Variant(chr, pos, ref, alt)
     interval = Interval(variant.chrom, variant.start, variant.start).resize(length)
@@ -34,6 +35,7 @@ def variant_sequence_extractor(chr, pos, ref, alt, length, fasta_extractor):
     reference = seq_extractor.extract(interval, [], anchor=center)
     alternate = seq_extractor.extract(interval, [variant], anchor=center)
     return reference, alternate
+
 
 def get_data(dataframe, length, fasta_extractor):
     ref_all = []
@@ -51,17 +53,15 @@ def get_data(dataframe, length, fasta_extractor):
 
     return ref_all, alt_all, tissue_all, label_all
 
-    
+
 fasta_extractor = FastaStringExtractor("hg38.fa")
 cols = ["reference", "alternate", "tissue", "label"]
 
 for dataset in ["train", "val", "test"]:
     dataframe = pd.read_csv(f'label811_49_{dataset}.csv')
     data = get_data(dataframe, 1000, fasta_extractor)
-    
+
     with open(f'variant_effect_prediction_{dataset}.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerow(cols)
         writer.writerows(zip(*data))
-            
-

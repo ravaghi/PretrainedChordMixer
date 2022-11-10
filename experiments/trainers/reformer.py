@@ -13,16 +13,16 @@ class ReformerTrainer:
         self.criterion = criterion
         self.optimizer = optimizer
         self.log_every_n_steps = log_every_n_steps
-        
+
     def train(self, current_epoch_nr):
         self.model.train()
-        
+
         num_batches = len(self.train_dataloader)
-        
+
         running_loss = 0.0
         correct = 0
         total = 0
-        
+
         preds = []
         targets = []
 
@@ -32,26 +32,26 @@ class ReformerTrainer:
             y = y.to(self.device)
 
             y_hat = self.model(x)
-                
+
             loss = self.criterion(y_hat, y)
             loss.backward()
 
             self.optimizer.step()
             self.optimizer.zero_grad()
-            
+
             running_loss += loss.item()
 
             _, predicted = y_hat.max(1)
             total += y.size(0)
             correct += predicted.eq(y).sum().item()
-            
+
             targets.extend(y.detach().cpu().numpy().flatten())
             preds.extend(predicted.detach().cpu().numpy().flatten())
 
             loop.set_description(f'Epoch {current_epoch_nr + 1}')
             loop.set_postfix(train_acc=round(correct / total, 2),
                              train_loss=round(running_loss / total, 2))
-            
+
             # if (idx + 1) % self.log_every_n_steps == 0:
             #     wandb.log({'train_loss': running_loss / (idx + 1)})
             #     wandb.log({'train_accuracy': correct / total})
@@ -71,7 +71,7 @@ class ReformerTrainer:
         running_loss = 0.0
         correct = 0
         total = 0
-        
+
         preds = []
         targets = []
 
@@ -80,24 +80,24 @@ class ReformerTrainer:
             for idx, (x, y) in loop:
                 x = x.to(self.device)
                 y = y.to(self.device)
-                    
+
                 y_hat = self.model(x)
-                
+
                 loss = self.criterion(y_hat, y)
-                
+
                 running_loss += loss.item()
 
                 _, predicted = y_hat.max(1)
                 total += y.size(0)
                 correct += predicted.eq(y).sum().item()
-                
+
                 targets.extend(y.detach().cpu().numpy().flatten())
                 preds.extend(predicted.detach().cpu().numpy().flatten())
 
                 loop.set_description(f'Epoch {current_epoch_nr + 1}')
                 loop.set_postfix(val_acc=round(correct / total, 2),
                                  val_loss=round(running_loss / total, 2))
-                
+
                 # if (idx + 1) % self.log_every_n_steps == 0:
                 #     wandb.log({'val_loss': running_loss / (idx + 1)})
                 #     wandb.log({'val_accuracy': correct / total})

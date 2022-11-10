@@ -1,19 +1,21 @@
 import torch
 import torch.nn as nn
 import gensim
-import os 
+import os
+
 
 class KeGru(nn.Module):
-    def __init__(self, num_layers, hidden_size, kmer_embedding_path, kmer_embedding_name, embedding_size, dropout, device_id):
+    def __init__(self, num_layers, hidden_size, kmer_embedding_path, kmer_embedding_name, embedding_size, dropout,
+                 device_id):
         super(KeGru, self).__init__()
-        
+
         device = torch.device(f'cuda:{device_id}' if torch.cuda.is_available() else 'cpu')
-        
+
         # Load pretrained embeddings
         model_path = os.path.join(kmer_embedding_path, kmer_embedding_name)
         model = gensim.models.Word2Vec.load(model_path)
         ke_weights = torch.FloatTensor(model.wv.vectors)
-        
+
         self.hidden_size = hidden_size
         self.embedding = nn.Embedding.from_pretrained(ke_weights, freeze=False)
         self.rnn = nn.GRU(embedding_size, hidden_size, num_layers=num_layers, bidirectional=True).to(device)
