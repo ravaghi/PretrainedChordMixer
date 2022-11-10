@@ -1,7 +1,13 @@
 # Data
 *.fa
+*.fai
+*.fasta
+*.bed
+*.gz
+*.tbi
 *.pkl
 *.model
+*.csv
 
 # Logs
 outputs/
