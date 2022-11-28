@@ -5,14 +5,14 @@ import wandb
 
 
 class ChordMixerTrainer:
-    def __init__(self, model, train_dataloader, val_dataloader, device, criterion, optimizer, log_every_n_steps):
+    def __init__(self, model, train_dataloader, val_dataloader, test_dataloader, device, criterion, optimizer):
         self.model = model
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
+        self.test_dataloader = test_dataloader
         self.device = device
         self.criterion = criterion
         self.optimizer = optimizer
-        self.log_every_n_steps = log_every_n_steps
 
     def train(self, current_epoch_nr):
         self.model.train()
@@ -36,6 +36,8 @@ class ChordMixerTrainer:
             else:
                 y_hat = self.model(x)
 
+ 
+
             loss = self.criterion(y_hat, y)
             loss.backward()
 
@@ -44,16 +46,15 @@ class ChordMixerTrainer:
 
             running_loss += loss.item()
 
-            _, predicted = y_hat.max(1)
+            #_, predicted = y_hat.max(1)
             total += y.size(0)
-            correct += predicted.eq(y).sum().item()
+            #correct += predicted.eq(y).sum().item()
 
             targets.extend(y.detach().cpu().numpy().flatten())
-            preds.extend(predicted.detach().cpu().numpy().flatten())
+            #preds.extend(predicted.detach().cpu().numpy().flatten())
 
             loop.set_description(f'Epoch {current_epoch_nr + 1}')
-            loop.set_postfix(train_acc=round(correct / total, 2),
-                             train_loss=round(running_loss / total, 2))
+            loop.set_postfix(train_loss=round(running_loss / total, 5))
 
             # if (idx + 1) % self.log_every_n_steps == 0:
             #     wandb.log({'train_loss': running_loss / (idx + 1)})

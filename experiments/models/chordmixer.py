@@ -149,7 +149,7 @@ class ChordMixer(nn.Module):
 
         self.final = nn.Linear(
             embedding_size,
-            n_class
+            19
         )
 
     def forward(self, data, lengths=None):

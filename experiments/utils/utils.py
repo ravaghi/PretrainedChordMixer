@@ -31,11 +31,11 @@ def seed_everything(seed=42):
 def init_run(config):
     seed_everything(config.general.seed)
 
-    wandb.init(project=config.wandb.project,
-               entity=config.wandb.entity,
-               config=OmegaConf.to_container(config, resolve=True),
-               name=config.wandb.name,
-               dir=BASE_DIR)
+    # wandb.init(project=config.wandb.project,
+    #            entity=config.wandb.entity,
+    #            config=OmegaConf.to_container(config, resolve=True),
+    #            name=config.wandb.name,
+    #            dir=BASE_DIR)
 
     print("-" * 30 + " config " + "-" * 30)
     print(OmegaConf.to_yaml(config))
@@ -47,7 +47,7 @@ def init_run(config):
     return device
 
 
-def get_class_weights(dataset_name, path, train_data):
+def get_class_weights(path, train_data):
     train_data_path = os.path.join(path, train_data)
     train_data = pd.read_csv(train_data_path)
     return compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])

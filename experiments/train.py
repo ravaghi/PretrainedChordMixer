@@ -9,6 +9,7 @@ from utils.utils import init_run, init_weights, get_class_weights
 def main(config):
     device = init_run(config)
 
+    # Instantiate model based on config
     model = instantiate(config=config.model).to(device)
 
     # Weight initialization
@@ -16,8 +17,8 @@ def main(config):
         model.apply(init_weights)
 
     # Loss function
-    if config.general.compute_class_weights:
-        class_weights = get_class_weights(config.dataset.name, config.dataset.path, config.dataset.train_data)
+    if config.general.compute_class_weights and "Plant" not in config.dataset.name:
+        class_weights = get_class_weights(config.dataset.path, config.dataset.train_data)
         class_weights = torch.tensor(class_weights, dtype=torch.float).to(device)
         criterion = instantiate(config=config.loss, weight=class_weights)
     else:
