@@ -14,6 +14,7 @@ DNA_BASE_DICT_REVERSED = {
     8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'
 }
 
+
 def complete_batch(df, batch_size):
     complete_bins = []
     bins = [bin_df for _, bin_df in df.groupby('bin')]
@@ -55,38 +56,38 @@ def process_plant_deepsea_dataframe(dataframe):
     dataframe.drop(columns=["sequence"], inplace=True)
     dataframe.rename(columns={"new_seq": "sequence"}, inplace=True)
     return dataframe[['sequence', 'len', 'bin', 'ATAC_7days_leaf_rep1', 'ATAC_7days_leaf_rep2',
-       'ATAC_mesophyll_cell_rep1', 'ATAC_mesophyll_cell_rep2',
-       'ATAC_mesophyll_cell_rep3', 'ATAC_root_hair_rep1',
-       'ATAC_root_hair_rep2', 'ATAC_root_non_hair_rep1',
-       'ATAC_root_non_hair_rep2', 'ATAC_root_tip_rep1', 'ATAC_root_tip_rep2',
-       'ATAC_stem_cell_rep1', 'ATAC_stem_cell_rep2', 'ATAC_stem_cell_rep3',
-       'DNase_flower_14_days', 'DNase_inflorescence_normal',
-       'DNase_open_flower_normal', 'DNase_root_7_days',
-       'DNase_seedling_normal']]
+                      'ATAC_mesophyll_cell_rep1', 'ATAC_mesophyll_cell_rep2',
+                      'ATAC_mesophyll_cell_rep3', 'ATAC_root_hair_rep1',
+                      'ATAC_root_hair_rep2', 'ATAC_root_non_hair_rep1',
+                      'ATAC_root_non_hair_rep2', 'ATAC_root_tip_rep1', 'ATAC_root_tip_rep2',
+                      'ATAC_stem_cell_rep1', 'ATAC_stem_cell_rep2', 'ATAC_stem_cell_rep3',
+                      'DNase_flower_14_days', 'DNase_inflorescence_normal',
+                      'DNase_open_flower_normal', 'DNase_root_7_days',
+                      'DNase_seedling_normal']]
 
 
 class DatasetCreator(Dataset):
     def __init__(self, df, batch_size, var_len=False):
         if var_len:
             target_list = ['ATAC_7days_leaf_rep1', 'ATAC_7days_leaf_rep2',
-            'ATAC_mesophyll_cell_rep1', 'ATAC_mesophyll_cell_rep2',
-            'ATAC_mesophyll_cell_rep3', 'ATAC_root_hair_rep1',
-            'ATAC_root_hair_rep2', 'ATAC_root_non_hair_rep1',
-            'ATAC_root_non_hair_rep2', 'ATAC_root_tip_rep1', 'ATAC_root_tip_rep2',
-            'ATAC_stem_cell_rep1', 'ATAC_stem_cell_rep2', 'ATAC_stem_cell_rep3',
-            'DNase_flower_14_days', 'DNase_inflorescence_normal',
-            'DNase_open_flower_normal', 'DNase_root_7_days',
-            'DNase_seedling_normal']
+                           'ATAC_mesophyll_cell_rep1', 'ATAC_mesophyll_cell_rep2',
+                           'ATAC_mesophyll_cell_rep3', 'ATAC_root_hair_rep1',
+                           'ATAC_root_hair_rep2', 'ATAC_root_non_hair_rep1',
+                           'ATAC_root_non_hair_rep2', 'ATAC_root_tip_rep1', 'ATAC_root_tip_rep2',
+                           'ATAC_stem_cell_rep1', 'ATAC_stem_cell_rep2', 'ATAC_stem_cell_rep3',
+                           'DNase_flower_14_days', 'DNase_inflorescence_normal',
+                           'DNase_open_flower_normal', 'DNase_root_7_days',
+                           'DNase_seedling_normal']
             df = complete_batch(df=df, batch_size=batch_size)
             self.df = shuffle_batches(df=df)[['sequence', 'len', 'bin', 'ATAC_7days_leaf_rep1', 'ATAC_7days_leaf_rep2',
-                'ATAC_mesophyll_cell_rep1', 'ATAC_mesophyll_cell_rep2',
-                'ATAC_mesophyll_cell_rep3', 'ATAC_root_hair_rep1',
-                'ATAC_root_hair_rep2', 'ATAC_root_non_hair_rep1',
-                'ATAC_root_non_hair_rep2', 'ATAC_root_tip_rep1', 'ATAC_root_tip_rep2',
-                'ATAC_stem_cell_rep1', 'ATAC_stem_cell_rep2', 'ATAC_stem_cell_rep3',
-                'DNase_flower_14_days', 'DNase_inflorescence_normal',
-                'DNase_open_flower_normal', 'DNase_root_7_days',
-                'DNase_seedling_normal']]
+                                              'ATAC_mesophyll_cell_rep1', 'ATAC_mesophyll_cell_rep2',
+                                              'ATAC_mesophyll_cell_rep3', 'ATAC_root_hair_rep1',
+                                              'ATAC_root_hair_rep2', 'ATAC_root_non_hair_rep1',
+                                              'ATAC_root_non_hair_rep2', 'ATAC_root_tip_rep1', 'ATAC_root_tip_rep2',
+                                              'ATAC_stem_cell_rep1', 'ATAC_stem_cell_rep2', 'ATAC_stem_cell_rep3',
+                                              'DNase_flower_14_days', 'DNase_inflorescence_normal',
+                                              'DNase_open_flower_normal', 'DNase_root_7_days',
+                                              'DNase_seedling_normal']]
             self.targets = self.df[target_list].values
 
         else:
@@ -116,7 +117,7 @@ class ChordMixerDataLoader:
         dataframe = pd.read_csv(data_path)[:100]
 
         if "Plant" in self.dataset_name:
-            dataframe = process_plant_deepsea_dataframe(dataframe)        
+            dataframe = process_plant_deepsea_dataframe(dataframe)
 
         dataset = DatasetCreator(
             df=dataframe,
@@ -128,6 +129,6 @@ class ChordMixerDataLoader:
             dataset,
             batch_size=self.batch_size,
             shuffle=False,
-            #collate_fn=concater_collate,
+            # collate_fn=concater_collate,
             drop_last=False
         )

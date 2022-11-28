@@ -1,12 +1,13 @@
 import hydra
 import torch
 from hydra.utils import instantiate
+from omegaconf import DictConfig
 
 from utils.utils import init_run, init_weights, get_class_weights
 
 
 @hydra.main(config_path="configs", version_base=None)
-def main(config):
+def main(config: DictConfig) -> None:
     device = init_run(config)
 
     # Instantiate model based on config

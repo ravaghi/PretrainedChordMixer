@@ -1,18 +1,11 @@
 from tqdm import tqdm
 from sklearn import metrics
 import torch
-import wandb
+
+from trainer import Trainer
 
 
-class PoolformerTrainer:
-    def __init__(self, model, train_dataloader, val_dataloader, device, criterion, optimizer, log_every_n_steps):
-        self.model = model
-        self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
-        self.device = device
-        self.criterion = criterion
-        self.optimizer = optimizer
-        self.log_every_n_steps = log_every_n_steps
+class PoolformerTrainer(Trainer):
 
     def train(self, current_epoch_nr):
         self.model.train()
@@ -26,8 +19,9 @@ class PoolformerTrainer:
         preds = []
         targets = []
 
-        loop = tqdm(enumerate(self.train_dataloader), total=num_batches)
-        for idx, (x, y) in loop:
+        loop = tqdm(self.train_dataloader, total=num_batches)
+        for batch in loop:
+            x, y = batch
             x = x.to(self.device)
             y = y.to(self.device)
 
@@ -52,16 +46,17 @@ class PoolformerTrainer:
             loop.set_postfix(train_acc=round(correct / total, 2),
                              train_loss=round(running_loss / total, 2))
 
-            # if (idx + 1) % self.log_every_n_steps == 0:
-            #     wandb.log({'train_loss': running_loss / (idx + 1)})
-            #     wandb.log({'train_accuracy': correct / total})
-
         train_auc = metrics.roc_auc_score(targets, preds)
         train_accuracy = correct / total
         train_loss = running_loss / num_batches
-        wandb.log({'train_loss': train_loss}, step=current_epoch_nr)
-        wandb.log({'train_accuracy': train_accuracy}, step=current_epoch_nr)
-        wandb.log({'train_auc': train_auc}, step=current_epoch_nr)
+
+        self.log_metrics(
+            auc=train_auc,
+            accuracy=train_accuracy,
+            loss=train_loss,
+            current_epoch_nr=current_epoch_nr,
+            metric_type="train"
+        )
 
     def evaluate(self, current_epoch_nr):
         self.model.eval()
@@ -76,8 +71,9 @@ class PoolformerTrainer:
         targets = []
 
         with torch.no_grad():
-            loop = tqdm(enumerate(self.val_dataloader), total=num_batches)
-            for idx, (x, y) in loop:
+            loop = tqdm(self.val_dataloader, total=num_batches)
+            for batch in loop:
+                x, y = batch
                 x = x.to(self.device)
                 y = y.to(self.device)
 
@@ -98,13 +94,17 @@ class PoolformerTrainer:
                 loop.set_postfix(val_acc=round(correct / total, 2),
                                  val_loss=round(running_loss / total, 2))
 
-                # if (idx + 1) % self.log_every_n_steps == 0:
-                #     wandb.log({'val_loss': running_loss / (idx + 1)})
-                #     wandb.log({'val_accuracy': correct / total})
-
         val_auc = metrics.roc_auc_score(targets, preds)
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
-        wandb.log({'val_loss': validation_loss}, step=current_epoch_nr)
-        wandb.log({'val_accuracy': validation_accuracy}, step=current_epoch_nr)
-        wandb.log({'val_auc': val_auc}, step=current_epoch_nr)
+
+        self.log_metrics(
+            auc=val_auc,
+            accuracy=validation_accuracy,
+            loss=validation_loss,
+            current_epoch_nr=current_epoch_nr,
+            metric_type="val"
+        )
+
+    def test(self):
+        pass
