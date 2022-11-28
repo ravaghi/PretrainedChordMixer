@@ -49,12 +49,7 @@ def init_run(config):
 
 def get_class_weights(dataset_name, path, train_data):
     train_data_path = os.path.join(path, train_data)
-
-    if "taxonomy" in dataset_name.lower():
-        train_data = pd.read_pickle(train_data_path)
-    else:
-        train_data = pd.read_csv(train_data_path)
-
+    train_data = pd.read_csv(train_data_path)
     return compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])
 
 
