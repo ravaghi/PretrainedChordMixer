@@ -6,5 +6,4 @@ test_data: arabidopsis_thaliana_test.csv
 variable_length: false
 max_seq_len: 1000
 vocab_size: 20
-n_class: 2
-n_label: 19
+n_class: 19 
