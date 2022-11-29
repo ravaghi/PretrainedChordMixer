@@ -129,10 +129,11 @@ class ChordMixerDataLoader:
 
         if "Taxonomy" in self.dataset_name:
             dataframe = process_taxonomy_classification_dataframe(dataframe)
+
         if "Variant" in self.dataset_name:
             dataframe = process_variant_effect_prediction_dataframe(dataframe)
 
-        if "Taxonomy" or "Variant" in self.dataset_name:
+        if "Taxonomy" in self.dataset_name or "Variant" in self.dataset_name:
             dataset = DatasetCreator(
                 df=dataframe,
                 batch_size=self.batch_size,
