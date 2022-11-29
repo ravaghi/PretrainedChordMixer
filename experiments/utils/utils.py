@@ -31,11 +31,11 @@ def seed_everything(seed=42):
 def init_run(config):
     seed_everything(config.general.seed)
 
-    # wandb.init(project=config.wandb.project,
-    #            entity=config.wandb.entity,
-    #            config=OmegaConf.to_container(config, resolve=True),
-    #            name=config.wandb.name,
-    #            dir=BASE_DIR)
+    wandb.init(project=config.wandb.project,
+               entity=config.wandb.entity,
+               config=OmegaConf.to_container(config, resolve=True),
+               name=config.wandb.name,
+               dir=BASE_DIR)
 
     print("-" * 30 + " config " + "-" * 30)
     print(OmegaConf.to_yaml(config))

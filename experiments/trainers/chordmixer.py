@@ -2,11 +2,10 @@ from tqdm import tqdm
 from sklearn import metrics
 import torch
 
-from trainer import Trainer
+from .trainer import Trainer
 
 
 class ChordMixerTrainer(Trainer):
-
     def train(self, current_epoch_nr):
         self.model.train()
 
@@ -32,24 +31,29 @@ class ChordMixerTrainer(Trainer):
 
             loss = self.criterion(y_hat, y)
             loss.backward()
-
             self.optimizer.step()
             self.optimizer.zero_grad()
 
             running_loss += loss.item()
 
-            _, predicted = y_hat.max(1)
+            if self.model.n_class > 2:
+                y_hat = torch.sigmoid(y_hat)
+                predicted = torch.round(y_hat)
+                correct += predicted.eq(y).sum().item() / (y.shape[0] * y.shape[1])
+            else:
+                _, predicted = y_hat.max(1)
+                correct += predicted.eq(y).sum().item()
+
             total += y.size(0)
-            correct += predicted.eq(y).sum().item()
 
             targets.extend(y.detach().cpu().numpy().flatten())
             preds.extend(predicted.detach().cpu().numpy().flatten())
 
             loop.set_description(f'Epoch {current_epoch_nr + 1}')
-            loop.set_postfix(train_acc=round(correct / total, 2),
-                             train_loss=round(running_loss / total, 2))
+            loop.set_postfix(train_acc=round(correct / total, 3),
+                             train_loss=round(running_loss / total, 3))
 
-        train_auc = metrics.roc_auc_score(targets, preds)
+        train_auc = metrics.roc_auc_score(targets, preds, average=None)
         train_accuracy = correct / total
         train_loss = running_loss / num_batches
 
@@ -89,18 +93,24 @@ class ChordMixerTrainer(Trainer):
 
                 running_loss += loss.item()
 
-                _, predicted = y_hat.max(1)
-                total += y.size(0)
-                correct += predicted.eq(y).sum().item()
+                if self.model.n_class > 2:
+                    y_hat = torch.sigmoid(y_hat)
+                    predicted = torch.round(y_hat)
+                    correct += predicted.eq(y).sum().item() / (y.shape[0] * y.shape[1])
+                else:
+                    _, predicted = y_hat.max(1)
+                    correct += predicted.eq(y).sum().item()
 
+                total += y.size(0)
+                
                 targets.extend(y.detach().cpu().numpy().flatten())
                 preds.extend(predicted.detach().cpu().numpy().flatten())
 
                 loop.set_description(f'Epoch {current_epoch_nr + 1}')
-                loop.set_postfix(val_acc=round(correct / total, 2),
-                                 val_loss=round(running_loss / total, 2))
+                loop.set_postfix(val_acc=round(correct / total, 3),
+                                 val_loss=round(running_loss / total, 3))
 
-        val_auc = metrics.roc_auc_score(targets, preds)
+        val_auc = metrics.roc_auc_score(targets, preds, average=None)
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
 
@@ -113,4 +123,59 @@ class ChordMixerTrainer(Trainer):
         )
 
     def test(self):
-        pass
+        self.model.eval()
+
+        num_batches = len(self.test_dataloader)
+
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        preds = []
+        targets = []
+
+        with torch.no_grad():
+            loop = tqdm(self.test_dataloader, total=num_batches)
+            for batch in loop:
+                x, y, seq_len, _bin = batch
+                x = x.to(self.device)
+                y = y.to(self.device)
+
+                if self.model.variable_length:
+                    y_hat = self.model(x, seq_len)
+                else:
+                    y_hat = self.model(x)
+
+                loss = self.criterion(y_hat, y)
+
+                running_loss += loss.item()
+
+                if self.model.n_class > 2:
+                    y_hat = torch.sigmoid(y_hat)
+                    predicted = torch.round(y_hat)
+                    correct += predicted.eq(y).sum().item() / (y.shape[0] * y.shape[1])
+                else:
+                    _, predicted = y_hat.max(1)
+                    correct += predicted.eq(y).sum().item()
+
+                total += y.size(0)
+
+                targets.extend(y.detach().cpu().numpy().flatten())
+                preds.extend(predicted.detach().cpu().numpy().flatten())
+
+                loop.set_description(f'Testing')
+                loop.set_postfix(test_acc=round(correct / total, 3),
+                                 test_loss=round(running_loss / total, 3))
+
+        test_auc = metrics.roc_auc_score(targets, preds, average=None)
+        test_accuracy = correct / total
+        test_loss = running_loss / num_batches
+
+        self.log_metrics(
+            auc=test_auc,
+            accuracy=test_accuracy,
+            loss=test_loss,
+            current_epoch_nr=-1,
+            metric_type="test"
+        )
+
