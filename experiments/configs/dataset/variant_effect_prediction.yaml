@@ -3,7 +3,7 @@ path: ${hydra:runtime.cwd}/../data/variant_effect_prediction
 train_data: variant_effect_prediction_train.csv
 val_data: variant_effect_prediction_val.csv
 test_data: variant_effect_prediction_test.csv
-variable_length: false
-max_seq_len: 1000
+variable_length: true
+max_seq_len: 2000
 vocab_size: 20
 n_class: 2

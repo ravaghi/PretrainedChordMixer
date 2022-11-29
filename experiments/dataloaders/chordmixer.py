@@ -57,13 +57,23 @@ def process_taxonomy_classification_dataframe(dataframe):
     dataframe = dataframe[["sequence", "label", "bin", "len"]]
     return dataframe
 
-def process_plant_dataframe(dataframe):
+def process_plantdeepsea_dataframe(dataframe):
     dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
     dataframe = dataframe.drop(columns=['sequence'])
     dataframe = dataframe.rename(columns={'seq': 'sequence'})
     dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
     dataframe["bin"] = -1
     return dataframe
+
+def process_variant_effect_prediction_dataframe(dataframe):
+    dataframe["seq"] = dataframe["reference"] + dataframe["alternate"]
+    dataframe["sequence"] = dataframe["seq"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+    dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
+    dataframe["bin"] = -1
+    dataframe = dataframe[["sequence", "label", "bin", "len"]]
+    return dataframe
+
+
 
 class DatasetCreator(Dataset):
     def __init__(self, df, batch_size, var_len=False):
@@ -119,7 +129,10 @@ class ChordMixerDataLoader:
 
         if "Taxonomy" in self.dataset_name:
             dataframe = process_taxonomy_classification_dataframe(dataframe)
+        if "Variant" in self.dataset_name:
+            dataframe = process_variant_effect_prediction_dataframe(dataframe)
 
+        if "Taxonomy" or "Variant" in self.dataset_name:
             dataset = DatasetCreator(
                 df=dataframe,
                 batch_size=self.batch_size,
@@ -134,7 +147,7 @@ class ChordMixerDataLoader:
             )
 
         if "Plant" in self.dataset_name:
-            dataframe = process_plant_dataframe(dataframe)
+            dataframe = process_plantdeepsea_dataframe(dataframe)
 
             dataset = MultilabelDatasetCreator(
                 df=dataframe,
