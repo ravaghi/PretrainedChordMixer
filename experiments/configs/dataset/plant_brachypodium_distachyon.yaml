@@ -6,4 +6,4 @@ test_data: brachypodium_distachyon_test.csv
 variable_length: false
 max_seq_len: 1000
 vocab_size: 20
-n_class: 19 
+n_class: 9 
