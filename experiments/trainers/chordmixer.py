@@ -39,7 +39,7 @@ class ChordMixerTrainer(Trainer):
             if self.model.n_class > 2:
                 y_hat = torch.sigmoid(y_hat)
                 predicted = torch.round(y_hat)
-                correct += (predicted.eq(y).sum().item() / y.size(0))
+                correct += (predicted.eq(y).sum().item() / y.size(1))
             else:
                 _, predicted = y_hat.max(1)
                 correct += predicted.eq(y).sum().item()
@@ -96,7 +96,7 @@ class ChordMixerTrainer(Trainer):
                 if self.model.n_class > 2:
                     y_hat = torch.sigmoid(y_hat)
                     predicted = torch.round(y_hat)
-                    correct += (predicted.eq(y).sum().item() / y.size(0))
+                    correct += (predicted.eq(y).sum().item() / y.size(1))
                 else:
                     _, predicted = y_hat.max(1)
                     correct += predicted.eq(y).sum().item()
@@ -153,7 +153,7 @@ class ChordMixerTrainer(Trainer):
                 if self.model.n_class > 2:
                     y_hat = torch.sigmoid(y_hat)
                     predicted = torch.round(y_hat)
-                    correct += (predicted.eq(y).sum().item() / y.size(0))
+                    correct += (predicted.eq(y).sum().item() / y.size(1))
                 else:
                     _, predicted = y_hat.max(1)
                     correct += predicted.eq(y).sum().item()
