@@ -37,23 +37,22 @@ class ChordMixerTrainer(Trainer):
             running_loss += loss.item()
 
             if self.model.n_class > 2:
-                y_hat = torch.sigmoid(y_hat)
-                predicted = torch.round(y_hat)
-                correct += (predicted.eq(y).sum().item() / y.size(1))
+                predicted = y_hat
+                correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
             else:
                 _, predicted = y_hat.max(1)
                 correct += predicted.eq(y).sum().item()
 
             total += y.size(0)
 
-            targets.extend(y.detach().cpu().numpy().flatten())
-            preds.extend(predicted.detach().cpu().numpy().flatten())
+            targets.extend(y.detach().cpu().numpy())
+            preds.extend(predicted.detach().cpu().numpy())
 
             loop.set_description(f'Epoch {current_epoch_nr + 1}')
             loop.set_postfix(train_acc=round(correct / total, 3),
                              train_loss=round(running_loss / total, 3))
 
-        train_auc = metrics.roc_auc_score(targets, preds, average=None)
+        train_auc = metrics.roc_auc_score(targets, preds)
         train_accuracy = correct / total
         train_loss = running_loss / num_batches
 
@@ -94,23 +93,22 @@ class ChordMixerTrainer(Trainer):
                 running_loss += loss.item()
 
                 if self.model.n_class > 2:
-                    y_hat = torch.sigmoid(y_hat)
-                    predicted = torch.round(y_hat)
-                    correct += (predicted.eq(y).sum().item() / y.size(1))
+                    predicted = y_hat
+                    correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
                 else:
                     _, predicted = y_hat.max(1)
                     correct += predicted.eq(y).sum().item()
 
                 total += y.size(0)
                 
-                targets.extend(y.detach().cpu().numpy().flatten())
-                preds.extend(predicted.detach().cpu().numpy().flatten())
+                targets.extend(y.detach().cpu().numpy())
+                preds.extend(predicted.detach().cpu().numpy())
 
                 loop.set_description(f'Epoch {current_epoch_nr + 1}')
                 loop.set_postfix(val_acc=round(correct / total, 3),
                                  val_loss=round(running_loss / total, 3))
 
-        val_auc = metrics.roc_auc_score(targets, preds, average=None)
+        val_auc = metrics.roc_auc_score(targets, preds)
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
 
@@ -151,23 +149,22 @@ class ChordMixerTrainer(Trainer):
                 running_loss += loss.item()
 
                 if self.model.n_class > 2:
-                    y_hat = torch.sigmoid(y_hat)
-                    predicted = torch.round(y_hat)
-                    correct += (predicted.eq(y).sum().item() / y.size(1))
+                    predicted = y_hat
+                    correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
                 else:
                     _, predicted = y_hat.max(1)
                     correct += predicted.eq(y).sum().item()
 
                 total += y.size(0)
 
-                targets.extend(y.detach().cpu().numpy().flatten())
-                preds.extend(predicted.detach().cpu().numpy().flatten())
+                targets.extend(y.detach().cpu().numpy())
+                preds.extend(predicted.detach().cpu().numpy())
 
                 loop.set_description(f'Testing')
                 loop.set_postfix(test_acc=round(correct / total, 3),
                                  test_loss=round(running_loss / total, 3))
 
-        test_auc = metrics.roc_auc_score(targets, preds, average=None)
+        test_auc = metrics.roc_auc_score(targets, preds)
         test_accuracy = correct / total
         test_loss = running_loss / num_batches
 

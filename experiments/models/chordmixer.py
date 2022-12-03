@@ -165,6 +165,9 @@ class ChordMixer(nn.Module):
         for layer in range(n_layers):
             data = self.chordmixer_blocks[layer](data, lengths)
 
+        if self.n_class > 2:
+            data = data[:, 400:600, :]
+
         # sequence-aware average pooling
         if lengths:
             data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
@@ -172,4 +175,8 @@ class ChordMixer(nn.Module):
         else:
             data = torch.mean(data, dim=1)
         data = self.final(data)
+
+        if self.n_class > 2:
+            data = torch.sigmoid(data)
+
         return data

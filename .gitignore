@@ -8,6 +8,8 @@
 *.pkl
 *.model
 *.csv
+plant/
+processing/
 
 # Logs
 outputs/

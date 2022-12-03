@@ -12,8 +12,8 @@ general:
   name: ChordMixer
   seed: 42
   device_id: 0
-  init_weights: true
-  compute_class_weights: true
+  init_weights: false
+  compute_class_weights: false
   batch_size: 2
   max_epochs: 30
 

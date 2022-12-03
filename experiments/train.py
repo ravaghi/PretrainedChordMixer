@@ -51,6 +51,7 @@ def main(config: DictConfig) -> None:
         dataset_name=config.dataset.name
     ).create_dataloader()
 
+    # Model trainer
     trainer = instantiate(
         config=config.trainer,
         model=model,
