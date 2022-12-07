@@ -150,33 +150,58 @@ class ChordMixer(nn.Module):
 
         self.final = nn.Linear(
             embedding_size,
-            n_class
+            49
         )
 
-    def forward(self, data, lengths=None):
-        if lengths:
-            # variable lengths mode
-            n_layers = math.ceil(np.log2(lengths[0]))
-        else:
-            # equal lengths mode
-            n_layers = self.max_n_layers
+    def forward(self, x1, x2, tissue, lengths=None):
+        n_layers = self.max_n_layers
 
-        data = self.embedding(data)
+        y1 = self.embedding(x1)
         for layer in range(n_layers):
-            data = self.chordmixer_blocks[layer](data, lengths)
+            y1 = self.chordmixer_blocks[layer](y1, lengths)
 
-        if self.n_class > 2:
-            data = data[:, 400:600, :]
+        y2 = self.embedding(x2)
+        for layer in range(n_layers):
+            y2 = self.chordmixer_blocks[layer](y2, lengths)
 
-        # sequence-aware average pooling
-        if lengths:
-            data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
-            data = torch.stack(data)
-        else:
-            data = torch.mean(data, dim=1)
+        y = y1 - y2
+
+        data = y
+
+        data = torch.mean(data, dim=1)
+
         data = self.final(data)
-
-        if self.n_class > 2:
-            data = torch.sigmoid(data)
+        tissue = tissue.unsqueeze(0).t()
+        data = torch.gather(data, 1, tissue)  
+        data = data.reshape(-1)
+        data = torch.sigmoid(data)
 
         return data
+
+    # def forward(self, data, lengths=None):
+    #     if lengths:
+    #         # variable lengths mode
+    #         n_layers = math.ceil(np.log2(lengths[0]))
+    #     else:
+    #         # equal lengths mode
+    #         n_layers = self.max_n_layers
+
+    #     data = self.embedding(data)
+    #     for layer in range(n_layers):
+    #         data = self.chordmixer_blocks[layer](data, lengths)
+
+    #     if self.n_class > 2:
+    #         data = data[:, 400:600, :]
+
+    #     # sequence-aware average pooling
+    #     if lengths:
+    #         data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
+    #         data = torch.stack(data)
+    #     else:
+    #         data = torch.mean(data, dim=1)
+    #     data = self.final(data)
+
+    #     if self.n_class > 2:
+    #         data = torch.sigmoid(data)
+
+    #     return data

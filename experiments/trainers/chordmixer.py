@@ -20,14 +20,25 @@ class ChordMixerTrainer(Trainer):
 
         loop = tqdm(self.train_dataloader, total=num_batches)
         for batch in loop:
-            x, y, seq_len, _bin = batch
-            x = x.to(self.device)
-            y = y.to(self.device)
+            x1, x2, tissue, y = batch
 
-            if self.model.variable_length:
-                y_hat = self.model(x, seq_len)
-            else:
-                y_hat = self.model(x)
+            
+
+            x1 = x1.to(self.device)
+            x2 = x2.to(self.device)
+            tissue = tissue.to(self.device)
+            y = y.to(self.device).float()
+
+
+            y_hat = self.model(x1, x2, tissue)
+
+            # print(y_hat.dtype)
+            # print(y.dtype)
+
+            # print(y_hat)
+            # print(y)
+            # exit()
+
 
             loss = self.criterion(y_hat, y)
             loss.backward()
@@ -36,12 +47,15 @@ class ChordMixerTrainer(Trainer):
 
             running_loss += loss.item()
 
-            if self.model.n_class > 2:
-                predicted = y_hat
-                correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-            else:
-                _, predicted = y_hat.max(1)
-                correct += predicted.eq(y).sum().item()
+            # if self.model.n_class > 2:
+            #     predicted = y_hat
+            #     correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
+            # else:
+            #     _, predicted = y_hat.max(1)
+            #     correct += predicted.eq(y).sum().item()
+
+            predicted = y_hat
+            correct += torch.round(y_hat).eq(y).sum().item()
 
             total += y.size(0)
 
@@ -79,25 +93,29 @@ class ChordMixerTrainer(Trainer):
         with torch.no_grad():
             loop = tqdm(self.val_dataloader, total=num_batches)
             for batch in loop:
-                x, y, seq_len, _bin = batch
-                x = x.to(self.device)
-                y = y.to(self.device)
+                x1, x2, tissue, y = batch
 
-                if self.model.variable_length:
-                    y_hat = self.model(x, seq_len)
-                else:
-                    y_hat = self.model(x)
+                x1 = x1.to(self.device)
+                x2 = x2.to(self.device)
+                tissue = tissue.to(self.device)
+                y = y.to(self.device).float()
+
+
+                y_hat = self.model(x1, x2, tissue)
 
                 loss = self.criterion(y_hat, y)
 
                 running_loss += loss.item()
 
-                if self.model.n_class > 2:
-                    predicted = y_hat
-                    correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-                else:
-                    _, predicted = y_hat.max(1)
-                    correct += predicted.eq(y).sum().item()
+                # if self.model.n_class > 2:
+                #     predicted = y_hat
+                #     correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
+                # else:
+                #     _, predicted = y_hat.max(1)
+                #     correct += predicted.eq(y).sum().item()
+
+                predicted = y_hat
+                correct += torch.round(y_hat).eq(y).sum().item()
 
                 total += y.size(0)
                 
@@ -135,25 +153,29 @@ class ChordMixerTrainer(Trainer):
         with torch.no_grad():
             loop = tqdm(self.test_dataloader, total=num_batches)
             for batch in loop:
-                x, y, seq_len, _bin = batch
-                x = x.to(self.device)
-                y = y.to(self.device)
+                x1, x2, tissue, y = batch
 
-                if self.model.variable_length:
-                    y_hat = self.model(x, seq_len)
-                else:
-                    y_hat = self.model(x)
+                x1 = x1.to(self.device)
+                x2 = x2.to(self.device)
+                tissue = tissue.to(self.device)
+                y = y.to(self.device).float()
+
+
+                y_hat = self.model(x1, x2, tissue)
 
                 loss = self.criterion(y_hat, y)
 
                 running_loss += loss.item()
 
-                if self.model.n_class > 2:
-                    predicted = y_hat
-                    correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-                else:
-                    _, predicted = y_hat.max(1)
-                    correct += predicted.eq(y).sum().item()
+                # if self.model.n_class > 2:
+                #     predicted = y_hat
+                #     correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
+                # else:
+                #     _, predicted = y_hat.max(1)
+                #     correct += predicted.eq(y).sum().item()
+
+                predicted = y_hat
+                correct += torch.round(y_hat).eq(y).sum().item()
 
                 total += y.size(0)
 

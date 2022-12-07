@@ -66,12 +66,25 @@ def process_plantdeepsea_dataframe(dataframe):
     return dataframe
 
 def process_variant_effect_prediction_dataframe(dataframe):
-    dataframe["seq"] = dataframe["reference"] + dataframe["alternate"]
-    dataframe["sequence"] = dataframe["seq"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-    dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
-    dataframe["bin"] = -1
-    dataframe = dataframe[["sequence", "label", "bin", "len"]]
+    dataframe["reference"] = dataframe["reference"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+    dataframe["alternate"] = dataframe["alternate"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+    dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
     return dataframe
+
+
+class VEPDataset(Dataset):
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
+        self.reference = dataframe["reference"].values
+        self.alternate = dataframe["alternate"].values
+        self.tissue = dataframe["tissue"].values
+        self.label = dataframe["label"].values
+
+    def __getitem__(self, index):
+        return self.reference[index], self.alternate[index], self.tissue[index], self.label[index]
+
+    def __len__(self):
+        return len(self.dataframe)
 
 
 
@@ -125,15 +138,10 @@ class ChordMixerDataLoader:
 
     def create_dataloader(self):
         data_path = os.path.join(self.data_path, self.dataset)
-        dataframe = pd.read_csv(data_path)
+        dataframe = pd.read_csv(data_path)[:2000]
 
         if "Taxonomy" in self.dataset_name:
             dataframe = process_taxonomy_classification_dataframe(dataframe)
-
-        if "Variant" in self.dataset_name:
-            dataframe = process_variant_effect_prediction_dataframe(dataframe)
-
-        if "Taxonomy" in self.dataset_name or "Variant" in self.dataset_name:
             dataset = DatasetCreator(
                 df=dataframe,
                 batch_size=self.batch_size,
@@ -162,3 +170,14 @@ class ChordMixerDataLoader:
                 shuffle=False,
                 drop_last=False
             )
+
+        if "Variant" in self.dataset_name:
+            dataframe = process_variant_effect_prediction_dataframe(dataframe)
+            dataset = VEPDataset(dataframe)
+            return DataLoader(
+                dataset,
+                batch_size=self.batch_size,
+                shuffle=True,
+                drop_last=False
+            )
+
