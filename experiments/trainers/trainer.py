@@ -3,7 +3,7 @@ import wandb
 
 
 class Trainer(ABC):
-    def __init__(self, model, train_dataloader, val_dataloader, test_dataloader, device, criterion, optimizer):
+    def __init__(self, model, train_dataloader, val_dataloader, test_dataloader, device, criterion, optimizer, task):
         self.model = model
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -11,6 +11,7 @@ class Trainer(ABC):
         self.device = device
         self.criterion = criterion
         self.optimizer = optimizer
+        self.task = task
 
     @staticmethod
     def log_metrics(auc: float, accuracy: float, loss: float, current_epoch_nr: int, metric_type: str) -> None:

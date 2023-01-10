@@ -20,25 +20,41 @@ class ChordMixerTrainer(Trainer):
 
         loop = tqdm(self.train_dataloader, total=num_batches)
         for batch in loop:
-            x1, x2, tissue, y = batch
 
+            if self.task == "taxonomy_classification":
+                x, y, seq_len, bin = batch
+                x = x.to(self.device)
+                y = y.to(self.device)
+                model_input = {
+                    "task": "taxonomy_classification",
+                    "x": x,
+                    "seq_len": seq_len
+                }
+                y_hat = self.model(model_input)
             
+            elif self.task == "variant_effect_prediction":
+                x1, x2, tissue, y = batch
+                x1 = x1.to(self.device)
+                x2 = x2.to(self.device)
+                tissue = tissue.to(self.device)
+                y = y.to(self.device).float()
+                model_input = {
+                    "task": "variant_effect_prediction",
+                    "x1": x1,
+                    "x2": x2,
+                    "tissue": tissue
+                }
+                y_hat = self.model(model_input)
 
-            x1 = x1.to(self.device)
-            x2 = x2.to(self.device)
-            tissue = tissue.to(self.device)
-            y = y.to(self.device).float()
-
-
-            y_hat = self.model(x1, x2, tissue)
-
-            # print(y_hat.dtype)
-            # print(y.dtype)
-
-            # print(y_hat)
-            # print(y)
-            # exit()
-
+            elif self.task == "plantdeepsea":
+                x, y, seq_len, bin = batch
+                x = x.to(self.device)
+                y = y.to(self.device)
+                model_input = {
+                    "task": "plantdeepsea",
+                    "x": x
+                }
+                y_hat = self.model(model_input)
 
             loss = self.criterion(y_hat, y)
             loss.backward()
@@ -47,15 +63,17 @@ class ChordMixerTrainer(Trainer):
 
             running_loss += loss.item()
 
-            # if self.model.n_class > 2:
-            #     predicted = y_hat
-            #     correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-            # else:
-            #     _, predicted = y_hat.max(1)
-            #     correct += predicted.eq(y).sum().item()
+            if self.task == "taxonomy_classification":
+                _, predicted = y_hat.max(1)
+                correct += predicted.eq(y).sum().item()
 
-            predicted = y_hat
-            correct += torch.round(y_hat).eq(y).sum().item()
+            elif self.task == "variant_effect_prediction":
+                predicted = y_hat
+                correct += torch.round(y_hat).eq(y).sum().item()
+
+            elif self.task == "plantdeepsea":
+                predicted = y_hat
+                correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))            
 
             total += y.size(0)
 
@@ -93,29 +111,56 @@ class ChordMixerTrainer(Trainer):
         with torch.no_grad():
             loop = tqdm(self.val_dataloader, total=num_batches)
             for batch in loop:
-                x1, x2, tissue, y = batch
+                if self.task == "taxonomy_classification":
+                    x, y, seq_len, bin = batch
+                    x = x.to(self.device)
+                    y = y.to(self.device)
+                    model_input = {
+                        "task": "taxonomy_classification",
+                        "x": x,
+                        "seq_len": seq_len
+                    }
+                    y_hat = self.model(model_input)
+            
+                elif self.task == "variant_effect_prediction":
+                    x1, x2, tissue, y = batch
+                    x1 = x1.to(self.device)
+                    x2 = x2.to(self.device)
+                    tissue = tissue.to(self.device)
+                    y = y.to(self.device).float()
+                    model_input = {
+                        "task": "variant_effect_prediction",
+                        "x1": x1,
+                        "x2": x2,
+                        "tissue": tissue
+                    }
+                    y_hat = self.model(model_input)
 
-                x1 = x1.to(self.device)
-                x2 = x2.to(self.device)
-                tissue = tissue.to(self.device)
-                y = y.to(self.device).float()
-
-
-                y_hat = self.model(x1, x2, tissue)
+                elif self.task == "plantdeepsea":
+                    x, y, seq_len, bin = batch
+                    x = x.to(self.device)
+                    y = y.to(self.device)
+                    model_input = {
+                        "task": "plantdeepsea",
+                        "x": x
+                    }
+                    y_hat = self.model(model_input)
 
                 loss = self.criterion(y_hat, y)
 
                 running_loss += loss.item()
 
-                # if self.model.n_class > 2:
-                #     predicted = y_hat
-                #     correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-                # else:
-                #     _, predicted = y_hat.max(1)
-                #     correct += predicted.eq(y).sum().item()
+                if self.task == "taxonomy_classification":
+                    _, predicted = y_hat.max(1)
+                    correct += predicted.eq(y).sum().item()
 
-                predicted = y_hat
-                correct += torch.round(y_hat).eq(y).sum().item()
+                elif self.task == "variant_effect_prediction":
+                    predicted = y_hat
+                    correct += torch.round(y_hat).eq(y).sum().item()
+
+                elif self.task == "plantdeepsea":
+                    predicted = y_hat
+                    correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
 
                 total += y.size(0)
                 
@@ -153,29 +198,56 @@ class ChordMixerTrainer(Trainer):
         with torch.no_grad():
             loop = tqdm(self.test_dataloader, total=num_batches)
             for batch in loop:
-                x1, x2, tissue, y = batch
+                if self.task == "taxonomy_classification":
+                    x, y, seq_len, bin = batch
+                    x = x.to(self.device)
+                    y = y.to(self.device)
+                    model_input = {
+                        "task": "taxonomy_classification",
+                        "x": x,
+                        "seq_len": seq_len
+                    }
+                    y_hat = self.model(model_input)
+            
+                elif self.task == "variant_effect_prediction":
+                    x1, x2, tissue, y = batch
+                    x1 = x1.to(self.device)
+                    x2 = x2.to(self.device)
+                    tissue = tissue.to(self.device)
+                    y = y.to(self.device).float()
+                    model_input = {
+                        "task": "variant_effect_prediction",
+                        "x1": x1,
+                        "x2": x2,
+                        "tissue": tissue
+                    }
+                    y_hat = self.model(model_input)
 
-                x1 = x1.to(self.device)
-                x2 = x2.to(self.device)
-                tissue = tissue.to(self.device)
-                y = y.to(self.device).float()
-
-
-                y_hat = self.model(x1, x2, tissue)
+                elif self.task == "plantdeepsea":
+                    x, y, seq_len, bin = batch
+                    x = x.to(self.device)
+                    y = y.to(self.device)
+                    model_input = {
+                        "task": "plantdeepsea",
+                        "x": x
+                    }
+                    y_hat = self.model(model_input)
 
                 loss = self.criterion(y_hat, y)
 
                 running_loss += loss.item()
 
-                # if self.model.n_class > 2:
-                #     predicted = y_hat
-                #     correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-                # else:
-                #     _, predicted = y_hat.max(1)
-                #     correct += predicted.eq(y).sum().item()
+                if self.task == "taxonomy_classification":
+                    _, predicted = y_hat.max(1)
+                    correct += predicted.eq(y).sum().item()
 
-                predicted = y_hat
-                correct += torch.round(y_hat).eq(y).sum().item()
+                elif self.task == "variant_effect_prediction":
+                    predicted = y_hat
+                    correct += torch.round(y_hat).eq(y).sum().item()
+
+                elif self.task == "plantdeepsea":
+                    predicted = y_hat
+                    correct += (torch.round(y_hat).eq(y).sum().item() / y.size(1))
 
                 total += y.size(0)
 

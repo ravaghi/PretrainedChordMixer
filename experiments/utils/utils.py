@@ -57,3 +57,12 @@ def init_weights(model):
     if type(model) == nn.Linear:
         torch.nn.init.xavier_uniform_(model.weight)
         model.bias.data.fill_(0.01)
+
+
+def get_task_name(dataset_name):
+    if "Taxonomy" in dataset_name:
+        return "taxonomy_classification"
+    elif "Plant" in dataset_name:
+        return "plantdeepsea"
+    elif "Variant" in dataset_name:
+        return "variant_effect_prediction"

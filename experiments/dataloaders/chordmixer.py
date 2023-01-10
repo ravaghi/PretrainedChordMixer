@@ -72,7 +72,7 @@ def process_variant_effect_prediction_dataframe(dataframe):
     return dataframe
 
 
-class VEPDataset(Dataset):
+class VEPDatasetCreator(Dataset):
     def __init__(self, dataframe):
         self.dataframe = dataframe
         self.reference = dataframe["reference"].values
@@ -138,7 +138,7 @@ class ChordMixerDataLoader:
 
     def create_dataloader(self):
         data_path = os.path.join(self.data_path, self.dataset)
-        dataframe = pd.read_csv(data_path)[:2000]
+        dataframe = pd.read_csv(data_path)
 
         if "Taxonomy" in self.dataset_name:
             dataframe = process_taxonomy_classification_dataframe(dataframe)
@@ -173,7 +173,7 @@ class ChordMixerDataLoader:
 
         if "Variant" in self.dataset_name:
             dataframe = process_variant_effect_prediction_dataframe(dataframe)
-            dataset = VEPDataset(dataframe)
+            dataset = VEPDatasetCreator(dataframe)
             return DataLoader(
                 dataset,
                 batch_size=self.batch_size,

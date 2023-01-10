@@ -150,58 +150,71 @@ class ChordMixer(nn.Module):
 
         self.final = nn.Linear(
             embedding_size,
-            49
+            n_class
         )
+        
 
-    def forward(self, x1, x2, tissue, lengths=None):
-        n_layers = self.max_n_layers
+    def forward(self, input_data):
+        if input_data["task"] == "taxonomy_classification":
+            data = input_data["x"]
+            lengths = input_data["seq_len"]
 
-        y1 = self.embedding(x1)
-        for layer in range(n_layers):
-            y1 = self.chordmixer_blocks[layer](y1, lengths)
+            n_layers = math.ceil(np.log2(lengths[0]))
 
-        y2 = self.embedding(x2)
-        for layer in range(n_layers):
-            y2 = self.chordmixer_blocks[layer](y2, lengths)
+            data = self.embedding(data)
+            for layer in range(n_layers):
+                data = self.chordmixer_blocks[layer](data, lengths)
 
-        y = y1 - y2
+            data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
+            data = torch.stack(data)
 
-        data = y
+            data = self.final(data)
 
-        data = torch.mean(data, dim=1)
+            return data
+        
+        elif input_data["task"] == "variant_effect_prediction":
+            x1 = input_data["x1"]
+            x2 = input_data["x2"]
+            tissue = input_data["tissue"]
 
-        data = self.final(data)
-        tissue = tissue.unsqueeze(0).t()
-        data = torch.gather(data, 1, tissue)  
-        data = data.reshape(-1)
-        data = torch.sigmoid(data)
+            n_layers = self.max_n_layers
 
-        return data
+            y1 = self.embedding(x1)
+            for layer in range(n_layers):
+                y1 = self.chordmixer_blocks[layer](y1, None)
 
-    # def forward(self, data, lengths=None):
-    #     if lengths:
-    #         # variable lengths mode
-    #         n_layers = math.ceil(np.log2(lengths[0]))
-    #     else:
-    #         # equal lengths mode
-    #         n_layers = self.max_n_layers
+            y2 = self.embedding(x2)
+            for layer in range(n_layers):
+                y2 = self.chordmixer_blocks[layer](y2, None)
 
-    #     data = self.embedding(data)
-    #     for layer in range(n_layers):
-    #         data = self.chordmixer_blocks[layer](data, lengths)
+            y = y1 - y2
 
-    #     if self.n_class > 2:
-    #         data = data[:, 400:600, :]
+            data = y
 
-    #     # sequence-aware average pooling
-    #     if lengths:
-    #         data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
-    #         data = torch.stack(data)
-    #     else:
-    #         data = torch.mean(data, dim=1)
-    #     data = self.final(data)
+            data = torch.mean(data, dim=1)
 
-    #     if self.n_class > 2:
-    #         data = torch.sigmoid(data)
+            data = self.final(data)
+            tissue = tissue.unsqueeze(0).t()
+            data = torch.gather(data, 1, tissue)  
+            data = data.reshape(-1)
+            data = torch.sigmoid(data)
 
-    #     return data
+            return data
+
+        elif input_data["task"] == "plantdeepsea":
+            data = input_data["x"]
+
+            n_layers = self.max_n_layers
+
+            data = self.embedding(data)
+            for layer in range(n_layers):
+                data = self.chordmixer_blocks[layer](data, None)
+
+            data = data[:, 400:600, :]
+
+            data = torch.mean(data, dim=1)
+            data = self.final(data)
+
+            data = torch.sigmoid(data)
+
+            return data

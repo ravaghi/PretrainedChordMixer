@@ -6,4 +6,4 @@ test_data: variant_effect_prediction_test.csv
 variable_length: false
 max_seq_len: 2000
 vocab_size: 20
-n_class: 2
+n_class: 49

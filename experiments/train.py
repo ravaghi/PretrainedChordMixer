@@ -3,7 +3,7 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from utils.utils import init_run, init_weights, get_class_weights
+from utils.utils import init_run, init_weights, get_class_weights, get_task_name
 
 
 @hydra.main(config_path="configs", version_base=None)
@@ -51,6 +51,8 @@ def main(config: DictConfig) -> None:
         dataset_name=config.dataset.name
     ).create_dataloader()
 
+    task = get_task_name(config.dataset.name)
+
     # Model trainer
     trainer = instantiate(
         config=config.trainer,
@@ -60,7 +62,8 @@ def main(config: DictConfig) -> None:
         test_dataloader=test_dataloader,
         device=device,
         criterion=criterion,
-        optimizer=optimizer
+        optimizer=optimizer,
+        task=task
     )
 
     # Training and validation
