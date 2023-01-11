@@ -101,7 +101,7 @@ class PlantDeepSeaDatasetCreator(Dataset):
 class ChordMixerDataLoader(Dataloader):
     def create_dataloader(self):
         data_path = os.path.join(self.data_path, self.dataset_filename)
-        dataframe = pd.read_csv(data_path)[:2000]
+        dataframe = pd.read_csv(data_path)
 
         if self.dataset_type == "TaxonomyClassification":
             dataframe = self.process_taxonomy_classification_dataframe(dataframe)
