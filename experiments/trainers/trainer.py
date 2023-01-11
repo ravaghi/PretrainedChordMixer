@@ -17,11 +17,16 @@ class Trainer(ABC):
     def log_metrics(auc: float, accuracy: float, loss: float, current_epoch_nr: int, metric_type: str) -> None:
         """
         Log metrics to wandb
-        :param auc: Area under the ROC curve
-        :param accuracy: Accuracy
-        :param loss: Loss
-        :param current_epoch_nr: Current epoch number
-        :param metric_type: Type of metric (train, val, test)
+
+        Args:
+            auc (float): Area under the curve
+            accuracy (float): Accuracy
+            loss (float): Loss
+            current_epoch_nr (int): Current epoch number
+            metric_type (str): Type of metric
+
+        Returns:
+            None
         """
         if metric_type == 'train':
             wandb.log({'train_auc': auc}, step=current_epoch_nr)
@@ -39,19 +44,32 @@ class Trainer(ABC):
     def train(self, current_epoch_nr: int) -> None:
         """
         Train the model for one epoch
-        :param current_epoch_nr: Current epoch number
+
+        Args:
+            current_epoch_nr (int): Current epoch number
+
+        Returns:
+            None
         """
         raise NotImplementedError
 
     def evaluate(self, current_epoch_nr: int) -> None:
         """
         Evaluate the model for one epoch
-        :param current_epoch_nr: Current epoch number
+
+        Args:
+            current_epoch_nr (int): Current epoch number
+
+        Returns:
+            None
         """
         raise NotImplementedError
 
     def test(self) -> None:
         """
         Test the model after training
+
+        Returns:
+            None
         """
         raise NotImplementedError

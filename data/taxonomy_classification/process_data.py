@@ -1,17 +1,28 @@
 import pandas as pd
 import os
 
-DNA_BASE_DICT_REVERSED = {
-    0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M',
-    8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'
-}
+from experiments.dataloaders.dataloader import DNA_BASE_DICT_REVERSED
 
 
-def pickle_to_csv(train, val, dataset_name):
+def pickle_to_csv(train: str, val: str, dataset_name: str) -> None:
+    """
+    Convert the pickled dataframes to csv files
+
+    Args:
+        train: path to the train dataframe
+        val: path to the validation dataframe
+        dataset_name: name of the dataset
+
+    Returns:
+        None
+    """
     train_data = pd.read_pickle(train)
     val_data = pd.read_pickle(val)
+
     data = pd.concat([train_data, val_data])
+
     data = data.sample(frac=1).reset_index(drop=True)
+
     data["sequence"] = data["sequence"].apply(lambda x: "".join([DNA_BASE_DICT_REVERSED[i] for i in x]))
     data["bin"].fillna(0, inplace=True)
 

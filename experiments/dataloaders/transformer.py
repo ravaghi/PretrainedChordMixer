@@ -7,10 +7,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-DNA_BASE_DICT = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7, 'W': 8, 'K': 9, 'S': 10, 'B': 11,
-                 'H': 12, 'D': 13, 'V': 14}
-DNA_BASE_DICT_REVERSED = {0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M', 8: 'W', 9: 'K', 10: 'S',
-                          11: 'B', 12: 'H', 13: 'D', 14: 'V'}
 
 
 def pad_sequences(dataframe, max_len=1000):

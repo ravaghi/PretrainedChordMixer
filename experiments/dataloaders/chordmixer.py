@@ -1,18 +1,10 @@
 from torch.utils.data import Dataset, DataLoader
 import pandas as pd
-import numpy as np
 import random
 import torch
 import os
 
-DNA_BASE_DICT = {
-    'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
-    'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14
-}
-DNA_BASE_DICT_REVERSED = {
-    0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M',
-    8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'
-}
+from dataloader import Dataloader
 
 
 def complete_batch(df, batch_size):
@@ -50,28 +42,6 @@ def concater_collate(batch):
     return xx, yy, list(lengths), list(bins)
 
 
-def process_taxonomy_classification_dataframe(dataframe):
-    dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-    dataframe = dataframe.drop(columns=['sequence'])
-    dataframe = dataframe.rename(columns={'seq': 'sequence'})
-    dataframe = dataframe[["sequence", "label", "bin", "len"]]
-    return dataframe
-
-def process_plantdeepsea_dataframe(dataframe):
-    dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-    dataframe = dataframe.drop(columns=['sequence'])
-    dataframe = dataframe.rename(columns={'seq': 'sequence'})
-    dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
-    dataframe["bin"] = -1
-    return dataframe
-
-def process_variant_effect_prediction_dataframe(dataframe):
-    dataframe["reference"] = dataframe["reference"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-    dataframe["alternate"] = dataframe["alternate"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-    dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
-    return dataframe
-
-
 class VEPDatasetCreator(Dataset):
     def __init__(self, dataframe):
         self.dataframe = dataframe
@@ -87,8 +57,7 @@ class VEPDatasetCreator(Dataset):
         return len(self.dataframe)
 
 
-
-class DatasetCreator(Dataset):
+class TaxonomyDatasetCreator(Dataset):
     def __init__(self, df, batch_size, var_len=False):
         if var_len:
             df = complete_batch(df=df, batch_size=batch_size)
@@ -106,7 +75,7 @@ class DatasetCreator(Dataset):
         return len(self.df)
 
 
-class MultilabelDatasetCreator(Dataset):
+class PlantDeepSeaDatasetCreator(Dataset):
     def __init__(self, df, batch_size, var_len=False):
         if var_len:
             target_list = df.columns.tolist()[:-3]
@@ -129,20 +98,14 @@ class MultilabelDatasetCreator(Dataset):
         return len(self.df)
 
 
-class ChordMixerDataLoader:
-    def __init__(self, data_path, dataset, dataset_name, batch_size):
-        self.data_path = data_path
-        self.dataset = dataset
-        self.dataset_name = dataset_name
-        self.batch_size = batch_size
-
+class ChordMixerDataLoader(Dataloader):
     def create_dataloader(self):
         data_path = os.path.join(self.data_path, self.dataset)
         dataframe = pd.read_csv(data_path)
 
         if "Taxonomy" in self.dataset_name:
-            dataframe = process_taxonomy_classification_dataframe(dataframe)
-            dataset = DatasetCreator(
+            dataframe = self.process_taxonomy_classification_dataframe(dataframe)
+            dataset = TaxonomyDatasetCreator(
                 df=dataframe,
                 batch_size=self.batch_size,
                 var_len=True
@@ -156,14 +119,12 @@ class ChordMixerDataLoader:
             )
 
         if "Plant" in self.dataset_name:
-            dataframe = process_plantdeepsea_dataframe(dataframe)
-
-            dataset = MultilabelDatasetCreator(
+            dataframe = self.process_plantdeepsea_dataframe(dataframe)
+            dataset = PlantDeepSeaDatasetCreator(
                 df=dataframe,
                 batch_size=self.batch_size,
                 var_len=True
             )
-
             return DataLoader(
                 dataset,
                 batch_size=self.batch_size,
@@ -172,7 +133,7 @@ class ChordMixerDataLoader:
             )
 
         if "Variant" in self.dataset_name:
-            dataframe = process_variant_effect_prediction_dataframe(dataframe)
+            dataframe = self.process_variant_effect_prediction_dataframe(dataframe)
             dataset = VEPDatasetCreator(dataframe)
             return DataLoader(
                 dataset,
@@ -180,4 +141,3 @@ class ChordMixerDataLoader:
                 shuffle=True,
                 drop_last=False
             )
-

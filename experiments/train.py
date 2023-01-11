@@ -3,11 +3,17 @@ import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from utils.utils import init_run, init_weights, get_class_weights, get_task_name
+from utils.utils import init_run, init_weights, get_class_weights
 
 
 @hydra.main(config_path="configs", version_base=None)
 def main(config: DictConfig) -> None:
+    """
+    Main function to run the experiment.
+
+    Args:
+        config (DictConfig): Configuration file.
+    """
     device = init_run(config)
 
     # Instantiate model based on config
@@ -51,8 +57,6 @@ def main(config: DictConfig) -> None:
         dataset_name=config.dataset.name
     ).create_dataloader()
 
-    task = get_task_name(config.dataset.name)
-
     # Model trainer
     trainer = instantiate(
         config=config.trainer,
@@ -63,11 +67,11 @@ def main(config: DictConfig) -> None:
         device=device,
         criterion=criterion,
         optimizer=optimizer,
-        task=task
+        task=config.dataset.type
     )
 
     # Training and validation
-    for epoch in range(config.general.max_epochs):
+    for epoch in range(1, config.general.max_epochs + 1):
         trainer.train(current_epoch_nr=epoch)
         trainer.evaluate(current_epoch_nr=epoch)
 
