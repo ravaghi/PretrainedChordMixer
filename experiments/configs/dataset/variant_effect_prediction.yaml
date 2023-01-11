@@ -1,4 +1,5 @@
-name: VariantEffectPrediction
+type: VariantEffectPrediction
+name: Human
 path: ${hydra:runtime.cwd}/../data/variant_effect_prediction
 train_data: variant_effect_prediction_train.csv
 val_data: variant_effect_prediction_val.csv

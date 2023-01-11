@@ -1,4 +1,5 @@
-name: TaxonomyClassificationSusVsBos
+type: TaxonomyClassification
+name: SusVsBos
 path: ${hydra:runtime.cwd}/../data/taxonomy_classification/sus_bos
 train_data: sus_bos_train.csv
 val_data: sus_bos_val.csv

@@ -1,4 +1,5 @@
-name: PlantZeaMays
+type: PlantDeepSEA
+name: ZeaMays
 path: ${hydra:runtime.cwd}/../data/plant_deepsea/zea_mays
 train_data: zea_mays_train.csv
 val_data: zea_mays_val.csv

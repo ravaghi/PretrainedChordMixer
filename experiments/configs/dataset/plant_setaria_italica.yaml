@@ -1,4 +1,5 @@
-name: PlantSetariaItalica
+type: PlantDeepSEA
+name: SetariaItalica
 path: ${hydra:runtime.cwd}/../data/plant_deepsea/setaria_italica
 train_data: setaria_italica_train.csv
 val_data: setaria_italica_val.csv

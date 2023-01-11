@@ -1,4 +1,5 @@
-name: TaxonomyClassificationDanioVsCyprinus
+type: TaxonomyClassification
+name: DanioVsCyprinus
 path: ${hydra:runtime.cwd}/../data/taxonomy_classification/danio_cyprinus
 train_data: danio_cyprinus_train.csv
 val_data: danio_cyprinus_val.csv

@@ -1,4 +1,5 @@
-name: PlantSorghumBicolor
+type: PlantDeepSEA
+name: SorghumBicolor
 path: ${hydra:runtime.cwd}/../data/plant_deepsea/sorghum_bicolor
 train_data: sorghum_bicolor_train.csv
 val_data: sorghum_bicolor_val.csv

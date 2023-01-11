@@ -1,4 +1,5 @@
-name: PlantArabidopsisThaliana
+type: PlantDeepSEA
+name: ArabidopsisThaliana
 path: ${hydra:runtime.cwd}/../data/plant_deepsea/arabidopsis_thaliana
 train_data: arabidopsis_thaliana_train.csv
 val_data: arabidopsis_thaliana_val.csv

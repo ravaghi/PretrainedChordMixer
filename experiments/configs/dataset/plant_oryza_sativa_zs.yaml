@@ -1,4 +1,5 @@
-name: PlantOryzaSativaZS
+type: PlantDeepSEA
+name: OryzaSativaZS
 path: ${hydra:runtime.cwd}/../data/plant_deepsea/oryza_sativa_zs
 train_data: oryza_sativa_zs_train.csv
 val_data: oryza_sativa_zs_val.csv
