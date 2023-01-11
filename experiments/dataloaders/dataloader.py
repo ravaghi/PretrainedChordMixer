@@ -14,11 +14,13 @@ DNA_BASE_DICT_REVERSED = {
 
 
 class Dataloader(ABC):
-    def __init__(self, data_path, dataset, dataset_name, batch_size):
+    def __init__(self, data_path, dataset_filename, dataset_type, dataset_name, batch_size):
         self.data_path = data_path
-        self.dataset = dataset
+        self.dataset_filename = dataset_filename
+        self.dataset_type = dataset_type
         self.dataset_name = dataset_name
         self.batch_size = batch_size
+        
 
     def create_dataloader(self) -> DataLoader:
         raise NotImplementedError
@@ -34,24 +36,10 @@ class Dataloader(ABC):
         Returns:
             processed dataframe
         """
-        dataframe["sequence"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+        dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+        dataframe = dataframe.drop(columns=['sequence'])
+        dataframe = dataframe.rename(columns={'seq': 'sequence'})
         dataframe = dataframe[["sequence", "label", "bin", "len"]]
-        return dataframe
-
-    @staticmethod
-    def process_plantdeepsea_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
-        """
-        Process the dataframe for plant deepsea
-
-        Args:
-            dataframe: dataframe to process
-
-        Returns:
-            processed dataframe
-        """
-        dataframe["sequence"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-        dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
-        dataframe["bin"] = -1
         return dataframe
 
     @staticmethod
@@ -68,4 +56,22 @@ class Dataloader(ABC):
         dataframe["reference"] = dataframe["reference"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
         dataframe["alternate"] = dataframe["alternate"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
         dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
+        return dataframe
+
+    @staticmethod
+    def process_plantdeepsea_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
+        """
+        Process the dataframe for plant deepsea
+
+        Args:
+            dataframe: dataframe to process
+
+        Returns:
+            processed dataframe
+        """
+        dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+        dataframe = dataframe.drop(columns=['sequence'])
+        dataframe = dataframe.rename(columns={'seq': 'sequence'})
+        dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
+        dataframe["bin"] = -1
         return dataframe

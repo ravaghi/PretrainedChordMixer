@@ -1,6 +1,6 @@
 _target_: dataloaders.kegru.KeGruDataLoader
 data_path: ${dataset.path}
-dataset: ???
+dataset_filename: ???
 batch_size: ${general.batch_size}
 kmer_length: 5
 stride: 2

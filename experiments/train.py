@@ -41,19 +41,22 @@ def main(config: DictConfig) -> None:
     # Dataloaders
     train_dataloader = instantiate(
         config=config.dataloader,
-        dataset=config.dataset.train_data,
+        dataset_filename=config.dataset.train_data,
+        dataset_type=config.dataset.type,
         dataset_name=config.dataset.name
     ).create_dataloader()
 
     val_dataloader = instantiate(
         config=config.dataloader,
-        dataset=config.dataset.val_data,
+        dataset_filename=config.dataset.val_data,
+        dataset_type=config.dataset.type,
         dataset_name=config.dataset.name
     ).create_dataloader()
 
     test_dataloader = instantiate(
         config=config.dataloader,
-        dataset=config.dataset.test_data,
+        dataset_filename=config.dataset.test_data,
+        dataset_type=config.dataset.type,
         dataset_name=config.dataset.name
     ).create_dataloader()
 

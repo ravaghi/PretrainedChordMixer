@@ -4,7 +4,7 @@ import random
 import torch
 import os
 
-from dataloader import Dataloader
+from .dataloader import Dataloader
 
 
 def complete_batch(df, batch_size):
@@ -42,21 +42,6 @@ def concater_collate(batch):
     return xx, yy, list(lengths), list(bins)
 
 
-class VEPDatasetCreator(Dataset):
-    def __init__(self, dataframe):
-        self.dataframe = dataframe
-        self.reference = dataframe["reference"].values
-        self.alternate = dataframe["alternate"].values
-        self.tissue = dataframe["tissue"].values
-        self.label = dataframe["label"].values
-
-    def __getitem__(self, index):
-        return self.reference[index], self.alternate[index], self.tissue[index], self.label[index]
-
-    def __len__(self):
-        return len(self.dataframe)
-
-
 class TaxonomyDatasetCreator(Dataset):
     def __init__(self, df, batch_size, var_len=False):
         if var_len:
@@ -73,6 +58,21 @@ class TaxonomyDatasetCreator(Dataset):
 
     def __len__(self):
         return len(self.df)
+
+
+class VEPDatasetCreator(Dataset):
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
+        self.reference = dataframe["reference"].values
+        self.alternate = dataframe["alternate"].values
+        self.tissue = dataframe["tissue"].values
+        self.label = dataframe["label"].values
+
+    def __getitem__(self, index):
+        return self.reference[index], self.alternate[index], self.tissue[index], self.label[index]
+
+    def __len__(self):
+        return len(self.dataframe)
 
 
 class PlantDeepSeaDatasetCreator(Dataset):
@@ -100,10 +100,10 @@ class PlantDeepSeaDatasetCreator(Dataset):
 
 class ChordMixerDataLoader(Dataloader):
     def create_dataloader(self):
-        data_path = os.path.join(self.data_path, self.dataset)
-        dataframe = pd.read_csv(data_path)
+        data_path = os.path.join(self.data_path, self.dataset_filename)
+        dataframe = pd.read_csv(data_path)[:2000]
 
-        if "Taxonomy" in self.dataset_name:
+        if self.dataset_type == "TaxonomyClassification":
             dataframe = self.process_taxonomy_classification_dataframe(dataframe)
             dataset = TaxonomyDatasetCreator(
                 df=dataframe,
@@ -118,7 +118,17 @@ class ChordMixerDataLoader(Dataloader):
                 drop_last=False
             )
 
-        if "Plant" in self.dataset_name:
+        if self.dataset_type == "VariantEffectPrediction":
+            dataframe = self.process_variant_effect_prediction_dataframe(dataframe)
+            dataset = VEPDatasetCreator(dataframe)
+            return DataLoader(
+                dataset,
+                batch_size=self.batch_size,
+                shuffle=True,
+                drop_last=False
+            )
+
+        if self.dataset_type == "PlantDeepSEA":
             dataframe = self.process_plantdeepsea_dataframe(dataframe)
             dataset = PlantDeepSeaDatasetCreator(
                 df=dataframe,
@@ -129,15 +139,5 @@ class ChordMixerDataLoader(Dataloader):
                 dataset,
                 batch_size=self.batch_size,
                 shuffle=False,
-                drop_last=False
-            )
-
-        if "Variant" in self.dataset_name:
-            dataframe = self.process_variant_effect_prediction_dataframe(dataframe)
-            dataset = VEPDatasetCreator(dataframe)
-            return DataLoader(
-                dataset,
-                batch_size=self.batch_size,
-                shuffle=True,
                 drop_last=False
             )

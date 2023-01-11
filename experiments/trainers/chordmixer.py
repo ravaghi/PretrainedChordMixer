@@ -44,7 +44,7 @@ class ChordMixerTrainer(Trainer):
             y_hat = self.model(model_input)
             return y, y_hat
 
-        elif self.task == "PlantDeepSea":
+        elif self.task == "PlantDeepSEA":
             x, y, seq_len, bin = data
             x = x.to(self.device)
             y = y.to(self.device)
@@ -75,7 +75,7 @@ class ChordMixerTrainer(Trainer):
         elif self.task == "VariantEffectPrediction":
             predicted = y_hat
             correct_predictions = torch.round(y_hat).eq(y).sum().item()
-        elif self.task == "PlantDeepSea":
+        elif self.task == "PlantDeepSEA":
             predicted = y_hat
             correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
         else:

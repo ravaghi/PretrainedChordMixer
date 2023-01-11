@@ -1,4 +1,4 @@
 _target_: dataloaders.transformer.TransformerDataLoader
 data_path: ${dataset.path}
-dataset: ???
+dataset_filename: ???
 batch_size: ${general.batch_size}
