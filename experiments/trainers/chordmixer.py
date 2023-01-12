@@ -22,7 +22,7 @@ class ChordMixerTrainer(Trainer):
             x = x.to(self.device)
             y = y.to(self.device)
             model_input = {
-                "task": "taxonomy_classification",
+                "task": self.task,
                 "x": x,
                 "seq_len": seq_len
             }
@@ -36,7 +36,7 @@ class ChordMixerTrainer(Trainer):
             tissue = tissue.to(self.device)
             y = y.to(self.device).float()
             model_input = {
-                "task": "variant_effect_prediction",
+                "task": self.task,
                 "x1": x1,
                 "x2": x2,
                 "tissue": tissue
@@ -49,7 +49,7 @@ class ChordMixerTrainer(Trainer):
             x = x.to(self.device)
             y = y.to(self.device)
             model_input = {
-                "task": "plantdeepsea",
+                "task": self.task,
                 "x": x
             }
             y_hat = self.model(model_input)
@@ -225,7 +225,7 @@ class ChordMixerTrainer(Trainer):
                 targets.extend(y.detach().cpu().numpy())
                 preds.extend(predicted.detach().cpu().numpy())
 
-                loop.set_description(f'Testing')
+                loop.set_description('Testing')
                 loop.set_postfix(test_acc=round(correct / total, 3),
                                  test_loss=round(running_loss / total, 3))
 

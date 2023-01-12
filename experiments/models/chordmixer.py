@@ -155,7 +155,7 @@ class ChordMixer(nn.Module):
         
 
     def forward(self, input_data):
-        if input_data["task"] == "taxonomy_classification":
+        if input_data["task"] == "TaxonomyClassification":
             data = input_data["x"]
             lengths = input_data["seq_len"]
 
@@ -172,7 +172,7 @@ class ChordMixer(nn.Module):
 
             return data
         
-        elif input_data["task"] == "variant_effect_prediction":
+        elif input_data["task"] == "VariantEffectPrediction":
             x1 = input_data["x1"]
             x2 = input_data["x2"]
             tissue = input_data["tissue"]
@@ -201,7 +201,7 @@ class ChordMixer(nn.Module):
 
             return data
 
-        elif input_data["task"] == "plantdeepsea":
+        elif input_data["task"] == "PlantDeepSEA":
             data = input_data["x"]
 
             n_layers = self.max_n_layers
