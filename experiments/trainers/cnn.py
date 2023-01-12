@@ -2,10 +2,53 @@ from tqdm import tqdm
 from sklearn import metrics
 import torch
 
-from trainer import Trainer
+from .trainer import Trainer
 
 
 class CNNTrainer(Trainer):
+
+    def calculate_y_hat(self, data: tuple) -> tuple:
+        """
+        Calculate the y_hat for the given data and task
+
+        Args:
+            data (tuple): The data to calculate the y_hat for
+
+        Returns:
+            tuple: The y and y_hat
+        """
+        if self.task == "TaxonomyClassification":
+            x, y = data
+            x = x.to(self.device)
+            y = y.to(self.device)
+            model_input = {
+                "task": self.task,
+                "x": x
+            }
+            y_hat = self.model(model_input)
+            return y, y_hat
+
+        else:
+            raise ValueError(f"Task: {self.task} not found.")
+
+    def calculate_predictions(self, y: torch.Tensor, y_hat: torch.Tensor) -> tuple:
+        """
+        Calculate the predictions for the given y and y_hat
+
+        Args:
+            y (torch.Tensor): The y
+            y_hat (torch.Tensor): The y_hat
+
+        Returns:
+            tuple: The predicted and correct predictions
+        """
+        if self.task == "TaxonomyClassification":
+            _, predicted = y_hat.max(1)
+            correct_predictions = predicted.eq(y).sum().item()
+        else:
+            raise ValueError(f"Task: {self.task} not found.")
+
+        return predicted, correct_predictions
 
     def train(self, current_epoch_nr):
         self.model.train()
@@ -21,24 +64,20 @@ class CNNTrainer(Trainer):
 
         loop = tqdm(self.train_dataloader, total=num_batches)
         for batch in loop:
-            x, y = batch
-            x = x.to(self.device)
-            y = y.to(self.device)
-
-            self.optimizer.zero_grad()
-
-            y_hat = self.model(x)
+            y, y_hat = self.calculate_y_hat(batch)
 
             loss = self.criterion(y_hat, y)
 
             loss.backward()
             self.optimizer.step()
+            self.optimizer.zero_grad()
 
             running_loss += loss.item()
 
-            _, predicted = y_hat.max(1)
+            predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+
+            correct += correct_predictions
             total += y.size(0)
-            correct += predicted.eq(y).sum().item()
 
             targets.extend(y.detach().cpu().numpy().flatten())
             preds.extend(predicted.detach().cpu().numpy().flatten())
@@ -74,19 +113,16 @@ class CNNTrainer(Trainer):
         with torch.no_grad():
             loop = tqdm(self.val_dataloader, total=num_batches)
             for batch in loop:
-                x, y = batch
-                x = x.to(self.device)
-                y = y.to(self.device)
-
-                y_hat = self.model(x)
+                y, y_hat = self.calculate_y_hat(batch)
 
                 loss = self.criterion(y_hat, y)
 
                 running_loss += loss.item()
 
-                _, predicted = y_hat.max(1)
+                predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+
+                correct += correct_predictions
                 total += y.size(0)
-                correct += predicted.eq(y).sum().item()
 
                 targets.extend(y.detach().cpu().numpy().flatten())
                 preds.extend(predicted.detach().cpu().numpy().flatten())
@@ -108,4 +144,49 @@ class CNNTrainer(Trainer):
         )
 
     def test(self):
-        pass
+        """
+        Test the model
+        """
+        self.model.eval()
+
+        num_batches = len(self.test_dataloader)
+
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        preds = []
+        targets = []
+
+        with torch.no_grad():
+            loop = tqdm(self.test_dataloader, total=num_batches)
+            for batch in loop:
+                y, y_hat = self.calculate_y_hat(batch)
+
+                loss = self.criterion(y_hat, y)
+
+                running_loss += loss.item()
+
+                predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+
+                correct += correct_predictions
+                total += y.size(0)
+
+                targets.extend(y.detach().cpu().numpy().flatten())
+                preds.extend(predicted.detach().cpu().numpy().flatten())
+
+                loop.set_description('Testing')
+                loop.set_postfix(test_acc=round(correct / total, 2),
+                                 test_loss=round(running_loss / total, 2))
+
+        test_auc = metrics.roc_auc_score(targets, preds)
+        test_accuracy = correct / total
+        test_loss = running_loss / num_batches
+
+        self.log_metrics(
+            auc=test_auc,
+            accuracy=test_accuracy,
+            loss=test_loss,
+            current_epoch_nr=-1,
+            metric_type="test"
+        )

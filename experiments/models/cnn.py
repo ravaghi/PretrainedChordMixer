@@ -23,10 +23,7 @@ class CNN(nn.Module):
 
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool1d(3, 2, 1)
-        # Enhancer Prediction: 55600
-        # Carassius VS Labeo: 277600
-        # Danio VS Cyprinus:
-        # Sus VS Bos: 
+        # TaxonomyClassification: 277600
         self.fc1 = nn.Linear(277600, 100)
         self.dropout = nn.Dropout(p=0.5)
         self.softmx = nn.Softmax()
@@ -38,18 +35,21 @@ class CNN(nn.Module):
             num_features *= s
         return num_features
 
-    def forward(self, x):
-        x = x.to(torch.int64)
-        x = self.encoder(x)
-        x = x.permute(0, 2, 1)
-        x = self.conv1(x)
-        x = self.relu(x)
-        x = self.pool(x)
-        x = self.conv2(x)
-        x = self.relu(x)
-        x = self.pool(x)
-        x = x.view(-1, self.num_flat_features(x))
-        x = self.dropout(x)
-        x = self.fc1(x)
-
-        return x
+    def forward(self, data):
+        x = data['x']
+        if data["task"] == "TaxonomyClassification":
+            x = x.to(torch.int64)
+            x = self.encoder(x)
+            x = x.permute(0, 2, 1)
+            x = self.conv1(x)
+            x = self.relu(x)
+            x = self.pool(x)
+            x = self.conv2(x)
+            x = self.relu(x)
+            x = self.pool(x)
+            x = x.view(-1, self.num_flat_features(x))
+            x = self.dropout(x)
+            x = self.fc1(x)
+            return x
+        else:
+            raise ValueError(f"Task: {data['task']} is not supported.")
