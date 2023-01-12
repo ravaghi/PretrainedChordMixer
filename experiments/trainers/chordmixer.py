@@ -72,12 +72,15 @@ class ChordMixerTrainer(Trainer):
         if self.task == "TaxonomyClassification":
             _, predicted = y_hat.max(1)
             correct_predictions = predicted.eq(y).sum().item()
+
         elif self.task == "VariantEffectPrediction":
             predicted = y_hat
             correct_predictions = torch.round(y_hat).eq(y).sum().item()
+
         elif self.task == "PlantDeepSEA":
             predicted = y_hat
             correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
+        
         else:
             raise ValueError(f"Task: {self.task} not found.")
 

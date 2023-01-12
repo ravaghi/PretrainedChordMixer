@@ -103,7 +103,7 @@ class Dataloader(ABC):
         Returns:
             processed dataframe
         """
-        if model_name == "ChordMixer":
+        if model_name in ["ChordMixer", "CNN"]:
             dataframe["reference"] = dataframe["reference"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe["alternate"] = dataframe["alternate"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
@@ -123,7 +123,7 @@ class Dataloader(ABC):
         Returns:
             processed dataframe
         """
-        if model_name == "ChordMixer":
+        if model_name in ["ChordMixer", "CNN"]:
             dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe = dataframe.drop(columns=['sequence'])
             dataframe = dataframe.rename(columns={'seq': 'sequence'})

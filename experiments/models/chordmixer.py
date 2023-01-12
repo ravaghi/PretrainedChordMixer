@@ -188,12 +188,10 @@ class ChordMixer(nn.Module):
                 y2 = self.chordmixer_blocks[layer](y2, None)
 
             y = y1 - y2
-
             data = y
-
             data = torch.mean(data, dim=1)
-
             data = self.final(data)
+
             tissue = tissue.unsqueeze(0).t()
             data = torch.gather(data, 1, tissue)  
             data = data.reshape(-1)
@@ -218,3 +216,6 @@ class ChordMixer(nn.Module):
             data = torch.sigmoid(data)
 
             return data
+
+        else:
+            raise ValueError(f"Task: {input_data['task']} is not supported.")

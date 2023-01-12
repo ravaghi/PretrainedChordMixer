@@ -27,6 +27,31 @@ class CNNTrainer(Trainer):
             }
             y_hat = self.model(model_input)
             return y, y_hat
+        elif self.task == "VariantEffectPrediction":
+            x1, x2, tissue, y = data
+            x1 = x1.to(self.device)
+            x2 = x2.to(self.device)
+            tissue = tissue.to(self.device)
+            y = y.to(self.device).float()
+            model_input = {
+                "task": self.task,
+                "x1": x1,
+                "x2": x2,
+                "tissue": tissue
+            }
+            y_hat = self.model(model_input)
+            return y, y_hat
+
+        elif self.task == "PlantDeepSEA":
+            x, y, seq_len, bin = data
+            x = x.to(self.device)
+            y = y.to(self.device)
+            model_input = {
+                "task": self.task,
+                "x": x
+            }
+            y_hat = self.model(model_input)
+            return y, y_hat
 
         else:
             raise ValueError(f"Task: {self.task} not found.")
@@ -45,6 +70,15 @@ class CNNTrainer(Trainer):
         if self.task == "TaxonomyClassification":
             _, predicted = y_hat.max(1)
             correct_predictions = predicted.eq(y).sum().item()
+
+        elif self.task == "VariantEffectPrediction":
+            predicted = y_hat
+            correct_predictions = torch.round(y_hat).eq(y).sum().item()
+
+        elif self.task == "PlantDeepSEA":
+            predicted = y_hat
+            correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
+        
         else:
             raise ValueError(f"Task: {self.task} not found.")
 
@@ -67,7 +101,6 @@ class CNNTrainer(Trainer):
             y, y_hat = self.calculate_y_hat(batch)
 
             loss = self.criterion(y_hat, y)
-
             loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
@@ -79,8 +112,8 @@ class CNNTrainer(Trainer):
             correct += correct_predictions
             total += y.size(0)
 
-            targets.extend(y.detach().cpu().numpy().flatten())
-            preds.extend(predicted.detach().cpu().numpy().flatten())
+            targets.extend(y.detach().cpu().numpy())
+            preds.extend(predicted.detach().cpu().numpy())
 
             loop.set_description(f'Epoch {current_epoch_nr}')
             loop.set_postfix(train_acc=round(correct / total, 2),
@@ -124,19 +157,19 @@ class CNNTrainer(Trainer):
                 correct += correct_predictions
                 total += y.size(0)
 
-                targets.extend(y.detach().cpu().numpy().flatten())
-                preds.extend(predicted.detach().cpu().numpy().flatten())
+                targets.extend(y.detach().cpu().numpy())
+                preds.extend(predicted.detach().cpu().numpy())
 
                 loop.set_description(f'Epoch {current_epoch_nr}')
                 loop.set_postfix(val_acc=round(correct / total, 2),
                                  val_loss=round(running_loss / total, 2))
 
-        val_auc = metrics.roc_auc_score(targets, preds)
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
+        validation_auc = metrics.roc_auc_score(targets, preds)
 
         self.log_metrics(
-            auc=val_auc,
+            auc=validation_auc,
             accuracy=validation_accuracy,
             loss=validation_loss,
             current_epoch_nr=current_epoch_nr,
@@ -172,16 +205,16 @@ class CNNTrainer(Trainer):
                 correct += correct_predictions
                 total += y.size(0)
 
-                targets.extend(y.detach().cpu().numpy().flatten())
-                preds.extend(predicted.detach().cpu().numpy().flatten())
+                targets.extend(y.detach().cpu().numpy())
+                preds.extend(predicted.detach().cpu().numpy())
 
                 loop.set_description('Testing')
                 loop.set_postfix(test_acc=round(correct / total, 2),
                                  test_loss=round(running_loss / total, 2))
 
-        test_auc = metrics.roc_auc_score(targets, preds)
         test_accuracy = correct / total
         test_loss = running_loss / num_batches
+        test_auc = metrics.roc_auc_score(targets, preds)
 
         self.log_metrics(
             auc=test_auc,

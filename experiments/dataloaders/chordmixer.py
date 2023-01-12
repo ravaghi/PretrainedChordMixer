@@ -118,7 +118,7 @@ class ChordMixerDataLoader(Dataloader):
                 drop_last=False
             )
 
-        if self.dataset_type == "VariantEffectPrediction":
+        elif self.dataset_type == "VariantEffectPrediction":
             dataframe = self.process_variant_effect_prediction_dataframe(dataframe, "ChordMixer")
             dataset = VEPDatasetCreator(dataframe)
             return DataLoader(
@@ -128,7 +128,7 @@ class ChordMixerDataLoader(Dataloader):
                 drop_last=False
             )
 
-        if self.dataset_type == "PlantDeepSEA":
+        elif self.dataset_type == "PlantDeepSEA":
             dataframe = self.process_plantdeepsea_dataframe(dataframe, "ChordMixer")
             dataset = PlantDeepSeaDatasetCreator(
                 df=dataframe,
@@ -141,3 +141,6 @@ class ChordMixerDataLoader(Dataloader):
                 shuffle=False,
                 drop_last=False
             )
+
+        else:
+            raise ValueError(f"Dataset type {self.dataset_type} not supported.")
