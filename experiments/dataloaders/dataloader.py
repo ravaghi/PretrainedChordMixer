@@ -26,52 +26,109 @@ class Dataloader(ABC):
         raise NotImplementedError
 
     @staticmethod
-    def process_taxonomy_classification_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
+    def pad_sequences(dataframe: pd.DataFrame, max_len: int=1000) -> pd.DataFrame:
         """
-        Process the dataframe for taxonomy classification
+        Pad sequences to max length
 
         Args:
-            dataframe: dataframe to process
-
+            dataframe: dataframe to pad
+            max_len: max length to pad or truncate to
+        
         Returns:
-            processed dataframe
+            padded dataframe
         """
-        dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-        dataframe = dataframe.drop(columns=['sequence'])
-        dataframe = dataframe.rename(columns={'seq': 'sequence'})
-        dataframe = dataframe[["sequence", "label", "bin", "len"]]
+        max_seq_len = dataframe["sequence"].apply(lambda x: len(x)).max()
+        if max_seq_len < max_len:
+            max_seq_len = max_len
+        dataframe["sequence"] = dataframe["sequence"].str.pad(max_seq_len, side="right", fillchar="A")
+        dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x[:max_len].upper())
         return dataframe
 
     @staticmethod
-    def process_variant_effect_prediction_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
+    def convert_base_to_index(dataframe: pd.DataFrame) -> pd.DataFrame:
         """
-        Process the dataframe for variant effect prediction
+        Convert DNA sequence bases to indices
+
+        Args:
+            dataframe: dataframe to convert
+
+        Returns:
+            converted dataframe
+        """
+        dataframe["new_sequence"] = dataframe["sequence"].apply(lambda x: [DNA_BASE_DICT[base] for base in x])
+        dataframe = dataframe.drop(columns=["sequence"])
+        dataframe = dataframe.rename(columns={"new_sequence": "sequence"})
+        dataframe = dataframe.sample(frac=1).reset_index(drop=True)
+        return dataframe
+
+    def process_taxonomy_classification_dataframe(self, dataframe: pd.DataFrame, model_name: str) -> pd.DataFrame:
+        """
+        Process the taxonomy classification dataset for a specific model
 
         Args:
             dataframe: dataframe to process
+            model_name: model
 
         Returns:
             processed dataframe
         """
-        dataframe["reference"] = dataframe["reference"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-        dataframe["alternate"] = dataframe["alternate"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-        dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
+        if model_name == "ChordMixer":
+            dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+            dataframe = dataframe.drop(columns=['sequence'])
+            dataframe = dataframe.rename(columns={'seq': 'sequence'})
+            return dataframe[["sequence", "label", "bin", "len"]]
+
+        elif model_name == "CNN":
+            dataframe = dataframe.drop(columns=["len", "bin"])
+
+            if self.dataset_type == "TaxonomyClassification":
+                max_len = 25_000
+
+            dataframe = self.pad_sequences(dataframe, max_len)
+            dataframe = self.convert_base_to_index(dataframe)
+    
+            return dataframe[["sequence", "label"]]
+        else:
+            raise ValueError(f"Model: {model_name} not supported")
+
+    @staticmethod
+    def process_variant_effect_prediction_dataframe(dataframe: pd.DataFrame, model_name: str) -> pd.DataFrame:
+        """
+        Process the variant effect prediction dataset for a specific model
+
+        Args:
+            dataframe: dataframe to process
+            model_name: model
+
+        Returns:
+            processed dataframe
+        """
+        if model_name == "ChordMixer":
+            dataframe["reference"] = dataframe["reference"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+            dataframe["alternate"] = dataframe["alternate"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+            dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
+        else:
+            raise ValueError(f"Model: {model_name} not supported")
         return dataframe
 
     @staticmethod
-    def process_plantdeepsea_dataframe(dataframe: pd.DataFrame) -> pd.DataFrame:
+    def process_plantdeepsea_dataframe(dataframe: pd.DataFrame, model_name: str) -> pd.DataFrame:
         """
-        Process the dataframe for plant deepsea
+        Process the PlantDeepSEA dataset for a specific model
 
         Args:
             dataframe: dataframe to process
+            model_name: model
 
         Returns:
             processed dataframe
         """
-        dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-        dataframe = dataframe.drop(columns=['sequence'])
-        dataframe = dataframe.rename(columns={'seq': 'sequence'})
-        dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
-        dataframe["bin"] = -1
+        if model_name == "ChordMixer":
+            dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+            dataframe = dataframe.drop(columns=['sequence'])
+            dataframe = dataframe.rename(columns={'seq': 'sequence'})
+            dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
+            dataframe["bin"] = -1
+        else:
+            raise ValueError(f"Model: {model_name} not supported")
         return dataframe

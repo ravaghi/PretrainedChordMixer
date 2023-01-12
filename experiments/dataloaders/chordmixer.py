@@ -104,7 +104,7 @@ class ChordMixerDataLoader(Dataloader):
         dataframe = pd.read_csv(data_path)
 
         if self.dataset_type == "TaxonomyClassification":
-            dataframe = self.process_taxonomy_classification_dataframe(dataframe)
+            dataframe = self.process_taxonomy_classification_dataframe(dataframe, "ChordMixer")
             dataset = TaxonomyDatasetCreator(
                 df=dataframe,
                 batch_size=self.batch_size,
@@ -119,7 +119,7 @@ class ChordMixerDataLoader(Dataloader):
             )
 
         if self.dataset_type == "VariantEffectPrediction":
-            dataframe = self.process_variant_effect_prediction_dataframe(dataframe)
+            dataframe = self.process_variant_effect_prediction_dataframe(dataframe, "ChordMixer")
             dataset = VEPDatasetCreator(dataframe)
             return DataLoader(
                 dataset,
@@ -129,7 +129,7 @@ class ChordMixerDataLoader(Dataloader):
             )
 
         if self.dataset_type == "PlantDeepSEA":
-            dataframe = self.process_plantdeepsea_dataframe(dataframe)
+            dataframe = self.process_plantdeepsea_dataframe(dataframe, "ChordMixer")
             dataset = PlantDeepSeaDatasetCreator(
                 df=dataframe,
                 batch_size=self.batch_size,
