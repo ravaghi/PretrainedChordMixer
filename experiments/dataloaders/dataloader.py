@@ -88,6 +88,17 @@ class Dataloader(ABC):
             dataframe = self.convert_base_to_index(dataframe)
     
             return dataframe[["sequence", "label"]]
+
+        elif model_name == "KeGRU":
+            dataframe = dataframe.drop(columns=["len", "bin"])
+
+            if self.dataset_type == "TaxonomyClassification":
+                max_len = 10_000
+
+            dataframe = self.pad_sequences(dataframe, max_len)
+    
+            return dataframe[["sequence", "label"]]
+            
         else:
             raise ValueError(f"Model: {model_name} not supported")
 
@@ -107,8 +118,13 @@ class Dataloader(ABC):
             dataframe["reference"] = dataframe["reference"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe["alternate"] = dataframe["alternate"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
+
+        elif model_name == "KeGRU":
+            dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
+
         else:
             raise ValueError(f"Model: {model_name} not supported")
+
         return dataframe
 
     @staticmethod

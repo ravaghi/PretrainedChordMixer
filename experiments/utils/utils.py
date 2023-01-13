@@ -41,11 +41,11 @@ def init_run(config: DictConfig) -> str:
     seed_everything(config.general.seed)
 
     # Initiate wandb run
-    wandb.init(project=config.wandb.project,
-               entity=config.wandb.entity,
-               config=OmegaConf.to_container(config, resolve=True),
-               name=config.wandb.name,
-               dir=BASE_DIR)
+    # wandb.init(project=config.wandb.project,
+    #            entity=config.wandb.entity,
+    #            config=OmegaConf.to_container(config, resolve=True),
+    #            name=config.wandb.name,
+    #            dir=BASE_DIR)
 
     # Print config file content
     print("-" * 30 + " config " + "-" * 30)
