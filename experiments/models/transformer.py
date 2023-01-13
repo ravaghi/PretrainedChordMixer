@@ -18,11 +18,22 @@ class Transformer(nn.Module):
             self.final = nn.Linear(embedding_size * const_vector_length, n_class)
         self.linear = nn.Linear(2, embedding_size, bias=True)
 
-    def forward(self, x):
-        x = self.encoder(x)
-        positions = torch.arange(0, self.const_vector_length).expand(x.size(0), self.const_vector_length).to(
-            self.device)
-        x = self.posenc(positions) + x
-        x = self.transformer_encoder(x)
-        x = self.final(x.view(x.size(0), -1))
-        return x
+    def forward(self, input_data):
+        if input_data["task"] == "TaxonomyClassification":
+            x = input_data["x"]
+            x = self.encoder(x)
+            positions = torch.arange(0, self.const_vector_length).expand(x.size(0), self.const_vector_length).to(
+                self.device)
+            x = self.posenc(positions) + x
+            x = self.transformer_encoder(x)
+            x = self.final(x.view(x.size(0), -1))
+            return x
+
+        elif input_data["task"] == "VariantEffectPrediction":
+            pass
+
+        elif input_data["task"] == "PlantDeepSEA":
+            pass
+
+        else:
+            raise ValueError(f"Task: {input_data['task']} is not supported.")
