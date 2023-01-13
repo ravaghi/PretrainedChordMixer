@@ -184,12 +184,12 @@ class ChordMixerTrainer(Trainer):
                 loop.set_postfix(val_acc=round(correct / total, 3),
                                  val_loss=round(running_loss / total, 3))
 
-        val_auc = metrics.roc_auc_score(targets, preds)
+        validation_auc = metrics.roc_auc_score(targets, preds)
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
 
         self.log_metrics(
-            auc=val_auc,
+            auc=validation_auc,
             accuracy=validation_accuracy,
             loss=validation_loss,
             current_epoch_nr=current_epoch_nr,

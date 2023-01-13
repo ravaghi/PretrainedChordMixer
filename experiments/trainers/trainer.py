@@ -32,7 +32,6 @@ class Trainer(ABC):
             print(f'Test AUC: {auc * 100:.2f}%')
             print(f'Test Accuracy: {accuracy * 100:.2f}%')
             print(f'Test Loss: {loss:.2f}')
-        return
         if metric_type == 'train':
             wandb.log({'train_auc': auc}, step=current_epoch_nr)
             wandb.log({'train_accuracy': accuracy}, step=current_epoch_nr)

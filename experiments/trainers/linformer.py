@@ -2,10 +2,88 @@ from tqdm import tqdm
 from sklearn import metrics
 import torch
 
-from trainer import Trainer
+from .trainer import Trainer
 
 
 class LinformerTrainer(Trainer):
+
+    def calculate_y_hat(self, data: tuple) -> tuple:
+        """
+        Calculate the y_hat for the given data and task
+
+        Args:
+            data (tuple): The data to calculate the y_hat for
+
+        Returns:
+            tuple: The y and y_hat
+        """
+        if self.task == "TaxonomyClassification":
+            x, y = data
+            x = x.to(self.device)
+            y = y.to(self.device)
+            model_input = {
+                "task": self.task,
+                "x": x
+            }
+            y_hat = self.model(model_input)
+            return y, y_hat
+
+        elif self.task == "VariantEffectPrediction":
+            x1, x2, tissue, y = data
+            x1 = x1.to(self.device)
+            x2 = x2.to(self.device)
+            tissue = tissue.to(self.device)
+            y = y.to(self.device).float()
+            model_input = {
+                "task": self.task,
+                "x1": x1,
+                "x2": x2,
+                "tissue": tissue
+            }
+            y_hat = self.model(model_input)
+            return y, y_hat
+
+        elif self.task == "PlantDeepSEA":
+            x, y, seq_len, bin = data
+            x = x.to(self.device)
+            y = y.to(self.device)
+            model_input = {
+                "task": self.task,
+                "x": x
+            }
+            y_hat = self.model(model_input)
+            return y, y_hat
+
+        else:
+            raise ValueError(f"Task: {self.task} not found.")
+
+    def calculate_predictions(self, y: torch.Tensor, y_hat: torch.Tensor) -> tuple:
+        """
+        Calculate the predictions for the given y and y_hat
+
+        Args:
+            y (torch.Tensor): The y
+            y_hat (torch.Tensor): The y_hat
+
+        Returns:
+            tuple: The predicted and correct predictions
+        """
+        if self.task == "TaxonomyClassification":
+            _, predicted = y_hat.max(1)
+            correct_predictions = predicted.eq(y).sum().item()
+
+        elif self.task == "VariantEffectPrediction":
+            predicted = y_hat
+            correct_predictions = torch.round(y_hat).eq(y).sum().item()
+
+        elif self.task == "PlantDeepSEA":
+            predicted = y_hat
+            correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
+        
+        else:
+            raise ValueError(f"Task: {self.task} not found.")
+
+        return predicted, correct_predictions
 
     def train(self, current_epoch_nr):
         self.model.train()
@@ -21,11 +99,7 @@ class LinformerTrainer(Trainer):
 
         loop = tqdm(self.train_dataloader, total=num_batches)
         for batch in loop:
-            x, y = batch
-            x = x.to(self.device)
-            y = y.to(self.device)
-
-            y_hat = self.model(x)
+            y, y_hat = self.calculate_y_hat(batch)
 
             loss = self.criterion(y_hat, y)
             loss.backward()
@@ -42,7 +116,7 @@ class LinformerTrainer(Trainer):
             targets.extend(y.detach().cpu().numpy().flatten())
             preds.extend(predicted.detach().cpu().numpy().flatten())
 
-            loop.set_description(f'Epoch {current_epoch_nr + 1}')
+            loop.set_description(f'Epoch {current_epoch_nr}')
             loop.set_postfix(train_acc=round(correct / total, 2),
                              train_loss=round(running_loss / total, 2))
 
@@ -71,12 +145,9 @@ class LinformerTrainer(Trainer):
         targets = []
 
         with torch.no_grad():
-            loop = tqdm(enumerate(self.val_dataloader), total=num_batches)
-            for idx, (x, y) in loop:
-                x = x.to(self.device)
-                y = y.to(self.device)
-
-                y_hat = self.model(x)
+            loop = tqdm(self.val_dataloader, total=num_batches)
+            for batch in loop:
+                y, y_hat = self.calculate_y_hat(batch)
 
                 loss = self.criterion(y_hat, y)
 
@@ -89,16 +160,16 @@ class LinformerTrainer(Trainer):
                 targets.extend(y.detach().cpu().numpy().flatten())
                 preds.extend(predicted.detach().cpu().numpy().flatten())
 
-                loop.set_description(f'Epoch {current_epoch_nr + 1}')
+                loop.set_description(f'Epoch {current_epoch_nr}')
                 loop.set_postfix(val_acc=round(correct / total, 2),
                                  val_loss=round(running_loss / total, 2))
 
-        val_auc = metrics.roc_auc_score(targets, preds)
+        validation_auc = metrics.roc_auc_score(targets, preds)
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
 
         self.log_metrics(
-            auc=val_auc,
+            auc=validation_auc,
             accuracy=validation_accuracy,
             loss=validation_loss,
             current_epoch_nr=current_epoch_nr,
@@ -106,4 +177,45 @@ class LinformerTrainer(Trainer):
         )
 
     def test(self):
-        pass
+        self.model.eval()
+
+        num_batches = len(self.test_dataloader)
+
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        preds = []
+        targets = []
+
+        with torch.no_grad():
+            loop = tqdm(self.test_dataloader, total=num_batches)
+            for batch in loop:
+                y, y_hat = self.calculate_y_hat(batch)
+
+                loss = self.criterion(y_hat, y)
+
+                running_loss += loss.item()
+
+                _, predicted = y_hat.max(1)
+                total += y.size(0)
+                correct += predicted.eq(y).sum().item()
+
+                targets.extend(y.detach().cpu().numpy().flatten())
+                preds.extend(predicted.detach().cpu().numpy().flatten())
+
+                loop.set_description(f'Testing')
+                loop.set_postfix(val_acc=round(correct / total, 2),
+                                 val_loss=round(running_loss / total, 2))
+
+        test_auc = metrics.roc_auc_score(targets, preds)
+        test_accuracy = correct / total
+        test_loss = running_loss / num_batches
+
+        self.log_metrics(
+            auc=test_auc,
+            accuracy=test_accuracy,
+            loss=test_loss,
+            current_epoch_nr=-1,
+            metric_type="test"
+        )
