@@ -83,6 +83,8 @@ class Dataloader(ABC):
 
             if self.dataset_type == "TaxonomyClassification":
                 max_len = 25_000
+                if model_name == "Reformer":
+                    max_len = 16_000
 
             dataframe = self.pad_sequences(dataframe, max_len)
             dataframe = self.convert_base_to_index(dataframe)
