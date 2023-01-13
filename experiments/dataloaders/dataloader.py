@@ -78,7 +78,7 @@ class Dataloader(ABC):
             dataframe = dataframe.rename(columns={'seq': 'sequence'})
             return dataframe[["sequence", "label", "bin", "len"]]
 
-        elif model_name in ["CNN", "Linformer"]:
+        elif model_name in ["CNN", "Linformer", "Nystromformer"]:
             dataframe = dataframe.drop(columns=["len", "bin"])
 
             if self.dataset_type == "TaxonomyClassification":
