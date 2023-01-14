@@ -8,12 +8,6 @@ from utils.utils import init_run, init_weights, get_class_weights
 
 @hydra.main(config_path="configs", version_base=None)
 def main(config: DictConfig) -> None:
-    """
-    Main function to run the experiment.
-
-    Args:
-        config (DictConfig): Configuration file.
-    """
     device = init_run(config)
 
     # Instantiate model based on config
