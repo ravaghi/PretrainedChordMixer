@@ -87,7 +87,7 @@ class NystromformerTrainer(Trainer):
             targets.extend(y.detach().cpu().numpy().flatten())
             preds.extend(predicted.detach().cpu().numpy().flatten())
 
-            loop.set_description(f'Epoch {current_epoch_nr + 1}')
+            loop.set_description(f'Epoch {current_epoch_nr}')
             loop.set_postfix(train_acc=round(correct / total, 2),
                              train_loss=round(running_loss / total, 2))
 
@@ -131,7 +131,7 @@ class NystromformerTrainer(Trainer):
                 targets.extend(y.detach().cpu().numpy().flatten())
                 preds.extend(predicted.detach().cpu().numpy().flatten())
 
-                loop.set_description(f'Epoch {current_epoch_nr + 1}')
+                loop.set_description(f'Epoch {current_epoch_nr}')
                 loop.set_postfix(val_acc=round(correct / total, 2),
                                  val_loss=round(running_loss / total, 2))
 
