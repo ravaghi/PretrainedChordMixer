@@ -2,8 +2,8 @@ general:
   name: PretrainedChordMixer
   seed: 42
   device_id: 0
-  batch_size: 2
-  max_epochs: 100
+  batch_size: 30
+  max_epochs: 10
 
 dataset:
   path: ${hydra:runtime.cwd}/data/variant_effect_prediction

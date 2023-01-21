@@ -167,7 +167,7 @@ class PretrainedChordMixerDataLoader:
 
     def create_dataloaders(self):
         sequences = self._load_sequences()
-        # sequences = "".join(["ACTG"[random.randint(0, 3)] for _ in range(10_000)])
+        # sequences = "".join(["ACTG"[random.randint(0, 3)] for _ in range(100_000)])
         masked_sequences = self._process_sequences(sequences)
         train, val, test = self._split_sequences(masked_sequences)
 

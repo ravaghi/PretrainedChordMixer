@@ -140,6 +140,6 @@ class PretrainedChordMixerTrainer:
                 loop.set_description(f'Test')
                 loop.set_postfix(test_loss=round(running_loss / total, 5))
 
-                if idx % 100 == 0:
-                    wandb.log({'test_loss': running_loss / total})
+        test_loss = running_loss / num_batches
+        wandb.run.summary['test_loss'] = test_loss
         
