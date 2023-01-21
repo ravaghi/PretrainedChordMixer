@@ -9,7 +9,8 @@ from experiments.utils.utils import init_run
 
 @hydra.main(version_base=None, config_path="configs", config_name="pretrained_chordmixer")
 def main(config: DictConfig) -> None:
-    device = init_run(config)
+    init_run(config)
+    device = "cuda"
 
     dataloader = instantiate(config=config.dataloader)
     train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
