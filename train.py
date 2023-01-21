@@ -1,6 +1,8 @@
 import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig
+import torch
+from datetime import datetime
 
 from experiments.utils.utils import init_run
 
@@ -12,7 +14,7 @@ def main(config: DictConfig) -> None:
     dataloader = instantiate(config=config.dataloader)
     train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
 
-    model = instantiate(config=config.model).to(device)
+    model = torch.nn.DataParallel(instantiate(config=config.model)).to(device)
     criterion = instantiate(config=config.loss)
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
@@ -32,6 +34,8 @@ def main(config: DictConfig) -> None:
         trainer.evaluate(current_epoch_nr=epoch)
 
     trainer.test()
+    
+    torch.save(model.state_dict(), f"models/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pth")
 
 
 if __name__ == '__main__':
