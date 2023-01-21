@@ -3,7 +3,7 @@ general:
   seed: 42
   device_id: 0
   batch_size: 2
-  max_epochs: 2
+  max_epochs: 100
 
 dataset:
   path: ${hydra:runtime.cwd}/data/variant_effect_prediction
@@ -14,31 +14,29 @@ dataloader:
   data_path: ${dataset.path}
   dataset_filename: ${dataset.name}
   batch_size: ${general.batch_size}
-  mask_ratio: 0.10
-  sequence_length: 1000
+  mask_ratio: 0.15
+  sequence_length: 500
 
 
-# model: 
-#   _target_: model.PretrainedChordMixer
-#   vocab_size: ${dataset.vocab_size}
-#   max_seq_len: ${dataset.max_seq_len}
-#   variable_length: ${dataset.variable_length}
-#   track_size: 16
-#   hidden_size: 196
-#   mlp_dropout: 0
-#   layer_dropout: 0
-#   n_class: ${dataset.n_class}
+model: 
+  _target_: model.PretrainedChordMixer
+  sequence_length: ${dataloader.sequence_length}
+  encoder_track_size: 16
+  decoder_track_size: 8
+  hidden_size: 196
+  mlp_dropout: 0
+  layer_dropout: 0
 
-# loss: 
-#   _target_: torch.nn.CrossEntropyLoss
-#   reduction: mean
+loss: 
+  _target_: torch.nn.CrossEntropyLoss
+  reduction: mean
 
-# optimizer:
-#   _target_: torch.optim.Adam
-#   lr: 0.0001
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0001
 
-# trainer:
-#   _target_: trainer.PretrainedChordMixerTrainer
+trainer:
+  _target_: trainer.PretrainedChordMixerTrainer
 
 wandb: 
   entity: ravaghi

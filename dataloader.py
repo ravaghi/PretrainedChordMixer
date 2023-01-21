@@ -2,6 +2,7 @@ import os
 import torch
 from Bio import SeqIO
 from torch.utils.data import Dataset, DataLoader
+import random
 
 
 class SequenceProcessor:
@@ -56,10 +57,11 @@ class SequenceProcessor:
 
         rand = torch.rand(sequence_ids.shape)
         masks = rand < self.mask_ratio
+        masks = masks.to(torch.int32)
 
         for i in range(sequence_ids.shape[0]):
             selection = torch.flatten(masks[i].nonzero()).tolist()
-            sequence_ids[i, selection] = 100
+            sequence_ids[i, selection] = 15
 
         return {
             "sequence_ids": sequence_ids,
@@ -70,9 +72,9 @@ class SequenceProcessor:
 
 class HG38Dataset(Dataset):
     def __init__(self, data):
-        self.sequence_ids = data["sequence_ids"]
+        self.sequence_ids = data["sequence_ids"].type(torch.float32)
         self.masks = data["masks"]
-        self.labels = data["labels"]
+        self.labels = data["labels"].type(torch.float32)
 
     def __getitem__(self, index):
         return self.sequence_ids[index], self.masks[index], self.labels[index]
@@ -89,7 +91,7 @@ class PretrainedChordMixerDataLoader:
     ]
 
     # _CHROMOSOMES = [
-    #     "chr1", "chr2", "chr3"
+    #     "chr21"
     # ]
 
     def __init__(self, data_path, dataset_filename, batch_size, mask_ratio, sequence_length):
@@ -110,9 +112,7 @@ class PretrainedChordMixerDataLoader:
         sequences_dict = SeqIO.to_dict(SeqIO.parse(data_path, "fasta"))
         sequences = ""
         for chromosome in self._CHROMOSOMES:
-            print(f"Loading {chromosome}...")
             sequences += str(sequences_dict[chromosome].seq).upper()
-        print(f"Lenght of sequences: {len(sequences)}")
         return sequences
 
     def _process_sequences(self, sequences: str) -> dict:
@@ -126,11 +126,8 @@ class PretrainedChordMixerDataLoader:
             dict: Dictionary containing the masked sequences, masks and labels
         """
         sequence_processor = SequenceProcessor(self.mask_ratio, self.sequence_length)
-        print("Tokenizing sequences...")
         tokenized_sequences = sequence_processor.tokenize(sequences)
-        print("Splitting sequences...")
         splitt_sequences = sequence_processor.split(tokenized_sequences)
-        print("Masking sequences...")
         masked_sequences = sequence_processor.mask(splitt_sequences)
         return masked_sequences
 
@@ -169,16 +166,11 @@ class PretrainedChordMixerDataLoader:
         return train, val, test
 
     def create_dataloaders(self):
-        print("Loading sequences...")
         sequences = self._load_sequences()
-
-        print("Processing sequences...")
+        # sequences = "".join(["ACTG"[random.randint(0, 3)] for _ in range(10_000)])
         masked_sequences = self._process_sequences(sequences)
-
-        print("Splitting sequences...")
         train, val, test = self._split_sequences(masked_sequences)
 
-        print("Creating dataloaders...")
         train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True)
         val_dataloader = DataLoader(HG38Dataset(val), batch_size=self.batch_size, shuffle=True)
         test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True)
