@@ -1,67 +1,81 @@
 import os
 import torch
 from Bio import SeqIO
+from tqdm import tqdm
+from typing import Tuple
+import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 import random
 
-
 class SequenceProcessor:
+    """Processes a DNA sequence by tokenizing, splitting and masking"""
+
+    # _DNA_BASE_DICT = {
+    #     'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
+    #     'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14
+    # }
+
     _DNA_BASE_DICT = {
-        'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
-        'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14
+        'A': 0, 'C': 1, 'G': 2, 'T': 3
     }
 
-    def __init__(self, mask_ratio, sequence_length):
+    def __init__(self, mask_ratio: float, sequence_length: int):
         self.mask_ratio = mask_ratio
         self.sequence_length = sequence_length
 
     def tokenize(self, sequence: str) -> torch.Tensor:
         """
-        Tokenizes a DNA sequence into a tensor of integers
+        Tokenizes a string of DNA bases into a tensor of integers
 
         Args:
             sequence (str): DNA sequence to be tokenized
 
         Returns:
-            torch.Tensor: Tensor of integers representing the DNA sequence
+            torch.Tensor: 1D tensor of integers representing the DNA sequence
         """
-        return torch.tensor([self._DNA_BASE_DICT[base] for base in sequence], dtype=torch.int32)
+        return torch.tensor([self._DNA_BASE_DICT[base] for base in tqdm(sequence, desc="Tokenizing sequences")], dtype=torch.int64)
 
     def split(self, sequence_ids: torch.Tensor) -> torch.Tensor:
         """
-        Splits a sequence into multiple sequences of length sequence_length
+        Splits a 1D tensor into multiple tensors of length sequence_length
 
         Args:
-            sequence_ids (torch.Tensor): Tensor of integers representing a DNA sequence
+            sequence_ids (torch.Tensor): 1D Tensor of integers representing a DNA sequence
 
         Returns:
-            torch.Tensor: Tensor of integers representing the split DNA sequences
+            torch.Tensor: 2D Tensor of integers representing the split DNA sequences
         """
-        # Shortening the array to be divisible by sequence length
+        # Shortening the tenssor to be divisible by sequence length
         remainder = len(sequence_ids) % self.sequence_length
         if remainder > 0:
             sequence_ids = sequence_ids[:-remainder]
+
+        print(f"Splitting sequences into sequences of length {self.sequence_length}")
         return torch.stack(torch.split(sequence_ids, self.sequence_length))
 
     def mask(self, sequence_ids: torch.Tensor) -> dict:
         """
-        Masks a sequence with a mask ratio
+        Masks and one hot encodes a 2D tensor with the given mask ratio
 
         Args:
-            sequence_ids (torch.Tensor): Tensor of integers representing a DNA sequence
+            sequence_ids (torch.Tensor): 2D Tensor of integers representing a DNA sequence
 
         Returns:
-            dict: Dictionary containing the masked sequence and the mask
+            dict: Dictionary containing the masked sequences, masks and labels
         """
-        labels = sequence_ids.clone().detach()
+        labels = sequence_ids.clone()
 
-        rand = torch.rand(sequence_ids.shape)
+        # Creating masks
+        rand = torch.rand(sequence_ids.shape[0], sequence_ids.shape[1])
         masks = rand < self.mask_ratio
-        masks = masks.to(torch.int32)
 
-        for i in range(sequence_ids.shape[0]):
+        # One hot encoding
+        sequence_ids = F.one_hot(sequence_ids, num_classes=len(self._DNA_BASE_DICT))
+
+        # Masking
+        for i in tqdm(range(sequence_ids.shape[0]), desc="Masking"):
             selection = torch.flatten(masks[i].nonzero()).tolist()
-            sequence_ids[i, selection] = 15
+            sequence_ids[i, selection] = 0
 
         return {
             "sequence_ids": sequence_ids,
@@ -71,30 +85,49 @@ class SequenceProcessor:
 
 
 class HG38Dataset(Dataset):
-    def __init__(self, data):
-        self.sequence_ids = data["sequence_ids"].type(torch.float32)
-        self.masks = data["masks"]
-        self.labels = data["labels"].type(torch.float32)
+    """Dataset for the hg38 dataset"""
 
-    def __getitem__(self, index):
+    def __init__(self, data: dict):
+        self.sequence_ids = data["sequence_ids"].to(torch.float32)
+        self.masks = data["masks"]
+        self.labels = data["labels"].to(torch.long)
+
+    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Returns the item at the given index
+        
+        Args:
+            index (int): Index of the item to be returned
+
+        Returns:
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Tuple containing the sequence_ids, masks and labels
+        """
         return self.sequence_ids[index], self.masks[index], self.labels[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
+        """
+        Returns the length of the dataset
+        
+        Returns:
+            int: Length of the dataset
+        """
         return len(self.sequence_ids)
 
 
 class PretrainedChordMixerDataLoader:
-    _CHROMOSOMES = [
-        "chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
-        "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", 
-        "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"
-    ]
+    """DataLoader for the pretrained ChordMixer model"""
 
     # _CHROMOSOMES = [
-    #     "chr21"
+    #    "chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
+    #    "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", 
+    #    "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"
     # ]
 
-    def __init__(self, data_path, dataset_filename, batch_size, mask_ratio, sequence_length):
+    _CHROMOSOMES = [
+        "chr1"
+    ]
+
+    def __init__(self, data_path: str, dataset_filename: str, batch_size: int, mask_ratio: float, sequence_length: int):
         self.data_path = data_path
         self.dataset_filename = dataset_filename
         self.batch_size = batch_size
@@ -103,16 +136,16 @@ class PretrainedChordMixerDataLoader:
 
     def _load_sequences(self) -> str:
         """
-        Loads the sequences from the dataset file
+        Loads and joins the sequences from the fasta file
 
         Returns:
-            str: DNA sequences
+            str: Concatenated DNA sequences
         """
         data_path = os.path.join(self.data_path, self.dataset_filename)
         sequences_dict = SeqIO.to_dict(SeqIO.parse(data_path, "fasta"))
         sequences = ""
-        for chromosome in self._CHROMOSOMES:
-            sequences += str(sequences_dict[chromosome].seq).upper()
+        for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences"):
+            sequences += str(sequences_dict[chromosome].seq).upper().replace("N", "")
         return sequences
 
     def _process_sequences(self, sequences: str) -> dict:
@@ -132,7 +165,7 @@ class PretrainedChordMixerDataLoader:
         return masked_sequences
 
     @staticmethod
-    def _split_sequences(masked_sequences: dict) -> tuple:
+    def _split_dataset(masked_sequences: dict) -> Tuple[dict, dict, dict]:
         """
         Splits the sequences into train, validation and test sets
 
@@ -140,7 +173,7 @@ class PretrainedChordMixerDataLoader:
             masked_sequences (dict): Dictionary containing the masked sequences, masks and labels
 
         Returns:
-            tuple: Tuple containing the train, validation and test sets
+            Tuple[dict, dict, dict]: Tuple containing the train, validation and test sets
         """
         train_size = int(0.8 * len(masked_sequences["sequence_ids"]))
         val_size = int(0.1 * len(masked_sequences["sequence_ids"]))
@@ -165,14 +198,19 @@ class PretrainedChordMixerDataLoader:
 
         return train, val, test
 
-    def create_dataloaders(self):
-        sequences = self._load_sequences()
-        # sequences = "".join(["ACTG"[random.randint(0, 3)] for _ in range(100_000)])
-        masked_sequences = self._process_sequences(sequences)
-        train, val, test = self._split_sequences(masked_sequences)
+    def create_dataloaders(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
+        """
+        Processes the datset and creates dataloaders for the train, validation and test sets
 
-        train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True)
-        val_dataloader = DataLoader(HG38Dataset(val), batch_size=self.batch_size, shuffle=True)
-        test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True)
+        Returns:
+            Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, validation and test dataloaders
+        """
+        sequences = self._load_sequences()
+        masked_sequences = self._process_sequences(sequences)
+        train, val, test = self._split_dataset(masked_sequences)
+
+        train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True, pin_memory=True)
+        val_dataloader = DataLoader(HG38Dataset(val), batch_size=self.batch_size, shuffle=True, pin_memory=True)
+        test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True)
 
         return train_dataloader, val_dataloader, test_dataloader
