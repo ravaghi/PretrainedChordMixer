@@ -12,4 +12,4 @@ scikit-learn==1.0.2
 timm==0.6.11
 torch==1.13.0
 tqdm==4.64.1
-wandb==0.13.4
+wandb==0.13.9
