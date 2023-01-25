@@ -33,7 +33,11 @@ class SequenceProcessor:
         Returns:
             torch.Tensor: 1D tensor of integers representing the DNA sequence
         """
-        return torch.tensor([self._DNA_BASE_DICT[base] for base in tqdm(sequence, desc="Tokenizing sequences")], dtype=torch.int64)
+        def _get_base_index(base):
+            return self._DNA_BASE_DICT[base]
+            
+        print(f"Tokenizing sequence of length {len(sequence)}")
+        return torch.tensor(list(map(_get_base_index, [*sequence])), dtype=torch.int64)
 
     def split(self, sequence_ids: torch.Tensor) -> torch.Tensor:
         """
