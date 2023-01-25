@@ -63,14 +63,15 @@ class ChordMixerBlock(nn.Module):
 
 
 class ChordMixerEncoder(nn.Module):
-    def __init__(self, sequence_length, track_size, hidden_size, mlp_dropout, layer_dropout):
+    def __init__(self, vocab_size, sequence_length, track_size, hidden_size, mlp_dropout, layer_dropout):
         super(ChordMixerEncoder, self).__init__()
+        self.vocab_size = vocab_size
         self.max_n_layers = math.ceil(np.log2(sequence_length))
         n_tracks = math.ceil(np.log2(sequence_length))
-        self.prelinear = nn.Linear(sequence_length, sequence_length)
+        self.prelinear = nn.Linear(vocab_size, vocab_size)
         self.chordmixer_blocks = nn.ModuleList(
             [
-                ChordMixerBlock(sequence_length, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
+                ChordMixerBlock(vocab_size, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
                 for _ in range(self.max_n_layers)
             ]
         )
@@ -83,32 +84,35 @@ class ChordMixerEncoder(nn.Module):
 
 
 class ChordMixerDecoder(nn.Module):
-    def __init__(self, sequence_length, track_size, hidden_size, mlp_dropout, layer_dropout):
+    def __init__(self, vocab_size, sequence_length, track_size, hidden_size, mlp_dropout, layer_dropout):
         super(ChordMixerDecoder, self).__init__()
+        self.vocab_size = vocab_size
         self.max_n_layers = math.ceil(np.log2(sequence_length))
         n_tracks = math.ceil(np.log2(sequence_length))
-        self.prelinear = nn.Linear(sequence_length, sequence_length)
+        self.prelinear = nn.Linear(vocab_size, vocab_size)
         self.chordmixer_blocks = nn.ModuleList(
             [
-                ChordMixerBlock(sequence_length, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
+                ChordMixerBlock(vocab_size, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
                 for _ in range(self.max_n_layers)
             ]
         )
-        self.final = nn.Linear(sequence_length, sequence_length)
+        self.final = nn.Linear(vocab_size, vocab_size)
+        self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, data):
         data = self.prelinear(data)
         for layer in range(self.max_n_layers):
             data = self.chordmixer_blocks[layer](data)
         data = self.final(data)
+        data = self.softmax(data)
         return data
 
 
 class PretrainedChordMixer(nn.Module):
-    def __init__(self, sequence_length, encoder_track_size, decoder_track_size, hidden_size, mlp_dropout, layer_dropout):
+    def __init__(self, vocab_size, sequence_length, encoder_track_size, decoder_track_size, hidden_size, mlp_dropout, layer_dropout):
         super(PretrainedChordMixer, self).__init__()
-        self.encoder = ChordMixerEncoder(sequence_length, encoder_track_size, hidden_size, mlp_dropout, layer_dropout)
-        self.decoder = ChordMixerDecoder(sequence_length, decoder_track_size, hidden_size, mlp_dropout, layer_dropout)
+        self.encoder = ChordMixerEncoder(vocab_size, sequence_length, encoder_track_size, hidden_size, mlp_dropout, layer_dropout)
+        self.decoder = ChordMixerDecoder(vocab_size, sequence_length, decoder_track_size, hidden_size, mlp_dropout, layer_dropout)
 
     def forward(self, sequence_ids):
         encoded = self.encoder(sequence_ids)
