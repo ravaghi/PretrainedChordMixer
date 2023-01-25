@@ -33,7 +33,7 @@ def main(config: DictConfig) -> None:
         trainer.train(current_epoch_nr=epoch)
         trainer.evaluate(current_epoch_nr=epoch)
     trainer.test()
-    
+
     torch.save(model.state_dict(), f"models/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pth")
 
 

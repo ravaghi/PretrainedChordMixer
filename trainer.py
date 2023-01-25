@@ -4,10 +4,20 @@ import torch
 import wandb
 from typing import Tuple
 import numpy as np
+from torch import Tensor
 
 
 class PretrainedChordMixerTrainer:
-    def __init__(self, model, train_dataloader, val_dataloader, test_dataloader, device, criterion, optimizer, log_interval, log_to_wandb):
+    def __init__(self,
+                 model,
+                 train_dataloader,
+                 val_dataloader,
+                 test_dataloader,
+                 device,
+                 criterion,
+                 optimizer,
+                 log_interval,
+                 log_to_wandb):
         self.model = model
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -18,64 +28,63 @@ class PretrainedChordMixerTrainer:
         self.log_interval = log_interval
         self.log_to_wandb = log_to_wandb
 
-
-    def _calculate_y_hat(self, batch: Tuple[torch.Tensor]) -> Tuple[torch.Tensor]:
+    def _calculate_y_hat(self, batch: Tuple[Tensor, Tensor, Tensor]) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Calculates y_hat for a batch
 
         Args:
-            batch (Tuple[torch.Tensor]): A batch of data
+            batch Tuple[Tensor, Tensor, Tensor]: A batch of data
 
         Returns:
-            Tuple[torch.Tensor]: Tuple containing y, y_hat and masks
+            Tuple[Tensor, Tensor, Tensor]: Tuple containing y, y_hat and masks
         """
         sequence_ids, masks, labels = batch
 
-        x: torch.Tensor = sequence_ids.to(self.device)
-        y: torch.Tensor = labels.to(self.device)
-        masks: torch.Tensor = masks.to(self.device)
+        x: Tensor = sequence_ids.to(self.device)
+        y: Tensor = labels.to(self.device)
+        masks: Tensor = masks.to(self.device)
 
-        y_hat: torch.Tensor = self.model(x)
+        y_hat: Tensor = self.model(x)
 
         return y, y_hat, masks
 
-    def _calcualte_predictions(self, y: torch.Tensor, y_hat: torch.Tensor, mask: torch.Tensor) -> Tuple[torch.Tensor]:      
+    @staticmethod
+    def _calcualte_predictions(y: Tensor, y_hat: Tensor, mask: Tensor) -> Tuple[Tensor, Tensor]:
         """
         Selects the predictions and labels based on the mask positions
 
         Args:
-            y (torch.Tensor): The labels
-            y_hat (torch.Tensor): The predictions
-            mask (torch.Tensor): The mask
+            y (Tensor): The labels
+            y_hat (Tensor): The predictions
+            mask (Tensor): The mask
 
         Returns:
-            Tuple[torch.Tensor]: Tuple containing the labels and predictions
+            Tuple[Tensor, Tensor]: Tuple containing the labels and predictions
         """
         y = y.masked_select(mask)
-        y_hat = y_hat.argmax(dim=-1).masked_select(mask) 
+        y_hat = y_hat.argmax(dim=-1).masked_select(mask)
         return y, y_hat
 
-
-    def _calculate_auc(self, y: torch.Tensor, y_hat: torch.Tensor, mask: torch.Tensor) -> float:
+    @staticmethod
+    def _calculate_auc(y: Tensor, y_hat: Tensor, mask: Tensor) -> float:
         """
         Calculates the AUC for a batch
 
         Args:
-            y (torch.Tensor): The labels
-            y_hat (torch.Tensor): The predictions
-            mask (torch.Tensor): The mask
+            y (Tensor): The labels
+            y_hat (Tensor): The predictions
+            mask (Tensor): The mask
 
         Returns:
             float: The AUC
         """
         try:
             target = y.masked_select(mask).detach().cpu().numpy()
-            # need to take the inverse since metrics.roc_auc_score expects probabilities but we have logsoftmax values
+            # need to take the inverse since metrics.roc_auc_score expects probabilities, but we have logsoftmax values
             prediction = torch.exp(y_hat[mask == True]).detach().cpu().numpy()
             return metrics.roc_auc_score(target, prediction, multi_class='ovr')
         except ValueError:
             return 0.0
-
 
     @staticmethod
     def log_metrics(auc: float, accuracy: float, loss: float, metric_type: str) -> None:
@@ -104,7 +113,6 @@ class PretrainedChordMixerTrainer:
             wandb.run.summary['test_accuracy'] = accuracy
             wandb.run.summary['test_loss'] = loss
 
-
     def train(self, current_epoch_nr: int) -> None:
         """
         Train the model for one epoch
@@ -128,7 +136,7 @@ class PretrainedChordMixerTrainer:
         loop = tqdm(self.train_dataloader, total=num_batches)
         for idx, batch in enumerate(loop):
             self.optimizer.zero_grad()
-            
+
             y, y_hat, masks = self._calculate_y_hat(batch)
 
             # Filling unmasked positions with -1e3
@@ -138,11 +146,11 @@ class PretrainedChordMixerTrainer:
             loss = self.criterion(y_hat.transpose(1, 2), y)
             loss.backward()
             self.optimizer.step()
-            
+
             running_loss += loss.item()
             total += y.size(0)
             current_loss = running_loss / total
-            
+
             target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
             targets.extend(target.detach().cpu().numpy())
@@ -208,7 +216,6 @@ class PretrainedChordMixerTrainer:
                 if (idx + 1) % self.log_interval == 0 and self.log_to_wandb:
                     self.log_metrics(current_auc, current_accuracy, current_loss, 'val')
 
-
     def test(self) -> None:
         """
         Test the model
@@ -257,13 +264,11 @@ class PretrainedChordMixerTrainer:
                 loop.set_postfix(test_loss=round(current_loss, 5),
                                  test_accuracy=round(current_accuracy, 5))
 
- 
         test_loss = running_loss / total
         test_accuracy = metrics.accuracy_score(targets, predictions)
-        test_auc = np.mean(aucs)
-        
+        test_auc = float(np.mean(aucs))
+
         if self.log_to_wandb:
             self.log_metrics(test_auc, test_accuracy, test_loss, 'test')
         else:
             print(f'Test loss: {test_loss}, Test accuracy: {test_accuracy}, Test AUC: {test_auc}')
-        

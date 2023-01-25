@@ -5,7 +5,9 @@ from tqdm import tqdm
 from typing import Tuple
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+from torch import Tensor
 import random
+
 
 class SequenceProcessor:
     """Processes a DNA sequence by tokenizing, splitting and masking"""
@@ -23,7 +25,7 @@ class SequenceProcessor:
         self.mask_ratio = mask_ratio
         self.sequence_length = sequence_length
 
-    def tokenize(self, sequence: str) -> torch.Tensor:
+    def tokenize(self, sequence: str) -> Tensor:
         """
         Tokenizes a string of DNA bases into a tensor of integers
 
@@ -31,23 +33,24 @@ class SequenceProcessor:
             sequence (str): DNA sequence to be tokenized
 
         Returns:
-            torch.Tensor: 1D tensor of integers representing the DNA sequence
+            Tensor: 1D tensor of integers representing the DNA sequence
         """
+
         def _get_base_index(base):
             return self._DNA_BASE_DICT[base]
-            
-        print(f"Tokenizing sequence of length {len(sequence)}")
-        return torch.tensor(list(map(_get_base_index, [*sequence])), dtype=torch.int64)
 
-    def split(self, sequence_ids: torch.Tensor) -> torch.Tensor:
+        print(f"Tokenizing sequence of length {len(sequence)}")
+        return Tensor(list(map(_get_base_index, [*sequence])), dtype=torch.int64)
+
+    def split(self, sequence_ids: Tensor) -> Tensor:
         """
         Splits a 1D tensor into multiple tensors of length sequence_length
 
         Args:
-            sequence_ids (torch.Tensor): 1D Tensor of integers representing a DNA sequence
+            sequence_ids (Tensor): 1D Tensor of integers representing a DNA sequence
 
         Returns:
-            torch.Tensor: 2D Tensor of integers representing the split DNA sequences
+            Tensor: 2D Tensor of integers representing the split DNA sequences
         """
         # Shortening the tenssor to be divisible by sequence length
         remainder = len(sequence_ids) % self.sequence_length
@@ -57,12 +60,12 @@ class SequenceProcessor:
         print(f"Splitting sequences into sequences of length {self.sequence_length}")
         return torch.stack(torch.split(sequence_ids, self.sequence_length))
 
-    def mask(self, sequence_ids: torch.Tensor) -> dict:
+    def mask(self, sequence_ids: Tensor) -> dict:
         """
         Masks and one hot encodes a 2D tensor with the given mask ratio
 
         Args:
-            sequence_ids (torch.Tensor): 2D Tensor of integers representing a DNA sequence
+            sequence_ids (Tensor): 2D Tensor of integers representing a DNA sequence
 
         Returns:
             dict: Dictionary containing the masked sequences, masks and labels
@@ -96,15 +99,15 @@ class HG38Dataset(Dataset):
         self.masks = data["masks"]
         self.labels = data["labels"].to(torch.long)
 
-    def __getitem__(self, index: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def __getitem__(self, index: int) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Returns the item at the given index
-        
+
         Args:
             index (int): Index of the item to be returned
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Tuple containing the sequence_ids, masks and labels
+            Tuple[Tensor, Tensor, Tensor]: Tuple containing the sequence_ids, masks and labels
         """
         return self.sequence_ids[index], self.masks[index], self.labels[index]
 
@@ -122,9 +125,9 @@ class PretrainedChordMixerDataLoader:
     """DataLoader for the pretrained ChordMixer model"""
 
     _CHROMOSOMES = [
-       "chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
-       "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", 
-       "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"
+        "chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
+        "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17",
+        "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"
     ]
 
     # _CHROMOSOMES = [

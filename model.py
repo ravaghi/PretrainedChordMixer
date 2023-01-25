@@ -109,10 +109,27 @@ class ChordMixerDecoder(nn.Module):
 
 
 class PretrainedChordMixer(nn.Module):
-    def __init__(self, vocab_size, sequence_length, encoder_track_size, decoder_track_size, hidden_size, mlp_dropout, layer_dropout):
+    def __init__(self,
+                 vocab_size,
+                 sequence_length,
+                 encoder_track_size,
+                 decoder_track_size,
+                 hidden_size,
+                 mlp_dropout,
+                 layer_dropout):
         super(PretrainedChordMixer, self).__init__()
-        self.encoder = ChordMixerEncoder(vocab_size, sequence_length, encoder_track_size, hidden_size, mlp_dropout, layer_dropout)
-        self.decoder = ChordMixerDecoder(vocab_size, sequence_length, decoder_track_size, hidden_size, mlp_dropout, layer_dropout)
+        self.encoder = ChordMixerEncoder(vocab_size,
+                                         sequence_length,
+                                         encoder_track_size,
+                                         hidden_size,
+                                         mlp_dropout,
+                                         layer_dropout)
+        self.decoder = ChordMixerDecoder(vocab_size,
+                                         sequence_length,
+                                         decoder_track_size,
+                                         hidden_size,
+                                         mlp_dropout,
+                                         layer_dropout)
 
     def forward(self, sequence_ids):
         encoded = self.encoder(sequence_ids)
