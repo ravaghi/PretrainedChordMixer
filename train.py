@@ -7,10 +7,9 @@ from datetime import datetime
 from experiments.utils.utils import init_run
 
 
-@hydra.main(version_base=None, config_path="configs", config_name="pretrained_chordmixer")
+@hydra.main(version_base=None, config_path=".", config_name="config")
 def main(config: DictConfig) -> None:
-    init_run(config)
-    device = "cuda"
+    device = init_run(config)
 
     dataloader = instantiate(config=config.dataloader)
     train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
@@ -33,7 +32,6 @@ def main(config: DictConfig) -> None:
     for epoch in range(1, config.general.max_epochs + 1):
         trainer.train(current_epoch_nr=epoch)
         trainer.evaluate(current_epoch_nr=epoch)
-
     trainer.test()
     
     torch.save(model.state_dict(), f"models/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pth")

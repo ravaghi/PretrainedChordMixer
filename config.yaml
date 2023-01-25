@@ -1,9 +1,10 @@
 general:
   name: PretrainedChordMixer
   seed: 42
-  device_id: 0
-  batch_size: 30
-  max_epochs: 10
+  batch_size: 8
+  max_epochs: 1
+  log_interval: 100
+  log_to_wandb: false
 
 dataset:
   path: ${hydra:runtime.cwd}/data/variant_effect_prediction
@@ -20,6 +21,7 @@ dataloader:
 
 model: 
   _target_: model.PretrainedChordMixer
+  vocab_size: 4
   sequence_length: ${dataloader.sequence_length}
   encoder_track_size: 16
   decoder_track_size: 8
@@ -28,8 +30,8 @@ model:
   layer_dropout: 0
 
 loss: 
-  _target_: torch.nn.CrossEntropyLoss
-  reduction: mean
+  _target_: torch.nn.NLLLoss
+  ignore_index: 0
 
 optimizer:
   _target_: torch.optim.Adam
@@ -37,11 +39,12 @@ optimizer:
 
 trainer:
   _target_: trainer.PretrainedChordMixerTrainer
+  log_interval: ${general.log_interval}
 
 wandb: 
   entity: ravaghi
   project: PDT
-  name: ${general.name}
+  name: ${general.name}-L${dataloader.sequence_length}-MR${dataloader.mask_ratio}-LR${optimizer.lr}-BS${general.batch_size}
 
 hydra:
   run:

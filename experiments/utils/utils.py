@@ -41,11 +41,15 @@ def init_run(config: DictConfig) -> str:
     seed_everything(config.general.seed)
 
     # Initiate wandb run
-    wandb.init(project=config.wandb.project,
-               entity=config.wandb.entity,
-               config=OmegaConf.to_container(config, resolve=True),
-               name=config.wandb.name,
-               dir=BASE_DIR)
+    if config.general.log_to_wandb:
+        print(f"Logging to Weights & Biases: {config.wandb.project}/{config.wandb.name}")
+        wandb.init(project=config.wandb.project,
+                entity=config.wandb.entity,
+                config=OmegaConf.to_container(config, resolve=True),
+                name=config.wandb.name,
+                dir=BASE_DIR)
+    else:
+        print(f"Skipping Weights & Biases logging. Set log_to_wandb to True in config to enable it.")
 
     # Print config file content
     print("-" * 30 + " config " + "-" * 30)
@@ -53,7 +57,14 @@ def init_run(config: DictConfig) -> str:
     print("-" * 30 + " config " + "-" * 30)
 
     # Select cuda device
-    device = f'cuda:{config.general.device_id}' if torch.cuda.is_available() else 'cpu'
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    
+    try:
+        # Use a specific GPU if id is specified
+        device = f'{device}:{config.general.device_id}'
+    except AttributeError:
+        pass
+
     print(f'Using device: {device}')
 
     return device
