@@ -1,9 +1,9 @@
 general:
   name: PretrainedChordMixer
   seed: 42
-  batch_size: 16
-  max_epochs: 10
-  log_interval: 100
+  batch_size: 64
+  max_epochs: 5
+  log_interval: 10
   log_to_wandb: true
 
 dataset:
@@ -16,7 +16,7 @@ dataloader:
   dataset_filename: ${dataset.name}
   batch_size: ${general.batch_size}
   mask_ratio: 0.30
-  sequence_length: 1000
+  sequence_length: 10000
 
 
 model: 
