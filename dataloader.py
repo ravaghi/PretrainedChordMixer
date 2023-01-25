@@ -117,15 +117,15 @@ class HG38Dataset(Dataset):
 class PretrainedChordMixerDataLoader:
     """DataLoader for the pretrained ChordMixer model"""
 
-    # _CHROMOSOMES = [
-    #    "chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
-    #    "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", 
-    #    "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"
-    # ]
-
     _CHROMOSOMES = [
-        "chr1"
+       "chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9",
+       "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", 
+       "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"
     ]
+
+    # _CHROMOSOMES = [
+    #     "chr1"
+    # ]
 
     def __init__(self, data_path: str, dataset_filename: str, batch_size: int, mask_ratio: float, sequence_length: int):
         self.data_path = data_path
@@ -205,6 +205,7 @@ class PretrainedChordMixerDataLoader:
         Returns:
             Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, validation and test dataloaders
         """
+        # sequences = "".join(["ACGT"[random.randint(0, 3)] for _ in range(1000_000)])
         sequences = self._load_sequences()
         masked_sequences = self._process_sequences(sequences)
         train, val, test = self._split_dataset(masked_sequences)
