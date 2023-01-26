@@ -12,11 +12,6 @@ import random
 class SequenceProcessor:
     """Processes a DNA sequence by tokenizing, splitting and masking"""
 
-    # _DNA_BASE_DICT = {
-    #     'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
-    #     'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14
-    # }
-
     _DNA_BASE_DICT = {
         'A': 0, 'C': 1, 'G': 2, 'T': 3
     }
@@ -40,7 +35,7 @@ class SequenceProcessor:
             return self._DNA_BASE_DICT[base]
 
         print(f"Tokenizing sequence of length {len(sequence)}")
-        return Tensor(list(map(_get_base_index, [*sequence])), dtype=torch.int64)
+        return torch.tensor(list(map(_get_base_index, [*sequence])), dtype=torch.int64)
 
     def split(self, sequence_ids: Tensor) -> Tensor:
         """
@@ -130,10 +125,6 @@ class PretrainedChordMixerDataLoader:
         "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"
     ]
 
-    # _CHROMOSOMES = [
-    #     "chr1"
-    # ]
-
     def __init__(self, data_path: str, dataset_filename: str, batch_size: int, mask_ratio: float, sequence_length: int):
         self.data_path = data_path
         self.dataset_filename = dataset_filename
@@ -172,18 +163,17 @@ class PretrainedChordMixerDataLoader:
         return masked_sequences
 
     @staticmethod
-    def _split_dataset(masked_sequences: dict) -> Tuple[dict, dict, dict]:
+    def _split_dataset(masked_sequences: dict) -> Tuple[dict, dict]:
         """
-        Splits the sequences into train, validation and test sets
+        Splits the sequences into train, and test sets
 
         Args:
             masked_sequences (dict): Dictionary containing the masked sequences, masks and labels
 
         Returns:
-            Tuple[dict, dict, dict]: Tuple containing the train, validation and test sets
+            Tuple[dict, dict]: Tuple containing the train, and test sets
         """
         train_size = int(0.8 * len(masked_sequences["sequence_ids"]))
-        val_size = int(0.1 * len(masked_sequences["sequence_ids"]))
 
         train = {
             "sequence_ids": masked_sequences["sequence_ids"][:train_size],
@@ -191,34 +181,27 @@ class PretrainedChordMixerDataLoader:
             "labels": masked_sequences["labels"][:train_size]
         }
 
-        val = {
-            "sequence_ids": masked_sequences["sequence_ids"][train_size:train_size + val_size],
-            "masks": masked_sequences["masks"][train_size:train_size + val_size],
-            "labels": masked_sequences["labels"][train_size:train_size + val_size]
-        }
-
         test = {
-            "sequence_ids": masked_sequences["sequence_ids"][train_size + val_size:],
-            "masks": masked_sequences["masks"][train_size + val_size:],
-            "labels": masked_sequences["labels"][train_size + val_size:]
+            "sequence_ids": masked_sequences["sequence_ids"][train_size::],
+            "masks": masked_sequences["masks"][train_size:],
+            "labels": masked_sequences["labels"][train_size:]
         }
 
-        return train, val, test
+        return train, test
 
-    def create_dataloaders(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
+    def create_dataloaders(self) -> Tuple[DataLoader, DataLoader]:
         """
-        Processes the datset and creates dataloaders for the train, validation and test sets
+        Processes the datset and creates dataloaders for the train, and test sets
 
         Returns:
-            Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, validation and test dataloaders
+            Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, and test dataloaders
         """
         # sequences = "".join(["ACGT"[random.randint(0, 3)] for _ in range(1000_000)])
         sequences = self._load_sequences()
         masked_sequences = self._process_sequences(sequences)
-        train, val, test = self._split_dataset(masked_sequences)
+        train, test = self._split_dataset(masked_sequences)
 
         train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True, pin_memory=True)
-        val_dataloader = DataLoader(HG38Dataset(val), batch_size=self.batch_size, shuffle=True, pin_memory=True)
         test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True)
 
-        return train_dataloader, val_dataloader, test_dataloader
+        return train_dataloader, test_dataloader
