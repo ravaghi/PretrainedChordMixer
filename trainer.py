@@ -158,6 +158,8 @@ class PretrainedChordMixerTrainer:
                              train_acc=round(current_accuracy, 5))
 
             if (idx + 1) % self.log_interval == 0 and self.log_to_wandb:
+                total = 0
+                running_loss = 0.0
                 targets = []
                 predictions = []
                 self.log_metrics(current_auc, current_accuracy, current_loss, 'train')
