@@ -11,7 +11,6 @@ class PretrainedChordMixerTrainer:
     def __init__(self,
                  model,
                  train_dataloader,
-                 val_dataloader,
                  test_dataloader,
                  device,
                  criterion,
@@ -20,7 +19,6 @@ class PretrainedChordMixerTrainer:
                  log_to_wandb):
         self.model = model
         self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
         self.test_dataloader = test_dataloader
         self.device = device
         self.criterion = criterion
@@ -104,10 +102,6 @@ class PretrainedChordMixerTrainer:
             wandb.log({'train_auc': auc})
             wandb.log({'train_accuracy': accuracy})
             wandb.log({'train_loss': loss})
-        elif metric_type == 'val':
-            wandb.log({'val_auc': auc})
-            wandb.log({'val_accuracy': accuracy})
-            wandb.log({'val_loss': loss})
         elif metric_type == 'test':
             wandb.run.summary['test_auc'] = auc
             wandb.run.summary['test_accuracy'] = accuracy
@@ -164,57 +158,9 @@ class PretrainedChordMixerTrainer:
                              train_accuracy=round(current_accuracy, 5))
 
             if (idx + 1) % self.log_interval == 0 and self.log_to_wandb:
+                targets = []
+                predictions = []
                 self.log_metrics(current_auc, current_accuracy, current_loss, 'train')
-
-    def evaluate(self, current_epoch_nr: int) -> None:
-        """
-        Evaluate the model
-        
-        Args:
-            current_epoch_nr (int): The current epoch number
-
-        Returns:
-            None
-        """
-        self.model.eval()
-
-        num_batches = len(self.val_dataloader)
-
-        running_loss = 0.0
-        total = 0
-
-        targets = []
-        predictions = []
-
-        with torch.no_grad():
-            loop = tqdm(self.val_dataloader, total=num_batches)
-            for idx, batch in enumerate(loop):
-                y, y_hat, masks = self._calculate_y_hat(batch)
-
-                # Filling unmasked positions with -1e3
-                token_mask = ~masks.unsqueeze(-1).expand_as(y_hat)
-                y_hat = y_hat.masked_fill(token_mask, -1e3)
-
-                loss = self.criterion(y_hat.transpose(1, 2), y)
-
-                running_loss += loss.item()
-                total += y.size(0)
-                current_loss = running_loss / total
-
-                target, prediction = self._calcualte_predictions(y, y_hat, masks)
-
-                targets.extend(target.detach().cpu().numpy())
-                predictions.extend(prediction.detach().cpu().numpy())
-
-                current_accuracy = metrics.accuracy_score(targets, predictions)
-                current_auc = self._calculate_auc(y, y_hat, masks)
-
-                loop.set_description(f'Epoch {current_epoch_nr}')
-                loop.set_postfix(val_loss=round(current_loss, 5),
-                                 val_accuracy=round(current_accuracy, 5))
-
-                if (idx + 1) % self.log_interval == 0 and self.log_to_wandb:
-                    self.log_metrics(current_auc, current_accuracy, current_loss, 'val')
 
     def test(self) -> None:
         """
