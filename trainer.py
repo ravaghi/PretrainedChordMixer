@@ -155,7 +155,7 @@ class PretrainedChordMixerTrainer:
 
             loop.set_description(f'Epoch {current_epoch_nr}')
             loop.set_postfix(train_loss=round(current_loss, 5),
-                             train_accuracy=round(current_accuracy, 5))
+                             train_acc=round(current_accuracy, 5))
 
             if (idx + 1) % self.log_interval == 0 and self.log_to_wandb:
                 targets = []
@@ -208,7 +208,7 @@ class PretrainedChordMixerTrainer:
 
                 loop.set_description(f'Testing')
                 loop.set_postfix(test_loss=round(current_loss, 5),
-                                 test_accuracy=round(current_accuracy, 5))
+                                 test_acc=round(current_accuracy, 5))
 
         test_loss = running_loss / total
         test_accuracy = metrics.accuracy_score(targets, predictions)

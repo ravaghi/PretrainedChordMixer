@@ -41,12 +41,12 @@ class RotateChord(nn.Module):
 
 
 class ChordMixerBlock(nn.Module):
-    def __init__(self, embedding_size, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout):
+    def __init__(self, prelinear_output_size, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout):
         super(ChordMixerBlock, self).__init__()
         self.mixer = Mlp(
-            embedding_size,
+            prelinear_output_size,
             hidden_size,
-            embedding_size,
+            prelinear_output_size,
             act_layer=nn.GELU,
             drop=mlp_dropout
         )
@@ -63,15 +63,16 @@ class ChordMixerBlock(nn.Module):
 
 
 class ChordMixerEncoder(nn.Module):
-    def __init__(self, vocab_size, sequence_length, track_size, hidden_size, mlp_dropout, layer_dropout):
+    """ChordMixerEncoder, to be used as a pretrained model in subsequent downstream tasks."""
+    def __init__(self, vocab_size, sequence_length, track_size, hidden_size, prelinear_out_features, mlp_dropout, layer_dropout):
         super(ChordMixerEncoder, self).__init__()
-        self.vocab_size = vocab_size
         self.max_n_layers = math.ceil(np.log2(sequence_length))
         n_tracks = math.ceil(np.log2(sequence_length))
-        self.prelinear = nn.Linear(vocab_size, vocab_size)
+
+        self.prelinear = nn.Linear(vocab_size, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
             [
-                ChordMixerBlock(vocab_size, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
+                ChordMixerBlock(prelinear_out_features, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
                 for _ in range(self.max_n_layers)
             ]
         )
@@ -84,26 +85,26 @@ class ChordMixerEncoder(nn.Module):
 
 
 class ChordMixerDecoder(nn.Module):
-    def __init__(self, vocab_size, sequence_length, track_size, hidden_size, mlp_dropout, layer_dropout):
+    def __init__(self, vocab_size, sequence_length, track_size, hidden_size, prelinear_in_features, prelinear_out_features, mlp_dropout, layer_dropout):
         super(ChordMixerDecoder, self).__init__()
-        self.vocab_size = vocab_size
         self.max_n_layers = math.ceil(np.log2(sequence_length))
         n_tracks = math.ceil(np.log2(sequence_length))
-        self.prelinear = nn.Linear(vocab_size, vocab_size)
+
+        self.prelinear = nn.Linear(prelinear_in_features, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
             [
-                ChordMixerBlock(vocab_size, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
+                ChordMixerBlock(prelinear_out_features, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
                 for _ in range(self.max_n_layers)
             ]
         )
-        self.final = nn.Linear(vocab_size, vocab_size)
+        self.mlm_classifier = nn.Linear(prelinear_out_features, vocab_size)
         self.softmax = nn.LogSoftmax(dim=-1)
 
     def forward(self, data):
         data = self.prelinear(data)
         for layer in range(self.max_n_layers):
             data = self.chordmixer_blocks[layer](data)
-        data = self.final(data)
+        data = self.mlm_classifier(data)
         data = self.softmax(data)
         return data
 
@@ -114,6 +115,9 @@ class PretrainedChordMixer(nn.Module):
                  sequence_length,
                  encoder_track_size,
                  decoder_track_size,
+                 encoder_prelinear_out_features,
+                 decoder_prelinear_in_features,
+                 decoder_prelinear_out_features,
                  hidden_size,
                  mlp_dropout,
                  layer_dropout):
@@ -122,12 +126,15 @@ class PretrainedChordMixer(nn.Module):
                                          sequence_length,
                                          encoder_track_size,
                                          hidden_size,
+                                         encoder_prelinear_out_features,
                                          mlp_dropout,
                                          layer_dropout)
         self.decoder = ChordMixerDecoder(vocab_size,
                                          sequence_length,
                                          decoder_track_size,
                                          hidden_size,
+                                         decoder_prelinear_in_features,
+                                         decoder_prelinear_out_features,
                                          mlp_dropout,
                                          layer_dropout)
 

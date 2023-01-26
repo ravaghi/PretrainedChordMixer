@@ -25,6 +25,9 @@ model:
   sequence_length: ${dataloader.sequence_length}
   encoder_track_size: 16
   decoder_track_size: 8
+  encoder_prelinear_out_features: 500
+  decoder_prelinear_in_features: ${model.encoder_prelinear_out_features}
+  decoder_prelinear_out_features: 400
   hidden_size: 196
   mlp_dropout: 0
   layer_dropout: 0
