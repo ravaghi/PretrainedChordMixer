@@ -133,9 +133,9 @@ class PretrainedChordMixerTrainer:
 
             y, y_hat, masks = self._calculate_y_hat(batch)
 
-            # Filling unmasked positions with -1e3
+            # Filling unmasked positions with 0
             token_mask = ~masks.unsqueeze(-1).expand_as(y_hat)
-            y_hat = y_hat.masked_fill(token_mask, -1e3)
+            y_hat = y_hat.masked_fill(token_mask, 0)
 
             loss = self.criterion(y_hat.transpose(1, 2), y)
             loss.backward()
@@ -186,9 +186,9 @@ class PretrainedChordMixerTrainer:
             for batch in loop:
                 y, y_hat, masks = self._calculate_y_hat(batch)
 
-                # Filling unmasked positions with -1e3
+                # Filling unmasked positions with 0
                 token_mask = ~masks.unsqueeze(-1).expand_as(y_hat)
-                y_hat = y_hat.masked_fill(token_mask, -1e3)
+                y_hat = y_hat.masked_fill(token_mask, 0)
 
                 loss = self.criterion(y_hat.transpose(1, 2), y)
 
@@ -206,7 +206,7 @@ class PretrainedChordMixerTrainer:
 
                 aucs.append(current_auc)
 
-                loop.set_description(f'Test')
+                loop.set_description(f'Testing')
                 loop.set_postfix(test_loss=round(current_loss, 5),
                                  test_accuracy=round(current_accuracy, 5))
 
