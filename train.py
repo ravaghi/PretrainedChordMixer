@@ -30,9 +30,10 @@ def main(config: DictConfig) -> None:
 
     for epoch in range(1, config.general.max_epochs + 1):
         trainer.train(current_epoch_nr=epoch)
-    trainer.test()
+    test_auc = trainer.test()
 
-    torch.save(model.state_dict(), f"models/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pth")
+    model_name = f"{datetime.now().strftime('%Y-%m-%d_%H%M')}-PretrainedChordMixer-AUC-{test_auc}"
+    torch.save(model.state_dict(), f"models/{model_name}.pth")
 
 
 if __name__ == '__main__':
