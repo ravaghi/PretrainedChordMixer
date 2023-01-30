@@ -173,7 +173,7 @@ class PretrainedChordMixerDataLoader:
         Returns:
             Tuple[dict, dict]: Tuple containing the train, and test sets
         """
-        train_size = int(0.8 * len(masked_sequences["sequence_ids"]))
+        train_size = int(0.9 * len(masked_sequences["sequence_ids"]))
 
         train = {
             "sequence_ids": masked_sequences["sequence_ids"][:train_size],
