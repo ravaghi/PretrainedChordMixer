@@ -178,10 +178,8 @@ class PretrainedChordMixerTrainer:
         running_loss = 0.0
         total = 0
 
-        targets = []
-        predictions = []
-
         aucs = []
+        accuracies = []
 
         with torch.no_grad():
             loop = tqdm(self.test_dataloader, total=num_batches)
@@ -200,21 +198,20 @@ class PretrainedChordMixerTrainer:
 
                 target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
-                targets.extend(target.detach().cpu().numpy())
-                predictions.extend(prediction.detach().cpu().numpy())
-
-                current_accuracy = metrics.accuracy_score(targets, predictions)
+                current_accuracy = metrics.accuracy_score(target.detach().cpu().numpy(), prediction.detach().cpu().numpy())
                 current_auc = self._calculate_auc(y, y_hat, masks)
 
                 aucs.append(current_auc)
+                accuracies.append(current_accuracy)
 
                 loop.set_description(f'Testing')
                 loop.set_postfix(test_loss=round(current_loss, 5),
                                  test_acc=round(current_accuracy, 5))
 
         test_loss = running_loss / total
-        test_accuracy = metrics.accuracy_score(targets, predictions)
+        test_accuracy = float(np.mean(accuracies))
         test_auc = float(np.mean(aucs))
+
 
         if self.log_to_wandb:
             self.log_metrics(test_auc, test_accuracy, test_loss, 'test')
