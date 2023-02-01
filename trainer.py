@@ -217,3 +217,5 @@ class PretrainedChordMixerTrainer:
             self.log_metrics(test_auc, test_accuracy, test_loss, 'test')
         else:
             print(f'Test loss: {test_loss}, Test accuracy: {test_accuracy}, Test AUC: {test_auc}')
+
+        return test_auc
