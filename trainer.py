@@ -127,6 +127,9 @@ class PretrainedChordMixerTrainer:
         targets = []
         predictions = []
 
+        accuracies = []
+        aucs = []
+
         loop = tqdm(self.train_dataloader, total=num_batches)
         for idx, batch in enumerate(loop):
             self.optimizer.zero_grad()
@@ -153,16 +156,24 @@ class PretrainedChordMixerTrainer:
             current_accuracy = metrics.accuracy_score(targets, predictions)
             current_auc = self._calculate_auc(y, y_hat, masks)
 
+            accuracies.append(current_accuracy)
+            aucs.append(current_auc)
+
             loop.set_description(f'Epoch {current_epoch_nr}')
             loop.set_postfix(train_loss=round(current_loss, 5),
                              train_acc=round(current_accuracy, 5))
 
             if (idx + 1) % self.log_interval == 0 and self.log_to_wandb:
-                total = 0
+                train_auc = float(np.mean(aucs))
+                train_accuracy = float(np.mean(accuracies))
+                train_loss = running_loss / total
+                self.log_metrics(train_auc, train_accuracy, train_loss, 'train')
                 running_loss = 0.0
+                total = 0
                 targets = []
                 predictions = []
-                self.log_metrics(current_auc, current_accuracy, current_loss, 'train')
+                accuracies = []
+                aucs = []
 
     def test(self) -> None:
         """
