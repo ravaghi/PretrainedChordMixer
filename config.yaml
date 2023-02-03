@@ -1,9 +1,9 @@
 general:
   name: PretrainedChordMixer
   seed: 42
-  batch_size: 16
-  max_epochs: 10
-  log_interval: 10
+  batch_size: 4
+  max_epochs: 30
+  log_interval: 20
   log_to_wandb: true
 
 dataset:
@@ -15,19 +15,18 @@ dataloader:
   data_path: ${dataset.path}
   dataset_filename: ${dataset.name}
   batch_size: ${general.batch_size}
-  mask_ratio: 0.30
-  sequence_length: 10000
-
+  mask_ratio: 0.15
+  sequence_length: 100_000
 
 model: 
   _target_: model.PretrainedChordMixer
   vocab_size: 4
-  sequence_length: ${dataloader.sequence_length}
+  max_seq_len: 1000_000
   encoder_track_size: 16
   decoder_track_size: 8
-  encoder_prelinear_out_features: 500
+  encoder_prelinear_out_features: 1000
   decoder_prelinear_in_features: ${model.encoder_prelinear_out_features}
-  decoder_prelinear_out_features: 400
+  decoder_prelinear_out_features: 500
   hidden_size: 196
   mlp_dropout: 0
   layer_dropout: 0
@@ -38,7 +37,7 @@ loss:
 
 optimizer:
   _target_: torch.optim.Adam
-  lr: 0.0005
+  lr: 0.0003
 
 trainer:
   _target_: trainer.PretrainedChordMixerTrainer
