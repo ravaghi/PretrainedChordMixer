@@ -77,11 +77,11 @@ class ChordMixerBlock(nn.Module):
 
 class ChordMixerEncoder(nn.Module):
     """ChordMixerEncoder, to be used as a pretrained model in subsequent downstream tasks."""
-    def __init__(self, vocab_size, max_n_layers, track_size, hidden_size, prelinear_out_features, mlp_dropout, layer_dropout, variable_length=False):
+    def __init__(self, vocab_size, max_seq_len, track_size, hidden_size, prelinear_out_features, mlp_dropout, layer_dropout, variable_length=False):
         super(ChordMixerEncoder, self).__init__()
         self.variable_length = variable_length
-        self.max_n_layers = math.ceil(np.log2(max_n_layers))
-        n_tracks = math.ceil(np.log2(max_n_layers))
+        self.max_n_layers = math.ceil(np.log2(max_seq_len))
+        n_tracks = math.ceil(np.log2(max_seq_len))
 
         self.prelinear = nn.Linear(vocab_size, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
@@ -109,10 +109,10 @@ class ChordMixerEncoder(nn.Module):
 
 
 class ChordMixerDecoder(nn.Module):
-    def __init__(self, vocab_size, max_n_layers, track_size, hidden_size, prelinear_in_features, prelinear_out_features, mlp_dropout, layer_dropout):
+    def __init__(self, vocab_size, max_seq_len, track_size, hidden_size, prelinear_in_features, prelinear_out_features, mlp_dropout, layer_dropout):
         super(ChordMixerDecoder, self).__init__()
-        self.max_n_layers = math.ceil(np.log2(max_n_layers))
-        n_tracks = math.ceil(np.log2(max_n_layers))
+        self.max_n_layers = math.ceil(np.log2(max_seq_len))
+        n_tracks = math.ceil(np.log2(max_seq_len))
 
         self.prelinear = nn.Linear(prelinear_in_features, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
@@ -136,7 +136,7 @@ class ChordMixerDecoder(nn.Module):
 class PretrainedChordMixer(nn.Module):
     def __init__(self,
                  vocab_size,
-                 max_n_layers,
+                 max_seq_len,
                  encoder_track_size,
                  decoder_track_size,
                  encoder_prelinear_out_features,
@@ -147,14 +147,14 @@ class PretrainedChordMixer(nn.Module):
                  layer_dropout):
         super(PretrainedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder(vocab_size,
-                                         max_n_layers,
+                                         max_seq_len,
                                          encoder_track_size,
                                          hidden_size,
                                          encoder_prelinear_out_features,
                                          mlp_dropout,
                                          layer_dropout)
         self.decoder = ChordMixerDecoder(vocab_size,
-                                         max_n_layers,
+                                         max_seq_len,
                                          decoder_track_size,
                                          hidden_size,
                                          decoder_prelinear_in_features,
