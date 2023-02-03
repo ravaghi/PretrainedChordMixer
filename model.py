@@ -3,7 +3,6 @@ import torch
 import numpy as np
 from torch import nn
 
-
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
         super().__init__()
@@ -29,14 +28,28 @@ class RotateChord(nn.Module):
         self.n_tracks = n_tracks
         self.track_size = track_size
 
-    def forward(self, x):
-        y = torch.split(tensor=x, split_size_or_sections=self.track_size, dim=-1)
-        z = [y[0]]
-        for i in range(1, len(y)):
-            offset = -2 ** (i - 1)
-            z.append(torch.roll(y[i], shifts=offset, dims=1))
-        z = torch.cat(z, -1)
-
+    def forward(self, x, lengths=None):
+        if lengths:
+            ys = torch.split(tensor=x, split_size_or_sections=lengths, dim=0)
+            
+            zs = []
+            for y in ys:
+                y = torch.split(tensor=y, split_size_or_sections=self.track_size, dim=-1)
+                z = [y[0]]
+                for i in range(1, len(y)):
+                    offset = -2 ** (i - 1)
+                    z.append(torch.roll(y[i], shifts=offset, dims=0))
+                z = torch.cat(z, -1)
+                zs.append(z)
+            z = torch.cat(zs, 0)
+            assert z.shape == x.shape, 'shape mismatch'
+        else:
+            y = torch.split(tensor=x, split_size_or_sections=self.track_size, dim=-1)
+            z = [y[0]]
+            for i in range(1, len(y)):
+                offset = -2 ** (i - 1)
+                z.append(torch.roll(y[i], shifts=offset, dims=1))
+            z = torch.cat(z, -1)
         return z
 
 
@@ -53,21 +66,22 @@ class ChordMixerBlock(nn.Module):
         self.dropout = nn.Dropout(layer_dropout)
         self.rotator = RotateChord(n_tracks, track_size)
 
-    def forward(self, data):
+    def forward(self, data, lengths=None):
         res_con = data
         data = self.mixer(data)
         data = self.dropout(data)
-        data = self.rotator(data)
+        data = self.rotator(data, lengths)
         data = data + res_con
         return data
 
 
 class ChordMixerEncoder(nn.Module):
     """ChordMixerEncoder, to be used as a pretrained model in subsequent downstream tasks."""
-    def __init__(self, vocab_size, sequence_length, track_size, hidden_size, prelinear_out_features, mlp_dropout, layer_dropout):
+    def __init__(self, vocab_size, max_n_layers, track_size, hidden_size, prelinear_out_features, mlp_dropout, layer_dropout, variable_length=False):
         super(ChordMixerEncoder, self).__init__()
-        self.max_n_layers = math.ceil(np.log2(sequence_length))
-        n_tracks = math.ceil(np.log2(sequence_length))
+        self.variable_length = variable_length
+        self.max_n_layers = math.ceil(np.log2(max_n_layers))
+        n_tracks = math.ceil(np.log2(max_n_layers))
 
         self.prelinear = nn.Linear(vocab_size, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
@@ -77,18 +91,28 @@ class ChordMixerEncoder(nn.Module):
             ]
         )
 
-    def forward(self, data):
+    def forward(self, data, lengths=None):
+        if lengths:
+            n_layers = math.ceil(np.log2(lengths[0]))
+        else:
+            n_layers = self.max_n_layers
+
         data = self.prelinear(data)
-        for layer in range(self.max_n_layers):
-            data = self.chordmixer_blocks[layer](data)
+        for layer in range(n_layers):
+            data = self.chordmixer_blocks[layer](data, lengths)
+
+        if lengths:
+            data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
+            data = torch.stack(data)
+
         return data
 
 
 class ChordMixerDecoder(nn.Module):
-    def __init__(self, vocab_size, sequence_length, track_size, hidden_size, prelinear_in_features, prelinear_out_features, mlp_dropout, layer_dropout):
+    def __init__(self, vocab_size, max_n_layers, track_size, hidden_size, prelinear_in_features, prelinear_out_features, mlp_dropout, layer_dropout):
         super(ChordMixerDecoder, self).__init__()
-        self.max_n_layers = math.ceil(np.log2(sequence_length))
-        n_tracks = math.ceil(np.log2(sequence_length))
+        self.max_n_layers = math.ceil(np.log2(max_n_layers))
+        n_tracks = math.ceil(np.log2(max_n_layers))
 
         self.prelinear = nn.Linear(prelinear_in_features, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
@@ -112,7 +136,7 @@ class ChordMixerDecoder(nn.Module):
 class PretrainedChordMixer(nn.Module):
     def __init__(self,
                  vocab_size,
-                 sequence_length,
+                 max_n_layers,
                  encoder_track_size,
                  decoder_track_size,
                  encoder_prelinear_out_features,
@@ -123,14 +147,14 @@ class PretrainedChordMixer(nn.Module):
                  layer_dropout):
         super(PretrainedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder(vocab_size,
-                                         sequence_length,
+                                         max_n_layers,
                                          encoder_track_size,
                                          hidden_size,
                                          encoder_prelinear_out_features,
                                          mlp_dropout,
                                          layer_dropout)
         self.decoder = ChordMixerDecoder(vocab_size,
-                                         sequence_length,
+                                         max_n_layers,
                                          decoder_track_size,
                                          hidden_size,
                                          decoder_prelinear_in_features,
