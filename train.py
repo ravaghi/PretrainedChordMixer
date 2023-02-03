@@ -3,6 +3,7 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig
 import torch
 from datetime import datetime
+import numpy as np
 
 from experiments.utils.utils import init_run
 
@@ -11,12 +12,16 @@ from experiments.utils.utils import init_run
 def main(config: DictConfig) -> None:
     device = init_run(config)
 
-    dataloader = instantiate(config=config.dataloader)
-    train_dataloader, test_dataloader = dataloader.create_dataloaders()
-
     model = torch.nn.DataParallel(instantiate(config=config.model)).to(device)
     criterion = instantiate(config=config.loss)
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
+
+    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    params = sum([np.prod(p.size()) for p in model_parameters])
+    print(f"Number of trainable parameters: {params:,}")
+
+    dataloader = instantiate(config=config.dataloader)
+    train_dataloader, test_dataloader = dataloader.create_dataloaders()
 
     trainer = instantiate(
         config=config.trainer,
