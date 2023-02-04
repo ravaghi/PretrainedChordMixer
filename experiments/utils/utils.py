@@ -65,3 +65,18 @@ def init_run(config: DictConfig) -> str:
     print(f'Using device: {device}')
 
     return device
+
+
+def print_model_params(model: torch.nn.Module) -> None:
+    """
+    Print number of trainable model parameters.
+
+    Args:
+        model (torch.nn.Module): Model to print parameters from.
+
+    Returns:
+        None
+    """
+    trainable_parameters = filter(lambda p: p.requires_grad, model.parameters())
+    trainable_parameters = sum([np.prod(p.size()) for p in trainable_parameters])
+    print(f"Number of trainable parameters: {trainable_parameters:,}")
