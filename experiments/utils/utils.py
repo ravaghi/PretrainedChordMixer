@@ -1,7 +1,4 @@
-from sklearn.utils.class_weight import compute_class_weight
 from omegaconf import OmegaConf, DictConfig
-from torch import nn
-import pandas as pd
 import numpy as np
 import random
 import torch
@@ -68,34 +65,3 @@ def init_run(config: DictConfig) -> str:
     print(f'Using device: {device}')
 
     return device
-
-
-def get_class_weights(path: str, train_data: str) -> np.ndarray:
-    """
-    Compute class weights for the dataset.
-
-    Args:
-        path (str): Path to the dataset.
-        train_data (str): Name of the training dataset.
-
-    Returns:
-        class_weights (np.ndarray): Array of class weights.
-    """
-    train_data_path = os.path.join(path, train_data)
-    train_data = pd.read_csv(train_data_path)
-    return compute_class_weight('balanced', classes=[0, 1], y=train_data["label"])
-
-
-def init_weights(model: nn.Module) -> None:
-    """
-    Initialize the weights of a model.
-
-    Args:
-        model (nn.Module): Model to initialize.
-
-    Returns:
-        None
-    """
-    if type(model) == nn.Linear:
-        torch.nn.init.xavier_uniform_(model.weight)
-        model.bias.data.fill_(0.01)
