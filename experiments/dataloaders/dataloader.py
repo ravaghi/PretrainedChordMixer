@@ -2,6 +2,7 @@ from abc import ABC
 from torch.utils.data import DataLoader
 import pandas as pd
 import numpy as np
+import os
 
 DNA_BASE_DICT = {
     'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
@@ -14,26 +15,42 @@ DNA_BASE_DICT_REVERSED = {
 
 
 class Dataloader(ABC):
-    def __init__(self, data_path, dataset_filename, dataset_type, dataset_name, batch_size):
+    def __init__(self, batch_size, data_path, dataset_type, dataset_name, train_dataset, val_dataset, test_dataset):
+        self.batch_size = batch_size
         self.data_path = data_path
-        self.dataset_filename = dataset_filename
         self.dataset_type = dataset_type
         self.dataset_name = dataset_name
-        self.batch_size = batch_size
-        
+        self.train_dataset = train_dataset
+        self.val_dataset = val_dataset
+        self.test_dataset = test_dataset
 
-    def create_dataloader(self) -> DataLoader:
+    def create_dataloaders(self) -> DataLoader:
         raise NotImplementedError
 
+
+    def read_data(self, filename: str) -> pd.DataFrame:
+        """
+        Read data from csv file
+
+        Args:
+            filename: filename to read
+
+        Returns:
+            dataframe
+        """
+        data_path = os.path.join(self.data_path, filename)
+        dataframe = pd.read_csv(data_path)
+        return dataframe
+
     @staticmethod
-    def pad_sequences(dataframe: pd.DataFrame, max_len: int=1000) -> pd.DataFrame:
+    def pad_sequences(dataframe: pd.DataFrame, max_len: int = 1000) -> pd.DataFrame:
         """
         Pad sequences to max length
 
         Args:
             dataframe: dataframe to pad
             max_len: max length to pad or truncate to
-        
+
         Returns:
             padded dataframe
         """
@@ -88,7 +105,7 @@ class Dataloader(ABC):
 
             dataframe = self.pad_sequences(dataframe, max_len)
             dataframe = self.convert_base_to_index(dataframe)
-    
+
             return dataframe[["sequence", "label"]]
 
         elif model_name == "KeGRU":
@@ -98,9 +115,9 @@ class Dataloader(ABC):
                 max_len = 10_000
 
             dataframe = self.pad_sequences(dataframe, max_len)
-    
+
             return dataframe[["sequence", "label"]]
-            
+
         else:
             raise ValueError(f"Model: {model_name} not supported")
 
@@ -117,8 +134,10 @@ class Dataloader(ABC):
             processed dataframe
         """
         if model_name in ["ChordMixer", "CNN"]:
-            dataframe["reference"] = dataframe["reference"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-            dataframe["alternate"] = dataframe["alternate"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+            dataframe["reference"] = dataframe["reference"].apply(
+                lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+            dataframe["alternate"] = dataframe["alternate"].apply(
+                lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
 
         elif model_name == "KeGRU":

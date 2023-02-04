@@ -41,10 +41,10 @@ def init_run(config: DictConfig) -> str:
     if config.general.log_to_wandb:
         print(f"Logging to Weights & Biases: {config.wandb.project}/{config.wandb.name}")
         wandb.init(project=config.wandb.project,
-                entity=config.wandb.entity,
-                config=OmegaConf.to_container(config, resolve=True),
-                name=config.wandb.name,
-                dir=BASE_DIR)
+                   entity=config.wandb.entity,
+                   config=OmegaConf.to_container(config, resolve=True),
+                   name=config.wandb.name,
+                   dir=BASE_DIR)
     else:
         print(f"Skipping Weights & Biases logging. Set log_to_wandb to True in config to enable it.")
 
@@ -55,7 +55,7 @@ def init_run(config: DictConfig) -> str:
 
     # Select cuda device
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    
+
     try:
         # Use a specific GPU if id is specified
         device = f'{device}:{config.general.device_id}'
@@ -69,7 +69,7 @@ def init_run(config: DictConfig) -> str:
 
 def print_model_params(model: torch.nn.Module) -> None:
     """
-    Print number of trainable model parameters.
+    Print number of model parameters.
 
     Args:
         model (torch.nn.Module): Model to print parameters from.
@@ -77,6 +77,8 @@ def print_model_params(model: torch.nn.Module) -> None:
     Returns:
         None
     """
+    parameters = sum([np.prod(p.size()) for p in model.parameters()])
     trainable_parameters = filter(lambda p: p.requires_grad, model.parameters())
     trainable_parameters = sum([np.prod(p.size()) for p in trainable_parameters])
+    print(f"Number of parameters: {parameters:,}")
     print(f"Number of trainable parameters: {trainable_parameters:,}")

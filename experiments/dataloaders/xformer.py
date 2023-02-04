@@ -20,13 +20,13 @@ class DatasetCreator(Dataset):
         return len(self.dataframe)
 
 
-class NystromformerDataLoader(Dataloader):
+class LinformerDataLoader(Dataloader):
     def create_dataloader(self):
         data_path = os.path.join(self.data_path, self.dataset_filename)
         dataframe = pd.read_csv(data_path)
 
         if self.dataset_type == "TaxonomyClassification":
-            dataframe = self.process_taxonomy_classification_dataframe(dataframe, "Nystromformer")
+            dataframe = self.process_taxonomy_classification_dataframe(dataframe, "Xformer")
 
             dataset = DatasetCreator(dataframe)
             return DataLoader(

@@ -1,78 +1,50 @@
 import hydra
-import torch
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 
-from utils.utils import init_run, init_weights, get_class_weights
+from utils.utils import init_run
 
 
 @hydra.main(config_path="configs", version_base=None)
 def main(config: DictConfig) -> None:
     device = init_run(config)
 
-    # Instantiate model based on config
     model = instantiate(config=config.model).to(device)
 
-    # Weight initialization
-    if config.general.init_weights:
-        model.apply(init_weights)
+    criterion = instantiate(config=config.loss)
 
-    # Loss function
-    if config.general.compute_class_weights and "Plant" not in config.dataset.name:
-        class_weights = get_class_weights(config.dataset.path, config.dataset.train_data)
-        class_weights = torch.tensor(class_weights, dtype=torch.float).to(device)
-        criterion = instantiate(config=config.loss, weight=class_weights)
-    else:
-        criterion = instantiate(config=config.loss)
-
-    # Optimizer
     if config.general.name == "KeGRU":
         model_params = [model.hidden_weights, model.hidden_bias] + [param for param in model.parameters()]
+        optimizer = instantiate(config=config.optimizer, params=model_params)
     else:
-        model_params = model.parameters()
-    optimizer = instantiate(config=config.optimizer, params=model_params)
+        optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
-    # Dataloaders
-    train_dataloader = instantiate(
+    dataloader = instantiate(
         config=config.dataloader,
-        dataset_filename=config.dataset.train_data,
         dataset_type=config.dataset.type,
-        dataset_name=config.dataset.name
-    ).create_dataloader()
+        dataset_name=config.dataset.name,
+        train_dataset=config.dataset.train_data,
+        val_dataset=config.dataset.val_data,
+        test_dataset=config.dataset.test_data
+    )
+    train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
 
-    val_dataloader = instantiate(
-        config=config.dataloader,
-        dataset_filename=config.dataset.val_data,
-        dataset_type=config.dataset.type,
-        dataset_name=config.dataset.name
-    ).create_dataloader()
-
-    test_dataloader = instantiate(
-        config=config.dataloader,
-        dataset_filename=config.dataset.test_data,
-        dataset_type=config.dataset.type,
-        dataset_name=config.dataset.name
-    ).create_dataloader()
-
-    # Model trainer
     trainer = instantiate(
         config=config.trainer,
-        model=model,
-        train_dataloader=train_dataloader,
-        val_dataloader=val_dataloader,
-        test_dataloader=test_dataloader,
         device=device,
+        model=model,
         criterion=criterion,
         optimizer=optimizer,
-        task=config.dataset.type
+        task=config.dataset.type,
+        train_dataloader=train_dataloader,
+        val_dataloader=val_dataloader,
+        test_dataloader=test_dataloader
     )
 
-    # Training and validation
     for epoch in range(1, config.general.max_epochs + 1):
         trainer.train(current_epoch_nr=epoch)
         trainer.evaluate(current_epoch_nr=epoch)
 
-    # Testing
     trainer.test()
 
 
