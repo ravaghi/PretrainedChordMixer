@@ -1,0 +1,3 @@
+entity: ravaghi
+project: PDT
+name: ${general.name}-${dataset.type}-${dataset.name}
