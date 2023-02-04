@@ -1,20 +1,21 @@
 defaults:
   - _self_
-  - model: nystromformer
+  - model: transformer
   - loss: cross_entropy
-  - optimizer: nystromformer_adam
+  - optimizer: transformer_adam
   - dataset: ???
-  - dataloader: nystromformer
-  - trainer: nystromformer
+  - dataloader: transformer
+  - trainer: transformer
   - wandb: wandb
 
 general:
-  name: Nystromformer
+  name: Transformer
   seed: 42
   device_id: 0
   batch_size: 4
   max_epochs: 30
   log_to_wandb: false
+  use_multi_gpu: false
 
 hydra:
   run:

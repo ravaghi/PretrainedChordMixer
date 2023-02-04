@@ -3,15 +3,15 @@ import wandb
 
 
 class Trainer(ABC):
-    def __init__(self, model, train_dataloader, val_dataloader, test_dataloader, device, criterion, optimizer, task):
-        self.model = model
-        self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
-        self.test_dataloader = test_dataloader
+    def __init__(self, device, model, criterion, optimizer, task, train_dataloader, val_dataloader, test_dataloader):
         self.device = device
+        self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
         self.task = task
+        self.train_dataloader = train_dataloader
+        self.val_dataloader = val_dataloader
+        self.test_dataloader = test_dataloader
 
     @staticmethod
     def log_metrics(auc: float, accuracy: float, loss: float, current_epoch_nr: int, metric_type: str) -> None:
@@ -28,10 +28,6 @@ class Trainer(ABC):
         Returns:
             None
         """
-        if metric_type == 'test':
-            print(f'Test AUC: {auc * 100:.2f}%')
-            print(f'Test Accuracy: {accuracy * 100:.2f}%')
-            print(f'Test Loss: {loss:.2f}')
         if metric_type == 'train':
             wandb.log({'train_auc': auc}, step=current_epoch_nr)
             wandb.log({'train_accuracy': accuracy}, step=current_epoch_nr)

@@ -1,20 +1,21 @@
 defaults:
   - _self_
-  - model: chordmixer
-  - loss: cross_entropy
-  - optimizer: adam
+  - model: kegru
+  - loss: binary_cross_entropy
+  - optimizer: kegru_adam
   - dataset: ???
-  - dataloader: chordmixer
-  - trainer: chordmixer
+  - dataloader: kegru
+  - trainer: kegru
   - wandb: wandb
 
 general:
-  name: ChordMixer
+  name: KeGRU
   seed: 42
   device_id: 0
-  batch_size: 2
+  batch_size: 100
   max_epochs: 30
   log_to_wandb: false
+  use_multi_gpu: false
 
 hydra:
   run:

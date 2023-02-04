@@ -1,20 +1,21 @@
 defaults:
   - _self_
-  - model: cnn
+  - model: chordmixer
   - loss: cross_entropy
-  - optimizer: sgd
+  - optimizer: adam
   - dataset: ???
-  - dataloader: cnn
-  - trainer: cnn
+  - dataloader: chordmixer
+  - trainer: chordmixer
   - wandb: wandb
 
 general:
-  name: CNN
+  name: ChordMixer
   seed: 42
   device_id: 0
-  batch_size: 50
+  batch_size: 2
   max_epochs: 30
   log_to_wandb: false
+  use_multi_gpu: false
 
 hydra:
   run:

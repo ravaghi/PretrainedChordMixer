@@ -1,44 +1,57 @@
 import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig
-import torch
-from datetime import datetime
-import numpy as np
+from torch.nn import DataParallel
 
-from experiments.utils.utils import init_run
+from utils.utils import init_run, print_model_params
 
 
-@hydra.main(version_base=None, config_path=".", config_name="config")
+@hydra.main(config_path="configs", version_base=None)
 def main(config: DictConfig) -> None:
     device = init_run(config)
 
-    model = torch.nn.DataParallel(instantiate(config=config.model)).to(device)
+    if config.general.use_multi_gpu:
+        model = DataParallel(instantiate(config=config.model)).to(device)
+    else:
+        model = instantiate(config=config.model).to(device)
+    
+    print_model_params(model)
+
     criterion = instantiate(config=config.loss)
-    optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
-    model_parameters = filter(lambda p: p.requires_grad, model.parameters())
-    params = sum([np.prod(p.size()) for p in model_parameters])
-    print(f"Number of trainable parameters: {params:,}")
+    if config.general.name == "KeGRU":
+        model_params = [model.hidden_weights, model.hidden_bias] + [param for param in model.parameters()]
+        optimizer = instantiate(config=config.optimizer, params=model_params)
+    else:
+        optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
-    dataloader = instantiate(config=config.dataloader)
-    train_dataloader, test_dataloader = dataloader.create_dataloaders()
+    dataloader = instantiate(
+        config=config.dataloader,
+        dataset_type=config.dataset.type,
+        dataset_name=config.dataset.name,
+        train_dataset=config.dataset.train_data,
+        val_dataset=config.dataset.val_data,
+        test_dataset=config.dataset.test_data
+    )
+    train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
 
     trainer = instantiate(
         config=config.trainer,
-        model=model,
-        train_dataloader=train_dataloader,
-        test_dataloader=test_dataloader,
         device=device,
+        model=model,
         criterion=criterion,
-        optimizer=optimizer
+        optimizer=optimizer,
+        task=config.dataset.type,
+        train_dataloader=train_dataloader,
+        val_dataloader=val_dataloader,
+        test_dataloader=test_dataloader
     )
 
     for epoch in range(1, config.general.max_epochs + 1):
         trainer.train(current_epoch_nr=epoch)
-    test_auc = trainer.test()
+        trainer.evaluate(current_epoch_nr=epoch)
 
-    model_name = f"{datetime.now().strftime('%Y-%m-%d_%H%M')}-PretrainedChordMixer-AUC-{test_auc}"
-    torch.save(model.state_dict(), f"models/{model_name}.pth")
+    trainer.test()
 
 
 if __name__ == '__main__':

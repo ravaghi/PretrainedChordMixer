@@ -4,7 +4,8 @@ general:
   batch_size: 4
   max_epochs: 30
   log_interval: 20
-  log_to_wandb: true
+  log_to_wandb: false
+  use_multi_gpu: false
 
 dataset:
   path: ${hydra:runtime.cwd}/data/variant_effect_prediction

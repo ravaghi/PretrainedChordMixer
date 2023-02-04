@@ -1,20 +1,21 @@
 defaults:
   - _self_
-  - model: poolformer
+  - model: nystromformer
   - loss: cross_entropy
-  - optimizer: poolformer_adam
+  - optimizer: nystromformer_adam
   - dataset: ???
-  - dataloader: poolformer
-  - trainer: poolformer
+  - dataloader: nystromformer
+  - trainer: nystromformer
   - wandb: wandb
 
 general:
-  name: Poolformer
+  name: Nystromformer
   seed: 42
   device_id: 0
   batch_size: 4
   max_epochs: 30
   log_to_wandb: false
+  use_multi_gpu: false
 
 hydra:
   run:

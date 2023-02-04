@@ -1,20 +1,21 @@
 defaults:
   - _self_
-  - model: kegru
-  - loss: binary_cross_entropy
-  - optimizer: kegru_adam
+  - model: cnn
+  - loss: cross_entropy
+  - optimizer: sgd
   - dataset: ???
-  - dataloader: kegru
-  - trainer: kegru
+  - dataloader: cnn
+  - trainer: cnn
   - wandb: wandb
 
 general:
-  name: KeGRU
+  name: CNN
   seed: 42
   device_id: 0
-  batch_size: 100
+  batch_size: 50
   max_epochs: 30
   log_to_wandb: false
+  use_multi_gpu: false
 
 hydra:
   run:

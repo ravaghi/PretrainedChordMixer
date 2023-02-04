@@ -15,6 +15,7 @@ general:
   batch_size: 4
   max_epochs: 30
   log_to_wandb: false
+  use_multi_gpu: false
 
 hydra:
   run:

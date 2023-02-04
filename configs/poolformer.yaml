@@ -1,20 +1,21 @@
 defaults:
   - _self_
-  - model: linformer
+  - model: poolformer
   - loss: cross_entropy
-  - optimizer: linformer_adam
+  - optimizer: poolformer_adam
   - dataset: ???
-  - dataloader: linformer
-  - trainer: linformer
+  - dataloader: poolformer
+  - trainer: poolformer
   - wandb: wandb
 
 general:
-  name: Linformer
+  name: Poolformer
   seed: 42
   device_id: 0
   batch_size: 4
   max_epochs: 30
   log_to_wandb: false
+  use_multi_gpu: false
 
 hydra:
   run:

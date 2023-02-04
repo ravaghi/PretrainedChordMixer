@@ -1,20 +1,21 @@
 defaults:
   - _self_
-  - model: transformer
+  - model: linformer
   - loss: cross_entropy
-  - optimizer: transformer_adam
+  - optimizer: linformer_adam
   - dataset: ???
-  - dataloader: transformer
-  - trainer: transformer
+  - dataloader: linformer
+  - trainer: linformer
   - wandb: wandb
 
 general:
-  name: Transformer
+  name: Linformer
   seed: 42
   device_id: 0
   batch_size: 4
   max_epochs: 30
   log_to_wandb: false
+  use_multi_gpu: false
 
 hydra:
   run:
