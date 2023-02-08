@@ -13,7 +13,7 @@ class SequenceProcessor:
     """Processes a DNA sequence by tokenizing, splitting and masking"""
 
     _DNA_BASE_DICT = {
-        'A': 0, 'C': 1, 'G': 2, 'T': 3
+        'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4
     }
 
     def __init__(self, mask_ratio: float, sequence_length: int):
@@ -143,7 +143,7 @@ class PretrainedChordMixerDataLoader:
         sequences_dict = SeqIO.to_dict(SeqIO.parse(data_path, "fasta"))
         sequences = ""
         for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences"):
-            sequences += str(sequences_dict[chromosome].seq).upper().replace("N", "")
+            sequences += str(sequences_dict[chromosome].seq).upper()
         return sequences
 
     def _process_sequences(self, sequences: str) -> dict:
@@ -196,12 +196,13 @@ class PretrainedChordMixerDataLoader:
         Returns:
             Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, and test dataloaders
         """
-        # sequences = "".join(["ACGT"[random.randint(0, 3)] for _ in range(1000_000)])
+        # sequences = "".join(["ACGTN"[random.randint(0, 4)] for _ in range(1000_000)])
         sequences = self._load_sequences()
         masked_sequences = self._process_sequences(sequences)
         train, test = self._split_dataset(masked_sequences)
 
         train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True, pin_memory=True)
+        val_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True)
         test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True)
 
-        return train_dataloader, test_dataloader
+        return train_dataloader, val_dataloader, test_dataloader

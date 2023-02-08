@@ -25,14 +25,17 @@ def main(config: DictConfig) -> None:
     else:
         optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
-    dataloader = instantiate(
-        config=config.dataloader,
-        dataset_type=config.dataset.type,
-        dataset_name=config.dataset.name,
-        train_dataset=config.dataset.train_data,
-        val_dataset=config.dataset.val_data,
-        test_dataset=config.dataset.test_data
-    )
+    if config.general.name == "PretrainedChordMixer":
+        dataloader = instantiate(config=config.dataloader)
+    else:
+        dataloader = instantiate(
+            config=config.dataloader,
+            dataset_type=config.dataset.type,
+            dataset_name=config.dataset.name,
+            train_dataset=config.dataset.train_data,
+            val_dataset=config.dataset.val_data,
+            test_dataset=config.dataset.test_data
+        )
     train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
 
     trainer = instantiate(

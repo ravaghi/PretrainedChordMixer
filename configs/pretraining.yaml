@@ -1,28 +1,29 @@
 general:
   name: PretrainedChordMixer
   seed: 42
-  batch_size: 4
-  max_epochs: 30
+  batch_size: 32
+  max_epochs: 10
   log_interval: 20
-  log_to_wandb: false
-  use_multi_gpu: false
+  log_to_wandb: true
+  use_multi_gpu: true
 
 dataset:
   path: ${hydra:runtime.cwd}/data/variant_effect_prediction
   name: hg38.fa
+  type: pretraining
 
 dataloader:
-  _target_: dataloader.PretrainedChordMixerDataLoader
+  _target_: dataloaders.pretraining.PretrainedChordMixerDataLoader
   data_path: ${dataset.path}
   dataset_filename: ${dataset.name}
   batch_size: ${general.batch_size}
   mask_ratio: 0.15
-  sequence_length: 100_000
+  sequence_length: 10_000
 
 model: 
-  _target_: model.PretrainedChordMixer
-  vocab_size: 4
-  max_seq_len: 1000_000
+  _target_: models.pretraining.PretrainedChordMixer
+  vocab_size: 5
+  n_blocks: 20
   encoder_track_size: 16
   decoder_track_size: 8
   encoder_prelinear_out_features: 1000
@@ -41,7 +42,7 @@ optimizer:
   lr: 0.0003
 
 trainer:
-  _target_: trainer.PretrainedChordMixerTrainer
+  _target_: trainers.pretraining.PretrainedChordMixerTrainer
   log_interval: ${general.log_interval}
   log_to_wandb: ${general.log_to_wandb}
 

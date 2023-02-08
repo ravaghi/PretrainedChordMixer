@@ -9,20 +9,24 @@ from torch import Tensor
 
 class PretrainedChordMixerTrainer:
     def __init__(self,
-                 model,
-                 train_dataloader,
-                 test_dataloader,
                  device,
+                 model,
                  criterion,
                  optimizer,
+                 task,
+                 train_dataloader,
+                 val_dataloader,
+                 test_dataloader,
                  log_interval,
                  log_to_wandb):
-        self.model = model
-        self.train_dataloader = train_dataloader
-        self.test_dataloader = test_dataloader
         self.device = device
+        self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+        self.task = task
+        self.train_dataloader = train_dataloader
+        self.val_dataloader = val_dataloader
+        self.test_dataloader = test_dataloader
         self.log_interval = log_interval
         self.log_to_wandb = log_to_wandb
 
@@ -175,6 +179,11 @@ class PretrainedChordMixerTrainer:
                 accuracies = []
                 aucs = []
 
+
+    def evaluate(self, current_epoch_nr) -> None:
+        pass
+
+
     def test(self) -> None:
         """
         Test the model
@@ -228,5 +237,7 @@ class PretrainedChordMixerTrainer:
             self.log_metrics(test_auc, test_accuracy, test_loss, 'test')
         else:
             print(f'Test loss: {test_loss}, Test accuracy: {test_accuracy}, Test AUC: {test_auc}')
+
+        torch.save(self.model.state_dict(), f'PretrainedChordMixer-AUC{test_auc}.pt')
 
         return test_auc
