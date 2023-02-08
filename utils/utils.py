@@ -5,7 +5,7 @@ import torch
 import wandb
 import os
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def seed_everything(seed: int = 42) -> None:
