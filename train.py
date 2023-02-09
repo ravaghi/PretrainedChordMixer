@@ -25,7 +25,7 @@ def main(config: DictConfig) -> None:
     else:
         optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
-    if config.general.name == "PretrainedChordMixer":
+    if config.general.name == "ChordMixerPretraining":
         dataloader = instantiate(config=config.dataloader)
     else:
         dataloader = instantiate(

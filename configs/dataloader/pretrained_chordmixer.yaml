@@ -1,0 +1,3 @@
+_target_: dataloaders.pretrained_chordmixer.PretrainedChordMixerDataLoader
+batch_size: ${general.batch_size}
+data_path: ${dataset.path}

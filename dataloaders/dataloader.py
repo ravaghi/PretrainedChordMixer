@@ -3,6 +3,7 @@ from torch.utils.data import DataLoader
 import pandas as pd
 import numpy as np
 import os
+from sklearn.preprocessing import LabelBinarizer
 
 DNA_BASE_DICT = {
     'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
@@ -117,6 +118,18 @@ class Dataloader(ABC):
             dataframe = self.pad_sequences(dataframe, max_len)
 
             return dataframe[["sequence", "label"]]
+
+        elif model_name == "PretrainedChordMixer":
+            label_binarizer = LabelBinarizer()
+            label_binarizer.fit(["A", "C", "G", "T", "N"])
+
+            def _one_hot_encode(sequence):
+                return label_binarizer.transform(list(sequence))
+
+            dataframe["seq"] = dataframe["sequence"].apply(_one_hot_encode)
+            dataframe = dataframe.drop(columns=['sequence'])
+            dataframe = dataframe.rename(columns={'seq': 'sequence'})
+            return dataframe[["sequence", "label", "bin", "len"]]
 
         else:
             raise ValueError(f"Model: {model_name} not supported")
