@@ -1,6 +1,6 @@
 type: PlantDeepSEA
 name: OryzaSativaMH
-path: ${hydra:runtime.cwd}/../data/plant_deepsea/oryza_sativa_mh
+path: ${hydra:runtime.cwd}/data/plant_deepsea/oryza_sativa_mh
 train_data: oryza_sativa_mh_train.csv
 val_data: oryza_sativa_mh_val.csv
 test_data: oryza_sativa_mh_test.csv

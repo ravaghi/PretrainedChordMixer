@@ -132,8 +132,6 @@ class ChordMixer(nn.Module):
             vocab_size,
             embedding_size
         )
-        self.linear = nn.Linear(2, embedding_size)
-
         self.chordmixer_blocks = nn.ModuleList(
             [
                 ChordMixerBlock(

@@ -1,6 +1,6 @@
 type: TaxonomyClassification
 name: CarassiusVsLabeo
-path: ${hydra:runtime.cwd}/../data/taxonomy_classification/carassius_labeo
+path: ${hydra:runtime.cwd}/data/taxonomy_classification/carassius_labeo
 train_data: carassius_labeo_train.csv
 val_data: carassius_labeo_val.csv
 test_data: carassius_labeo_test.csv
