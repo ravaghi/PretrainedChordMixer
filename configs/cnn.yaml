@@ -19,4 +19,4 @@ general:
 
 hydra:
   run:
-    dir: ${hydra:runtime.cwd}/../outputs
+    dir: ${hydra:runtime.cwd}/outputs
