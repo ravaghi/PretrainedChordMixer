@@ -1,22 +1,23 @@
 defaults:
   - _self_
-  - model: pretrained_chordmixer
+  - model: chordmixer_finetuning
   - loss: cross_entropy
   - optimizer: adam
   - dataset: ???
-  - dataloader: pretrained_chordmixer
+  - dataloader: chordmixer_finetuning
   - trainer: chordmixer
   - wandb: wandb
 
 general:
-  name: PretrainedChordMixer
+  name: ChordMixerFinetuning
   seed: 42
   device_id: 0
   batch_size: 2
   max_epochs: 30
   log_to_wandb: true
   use_multi_gpu: false
+  save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}
 
 hydra:
   run:
-    dir: ${hydra:runtime.cwd}/outputs
+    dir: ${hydra:runtime.cwd}/logs/hydra/outputs

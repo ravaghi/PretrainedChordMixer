@@ -1,0 +1,11 @@
+  _target_: models.chordmixer_pretraining.PretrainedChordMixer
+  vocab_size: 5
+  n_blocks: 20
+  encoder_track_size: 16
+  decoder_track_size: 8
+  encoder_prelinear_out_features: 1000
+  decoder_prelinear_in_features: ${model.encoder_prelinear_out_features}
+  decoder_prelinear_out_features: 500
+  hidden_size: 196
+  mlp_dropout: 0
+  layer_dropout: 0

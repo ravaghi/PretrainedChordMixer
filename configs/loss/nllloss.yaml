@@ -1,0 +1,2 @@
+_target_: torch.nn.NLLLoss
+ignore_index: 0

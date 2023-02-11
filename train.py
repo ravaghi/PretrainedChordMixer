@@ -47,7 +47,9 @@ def main(config: DictConfig) -> None:
         task=config.dataset.type,
         train_dataloader=train_dataloader,
         val_dataloader=val_dataloader,
-        test_dataloader=test_dataloader
+        test_dataloader=test_dataloader,
+        log_to_wandb=config.general.log_to_wandb,
+        save_dir=config.general.save_dir
     )
 
     for epoch in range(1, config.general.max_epochs + 1):

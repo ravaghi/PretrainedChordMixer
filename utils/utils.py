@@ -44,7 +44,7 @@ def init_run(config: DictConfig) -> str:
                    entity=config.wandb.entity,
                    config=OmegaConf.to_container(config, resolve=True),
                    name=config.wandb.name,
-                   dir=BASE_DIR)
+                   dir=os.path.join(BASE_DIR, 'logs'))
     else:
         print(f"Skipping Weights & Biases logging. Set log_to_wandb to True in config to enable it.")
 

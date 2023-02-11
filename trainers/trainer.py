@@ -1,9 +1,11 @@
 from abc import ABC
 import wandb
+import torch
+import os
 
 
 class Trainer(ABC):
-    def __init__(self, device, model, criterion, optimizer, task, train_dataloader, val_dataloader, test_dataloader):
+    def __init__(self, device, model, criterion, optimizer, task, train_dataloader, val_dataloader, test_dataloader, log_to_wandb, save_dir):
         self.device = device
         self.model = model
         self.criterion = criterion
@@ -12,6 +14,35 @@ class Trainer(ABC):
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
         self.test_dataloader = test_dataloader
+        self.log_to_wandb = log_to_wandb
+        self.save_dir = save_dir
+
+    def save_model(self, model, name) -> None:
+        """
+        Save the model and log to wandb
+
+        Args:
+            model (torch.nn.Module): Model to save
+            name (str): Name of the model
+
+        Returns:
+            None
+        """
+        if (not os.path.exists(self.save_dir)):
+            os.makedirs(self.save_dir)
+
+        model_path = os.path.join(self.save_dir, f'{name}.pt')
+
+        # Save model to disk
+        torch.save(model.state_dict(), model_path)
+
+        if self.log_to_wandb:
+            # Save model to wandb
+            artifact = wandb.Artifact(name, type='model')
+            artifact.add_file(model_path)
+            wandb.run.log_artifact(artifact)
+
+
 
     @staticmethod
     def log_metrics(auc: float, accuracy: float, loss: float, current_epoch_nr: int, metric_type: str) -> None:

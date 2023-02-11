@@ -1,0 +1,34 @@
+defaults:
+  - _self_
+  - model: chordmixer_pretraining
+  - loss: nllloss
+  - dataloader: chordmixer_pretraining_v0
+  - trainer: chordmixer_pretraining
+
+dataset:
+  path: ${hydra:runtime.cwd}/data/variant_effect_prediction
+  name: hg38.fa
+  type: pretraining
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0003
+
+wandb: 
+  entity: ravaghi
+  project: PDT
+  name: ${general.name}
+
+general:
+  name: ChordMixerPretraining
+  seed: 42
+  batch_size: 16
+  max_epochs: 30
+  log_interval: 100
+  log_to_wandb: true
+  use_multi_gpu: true
+  save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}
+
+hydra:
+  run:
+    dir: ${hydra:runtime.cwd}/logs/hydra/outputs

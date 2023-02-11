@@ -1,0 +1,35 @@
+program: train.py
+method: bayes
+metric:
+  goal: maximize
+  name: test_auc
+
+parameters:
+  wandb.name:
+    value: ""
+  dataloader._target_:
+    values:
+      - dataloaders.chordmixer_pretraining_v0.PretrainedChordMixerDataLoader
+      - dataloaders.chordmixer_pretraining_v1.PretrainedChordMixerDataLoader
+    distribution: categorical
+  dataloader.mask_ratio:
+    max: 0.95
+    min: 0.05
+    q: 0.05
+    distribution: q_uniform
+  dataloader.sequence_length:
+    max: 10_000
+    min: 1000
+    q: 1000
+    distribution: q_uniform
+  optimizer.lr:
+    max: 0.001
+    min: 0.000001
+    distribution: uniform
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - --config-name=chordmixer_pretraining
+  - ${args_no_hyphens}
