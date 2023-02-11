@@ -189,9 +189,9 @@ class PretrainedChordMixerDataLoader:
 
         return train, test
 
-    def create_dataloaders(self) -> Tuple[DataLoader, DataLoader]:
+    def create_dataloaders(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
         """
-        Processes the datset and creates dataloaders for the train, and test sets
+        Processes the dataset and creates dataloaders for the train, and test sets
 
         Returns:
             Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, and test dataloaders
@@ -201,8 +201,7 @@ class PretrainedChordMixerDataLoader:
         masked_sequences = self._process_sequences(sequences)
         train, test = self._split_dataset(masked_sequences)
 
-        train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True, pin_memory=True)
-        val_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True)
-        test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True)
+        train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=2)
+        test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=2)
 
-        return train_dataloader, val_dataloader, test_dataloader
+        return train_dataloader, test_dataloader, test_dataloader

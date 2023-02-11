@@ -5,30 +5,15 @@ import wandb
 from typing import Tuple
 import numpy as np
 from torch import Tensor
+from datetime import datetime
+
+from .trainer import Trainer
 
 
-class PretrainedChordMixerTrainer:
-    def __init__(self,
-                 device,
-                 model,
-                 criterion,
-                 optimizer,
-                 task,
-                 train_dataloader,
-                 val_dataloader,
-                 test_dataloader,
-                 log_interval,
-                 log_to_wandb):
-        self.device = device
-        self.model = model
-        self.criterion = criterion
-        self.optimizer = optimizer
-        self.task = task
-        self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
-        self.test_dataloader = test_dataloader
+class PretrainedChordMixerTrainer(Trainer):
+    def __init__(self, log_interval, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.log_interval = log_interval
-        self.log_to_wandb = log_to_wandb
 
     def _calculate_y_hat(self, batch: Tuple[Tensor, Tensor, Tensor]) -> Tuple[Tensor, Tensor, Tensor]:
         """
@@ -238,6 +223,8 @@ class PretrainedChordMixerTrainer:
         else:
             print(f'Test loss: {test_loss}, Test accuracy: {test_accuracy}, Test AUC: {test_auc}')
 
-        torch.save(self.model.state_dict(), f'PretrainedChordMixer-AUC{test_auc}.pt')
+        current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
+
+        self.save_model(self.model, f"{current_datetime}-ChordMixerPretraining-{test_auc:.4f}.pt")
 
         return test_auc

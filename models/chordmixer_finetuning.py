@@ -6,7 +6,7 @@ class PretrainedChordMixer(torch.nn.Module):
     def __init__(self, freeze, variable_length, n_class):
         super(PretrainedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder.from_pretrained(
-            model="/cluster/home/mahdih/PDT/models/PretrainedChordMixer-AUC0.7290067243187448.pt", 
+            model="/cluster/home/mahdih/PDT/models/PretrainedChordMixer-AUC0.7445990444685686.pt", 
             freeze=freeze, 
             variable_length=variable_length
         )
