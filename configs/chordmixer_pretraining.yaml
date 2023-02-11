@@ -2,7 +2,7 @@ defaults:
   - _self_
   - model: chordmixer_pretraining
   - loss: nllloss
-  - dataloader: chordmixer_pretraining_v0
+  - dataloader: chordmixer_pretraining
   - trainer: chordmixer_pretraining
 
 dataset:

@@ -1,9 +1,8 @@
 _target_: dataloaders.kegru.KeGruDataLoader
-data_path: ${dataset.path}
-dataset_filename: ???
 batch_size: ${general.batch_size}
+data_path: ${dataset.path}
 kmer_length: 5
 stride: 2
 embedding_size: 50
-kmer_embedding_path: ${hydra:runtime.cwd}/../data/kmer_embeddings
+kmer_embedding_path: ${hydra:runtime.cwd}/data/kmer_embeddings
 kmer_embedding_name: K${.kmer_length}_S${.stride}_L${.embedding_size}.model

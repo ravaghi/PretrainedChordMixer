@@ -58,7 +58,7 @@ class Dataloader(ABC):
         max_seq_len = dataframe["sequence"].apply(lambda x: len(x)).max()
         if max_seq_len < max_len:
             max_seq_len = max_len
-        dataframe["sequence"] = dataframe["sequence"].str.pad(max_seq_len, side="right", fillchar="A")
+        dataframe["sequence"] = dataframe["sequence"].str.pad(max_seq_len, side="right", fillchar="N")
         dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x[:max_len].upper())
         return dataframe
 
