@@ -21,7 +21,7 @@ def get_sequences_list(fasta_file_path: str, max_sequence_length: int) -> list:
 
     sequences_list = []
     for sequence in sequences:
-        sequence_str = str(sequence.seq).upper().replace("N", "")
+        sequence_str = str(sequence.seq).upper()
         if len(sequence_str) < max_sequence_length:
             sequences_list.append(sequence_str)
         else:
