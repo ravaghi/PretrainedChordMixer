@@ -15,6 +15,7 @@ processing/
 # Logs
 outputs/
 wandb/
+logs/
 
 # Pycharm
 .idea/
