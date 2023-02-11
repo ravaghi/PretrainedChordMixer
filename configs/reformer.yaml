@@ -2,11 +2,14 @@ defaults:
   - _self_
   - model: reformer
   - loss: cross_entropy
-  - optimizer: reformer_adam
   - dataset: ???
   - dataloader: reformer
   - trainer: reformer
   - wandb: wandb
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0005
 
 general:
   name: Reformer

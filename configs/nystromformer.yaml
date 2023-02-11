@@ -2,11 +2,14 @@ defaults:
   - _self_
   - model: nystromformer
   - loss: cross_entropy
-  - optimizer: nystromformer_adam
   - dataset: ???
   - dataloader: nystromformer
   - trainer: nystromformer
   - wandb: wandb
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0002
 
 general:
   name: Nystromformer

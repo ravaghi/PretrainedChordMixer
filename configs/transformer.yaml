@@ -2,11 +2,14 @@ defaults:
   - _self_
   - model: transformer
   - loss: cross_entropy
-  - optimizer: transformer_adam
   - dataset: ???
   - dataloader: transformer
   - trainer: transformer
   - wandb: wandb
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0005
 
 general:
   name: Transformer

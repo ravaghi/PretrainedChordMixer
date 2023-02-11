@@ -2,11 +2,15 @@ defaults:
   - _self_
   - model: kegru
   - loss: binary_cross_entropy
-  - optimizer: kegru_adam
   - dataset: ???
   - dataloader: kegru
   - trainer: kegru
   - wandb: wandb
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.005
+  weight_decay: 1e-5
 
 general:
   name: KeGRU

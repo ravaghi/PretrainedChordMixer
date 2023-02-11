@@ -2,11 +2,14 @@ defaults:
   - _self_
   - model: poolformer
   - loss: cross_entropy
-  - optimizer: poolformer_adam
   - dataset: ???
   - dataloader: poolformer
   - trainer: poolformer
   - wandb: wandb
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0003
 
 general:
   name: Poolformer

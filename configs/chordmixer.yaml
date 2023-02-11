@@ -2,11 +2,14 @@ defaults:
   - _self_
   - model: chordmixer
   - loss: cross_entropy
-  - optimizer: adam
   - dataset: ???
   - dataloader: chordmixer
   - trainer: chordmixer
   - wandb: wandb
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0001
 
 general:
   name: ChordMixer

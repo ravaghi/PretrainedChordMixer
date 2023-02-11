@@ -2,11 +2,14 @@ defaults:
   - _self_
   - model: linformer
   - loss: cross_entropy
-  - optimizer: linformer_adam
   - dataset: ???
   - dataloader: linformer
   - trainer: linformer
   - wandb: wandb
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0005
 
 general:
   name: Linformer
