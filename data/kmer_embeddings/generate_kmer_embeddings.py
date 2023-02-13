@@ -45,7 +45,9 @@ def generate_kmers(sequences: list, kmer_length: int, stride: int) -> list:
     for sequence in tqdm(sequences):
         temp_kmers = []
         for i in range(0, (len(sequence) - kmer_length) + 1, stride):
-            temp_kmers.append(sequence[i:i + kmer_length])
+            current_kmer = sequence[i:i + kmer_length]
+            if "N" not in current_kmer:
+                temp_kmers.append(current_kmer)
         kmers.append(temp_kmers)
     return kmers
 
@@ -78,7 +80,7 @@ def generate_kmer_embeddings(sequences: list, kmer_length: int, stride: int, emb
 # Embedding size: 50
 if __name__ == "__main__":
     _FASTA_FILE_PATH = BASE_DIR + "/data/variant_effect_prediction/hg38.fa"
-    _MAX_SEQUENCE_LENGTH = 1000_000
+    _MAX_SEQUENCE_LENGTH = 10_000_000
 
     sequences = get_sequences_list(_FASTA_FILE_PATH, _MAX_SEQUENCE_LENGTH)
     for kmer_length in [5, 4, 6]:
@@ -89,4 +91,4 @@ if __name__ == "__main__":
                     print("{} already exists".format(model_name))
                 else:
                     print("Generating {}".format(model_name))
-                    generate_kmer_embeddings(sequences, kmer_length, stride, embedding_size, 50)
+                    generate_kmer_embeddings(sequences, kmer_length, stride, embedding_size, 100)
