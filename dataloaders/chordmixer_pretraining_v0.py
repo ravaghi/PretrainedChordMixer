@@ -201,7 +201,7 @@ class PretrainedChordMixerDataLoader:
         masked_sequences = self._process_sequences(sequences)
         train, test = self._split_dataset(masked_sequences)
 
-        train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=2)
-        test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=2)
+        train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=1)
+        test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=1)
 
         return train_dataloader, test_dataloader, test_dataloader

@@ -96,7 +96,7 @@ class PretrainedChordMixerDataLoader:
         hg38_dict = SeqIO.to_dict(SeqIO.parse("/cluster/home/mahdih/PDT/data/variant_effect_prediction/hg38.fa", "fasta"))
         sequences = {chromosome:hg38_dict[chromosome].seq.upper() for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
-        train_dataloader = DataLoader(HG38Dataset(sequences, vep_data, 90_000, self.sequence_length, self.mask_ratio), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=2)
-        test_dataloader = DataLoader(HG38Dataset(sequences, vep_data, 10_000, self.sequence_length, self.mask_ratio), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=2)
+        train_dataloader = DataLoader(HG38Dataset(sequences, vep_data, 90_000, self.sequence_length, self.mask_ratio), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=1)
+        test_dataloader = DataLoader(HG38Dataset(sequences, vep_data, 10_000, self.sequence_length, self.mask_ratio), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=1)
 
         return train_dataloader, test_dataloader, test_dataloader

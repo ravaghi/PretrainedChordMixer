@@ -13,7 +13,7 @@ parameters:
       - dataloaders.chordmixer_pretraining_v1.PretrainedChordMixerDataLoader
     distribution: categorical
   dataloader.mask_ratio:
-    max: 0.95
+    max: 0.50
     min: 0.05
     q: 0.05
     distribution: q_uniform
