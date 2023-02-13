@@ -18,14 +18,9 @@ def main(config: DictConfig) -> None:
     print_model_params(model)
 
     criterion = instantiate(config=config.loss)
+    optimizer = instantiate(config=config.optimizer, params=model.parameters())
 
-    if config.general.name == "KeGRU":
-        model_params = [model.hidden_weights, model.hidden_bias] + [param for param in model.parameters()]
-        optimizer = instantiate(config=config.optimizer, params=model_params)
-    else:
-        optimizer = instantiate(config=config.optimizer, params=model.parameters())
-
-    if config.general.name == "ChordMixerPretraining":
+    if config.general.name == "PretrainedChordMixer":
         dataloader = instantiate(config=config.dataloader)
     else:
         dataloader = instantiate(
