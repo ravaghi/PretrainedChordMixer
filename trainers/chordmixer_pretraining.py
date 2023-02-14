@@ -71,7 +71,7 @@ class PretrainedChordMixerTrainer(Trainer):
             prediction = torch.exp(y_hat[mask == True]).detach().cpu().numpy()
             return metrics.roc_auc_score(target, prediction, multi_class='ovr')
         except ValueError:
-            return 0.0
+            return 0.5
 
     @staticmethod
     def log_metrics(auc: float, accuracy: float, loss: float, metric_type: str) -> None:
