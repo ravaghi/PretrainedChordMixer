@@ -1,7 +1,7 @@
 from tqdm import tqdm
 from sklearn import metrics
 import torch
-import numpy as np
+from datetime import datetime
 
 from .trainer import Trainer
 
@@ -34,7 +34,7 @@ class KeGruTrainer(Trainer):
             x1 = x1.to(self.device)
             x2 = x2.to(self.device)
             tissue = tissue.to(self.device)
-            y = y.to(self.device)
+            y = y.to(self.device).float()
             model_input = {
                 "task": self.task,
                 "x1": x1,
@@ -45,7 +45,7 @@ class KeGruTrainer(Trainer):
             return y, y_hat
 
         elif self.task == "PlantDeepSEA":
-            x, y, seq_len, bin = data
+            x, y = data
             x = x.to(self.device)
             y = y.to(self.device)
             model_input = {
@@ -58,6 +58,34 @@ class KeGruTrainer(Trainer):
         else:
             raise ValueError(f"Task: {self.task} not found.")
 
+    def calculate_predictions(self, y: torch.Tensor, y_hat: torch.Tensor) -> tuple:
+        """
+        Calculate the predictions for the given y and y_hat
+
+        Args:
+            y (torch.Tensor): The y
+            y_hat (torch.Tensor): The y_hat
+
+        Returns:
+            tuple: The predicted and correct predictions
+        """
+        if self.task == "TaxonomyClassification":
+            _, predicted = y_hat.max(1)
+            correct_predictions = predicted.eq(y).sum().item()
+
+        elif self.task == "VariantEffectPrediction":
+            predicted = y_hat
+            correct_predictions = torch.round(y_hat).eq(y).sum().item()
+
+        elif self.task == "PlantDeepSEA":
+            predicted = y_hat
+            correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
+        
+        else:
+            raise ValueError(f"Task: {self.task} not found.")
+
+        return predicted, correct_predictions
+
     def train(self, current_epoch_nr):
         self.model.train()
 
@@ -67,44 +95,44 @@ class KeGruTrainer(Trainer):
         correct = 0
         total = 0
 
-        train_aucs = []
+        preds = []
+        targets = []
 
         loop = tqdm(self.train_dataloader, total=num_batches)
         for batch in loop:
             y, y_hat = self.calculate_y_hat(batch)
 
-            loss = torch.nn.functional.binary_cross_entropy(y_hat, y)
+            loss = self.criterion(y_hat, y)
             loss.backward()
             self.optimizer.step()
             self.optimizer.zero_grad()
 
             running_loss += loss.item()
 
+            predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+
+            correct += correct_predictions
             total += y.size(0)
 
-            predictions = y_hat.cpu().detach().numpy().reshape(y_hat.shape[0])
-            targets = y.cpu().numpy().reshape(y_hat.shape[0])
-
-            cur_auc = metrics.roc_auc_score(targets, predictions)
-            train_aucs.append(cur_auc)
-
-            cur_accuracy = (predictions > 0.5) == targets
-            correct += np.sum(cur_accuracy)
+            targets.extend(y.detach().cpu().numpy())
+            preds.extend(predicted.detach().cpu().numpy())
 
             loop.set_description(f'Epoch {current_epoch_nr}')
-            loop.set_postfix(train_auc=round(cur_auc, 2))
+            loop.set_postfix(train_acc=round(correct / total, 3),
+                             train_loss=round(running_loss / total, 3))
 
-        train_auc = np.mean(train_aucs)
+        train_auc = metrics.roc_auc_score(targets, preds)
         train_accuracy = correct / total
         train_loss = running_loss / num_batches
 
-        self.log_metrics(
-            auc=train_auc,
-            accuracy=train_accuracy,
-            loss=train_loss,
-            current_epoch_nr=current_epoch_nr,
-            metric_type="train"
-        )
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=train_auc,
+                accuracy=train_accuracy,
+                loss=train_loss,
+                current_epoch_nr=current_epoch_nr,
+                metric_type="train"
+            )
 
     def evaluate(self, current_epoch_nr):
         self.model.eval()
@@ -115,41 +143,42 @@ class KeGruTrainer(Trainer):
         correct = 0
         total = 0
 
-        val_aucs = []
+        preds = []
+        targets = []
 
         with torch.no_grad():
             loop = tqdm(self.val_dataloader, total=num_batches)
             for batch in loop:
                 y, y_hat = self.calculate_y_hat(batch)
 
-                loss = torch.nn.functional.binary_cross_entropy(y_hat, y)
+                loss = self.criterion(y_hat, y)
 
                 running_loss += loss.item()
+
+                predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+
+                correct += correct_predictions
                 total += y.size(0)
 
-                predictions = y_hat.cpu().detach().numpy().reshape(y_hat.shape[0])
-                targets = y.cpu().numpy().reshape(y_hat.shape[0])
-
-                cur_auc = metrics.roc_auc_score(targets, predictions)
-                val_aucs.append(cur_auc)
-
-                cur_accuracy = (predictions > 0.5) == targets
-                correct += np.sum(cur_accuracy)
+                targets.extend(y.detach().cpu().numpy())
+                preds.extend(predicted.detach().cpu().numpy())
 
                 loop.set_description(f'Epoch {current_epoch_nr}')
-                loop.set_postfix(val_auc=round(cur_auc, 2))
+                loop.set_postfix(val_acc=round(correct / total, 3),
+                                 val_loss=round(running_loss / total, 3))
 
-        val_auc = np.mean(val_aucs)
+        validation_auc = metrics.roc_auc_score(targets, preds)
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
 
-        self.log_metrics(
-            auc=val_auc,
-            accuracy=validation_accuracy,
-            loss=validation_loss,
-            current_epoch_nr=current_epoch_nr,
-            metric_type="val"
-        )
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=validation_auc,
+                accuracy=validation_accuracy,
+                loss=validation_loss,
+                current_epoch_nr=current_epoch_nr,
+                metric_type="val"
+            )
 
     def test(self):
         self.model.eval()
@@ -160,38 +189,46 @@ class KeGruTrainer(Trainer):
         correct = 0
         total = 0
 
-        test_aucs = []
+        preds = []
+        targets = []
 
         with torch.no_grad():
             loop = tqdm(self.test_dataloader, total=num_batches)
             for batch in loop:
                 y, y_hat = self.calculate_y_hat(batch)
 
-                loss = torch.nn.functional.binary_cross_entropy(y_hat, y)
+                loss = self.criterion(y_hat, y)
 
                 running_loss += loss.item()
+
+                predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+
+                correct += correct_predictions
                 total += y.size(0)
 
-                predictions = y_hat.cpu().detach().numpy().reshape(y_hat.shape[0])
-                targets = y.cpu().numpy().reshape(y_hat.shape[0])
+                targets.extend(y.detach().cpu().numpy())
+                preds.extend(predicted.detach().cpu().numpy())
 
-                cur_auc = metrics.roc_auc_score(targets, predictions)
-                test_aucs.append(cur_auc)
+                loop.set_description('Testing')
+                loop.set_postfix(test_acc=round(correct / total, 3),
+                                 test_loss=round(running_loss / total, 3))
 
-                cur_accuracy = (predictions > 0.5) == targets
-                correct += np.sum(cur_accuracy)
-
-                loop.set_description(f'Testing')
-                loop.set_postfix(val_auc=round(cur_auc, 2))
-
+        test_auc = metrics.roc_auc_score(targets, preds)
         test_accuracy = correct / total
         test_loss = running_loss / num_batches
-        test_auc = np.mean(test_aucs)
 
-        self.log_metrics(
-            auc=test_auc,
-            accuracy=test_accuracy,
-            loss=test_loss,
-            current_epoch_nr=-1,
-            metric_type="test"
-        )
+        print(f"Test AUC: {test_auc}")
+        print(f"Test Accuracy: {test_accuracy}")
+        print(f"Test Loss: {test_loss}")
+
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=test_auc,
+                accuracy=test_accuracy,
+                loss=test_loss,
+                current_epoch_nr=-1,
+                metric_type="test"
+            )
+
+        current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
+        self.save_model(self.model, f"{current_datetime}-KeGRU-{test_auc:.4f}.pt")
