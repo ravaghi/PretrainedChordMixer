@@ -231,4 +231,4 @@ class KeGruTrainer(Trainer):
             )
 
         current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
-        self.save_model(self.model, f"{current_datetime}-KeGRU-{test_auc:.4f}.pt")
+        self.save_model(self.model, f"{current_datetime}-AUC-{test_auc:.4f}.pt")
