@@ -3,8 +3,8 @@ defaults:
   - model: linformer
   - loss: cross_entropy
   - dataset: ???
-  - dataloader: linformer
-  - trainer: linformer
+  - dataloader: xformer
+  - trainer: xformer
   - wandb: wandb
 
 optimizer:

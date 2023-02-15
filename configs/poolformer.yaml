@@ -3,8 +3,8 @@ defaults:
   - model: poolformer
   - loss: cross_entropy
   - dataset: ???
-  - dataloader: poolformer
-  - trainer: poolformer
+  - dataloader: xformer
+  - trainer: xformer
   - wandb: wandb
 
 optimizer:

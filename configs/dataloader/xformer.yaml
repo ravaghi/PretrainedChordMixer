@@ -1,3 +1,3 @@
-_target_: dataloaders.nystromformer.NystromformerDataLoader
+_target_: dataloaders.xformer.XFormerDataLoader
 batch_size: ${general.batch_size}
 data_path: ${dataset.path}

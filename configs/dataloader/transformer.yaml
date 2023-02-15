@@ -1,3 +1,0 @@
-_target_: dataloaders.transformer.TransformerDataLoader
-batch_size: ${general.batch_size}
-data_path: ${dataset.path}

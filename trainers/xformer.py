@@ -2,10 +2,12 @@ from tqdm import tqdm
 from sklearn import metrics
 import torch
 
+from datetime import datetime
+
 from .trainer import Trainer
 
 
-class TransformerTrainer(Trainer):
+class XFormerTrainer(Trainer):
     def calculate_y_hat(self, data: tuple) -> tuple:
         """
         Calculate the y_hat for the given data and task
@@ -95,13 +97,15 @@ class TransformerTrainer(Trainer):
         train_accuracy = correct / total
         train_loss = running_loss / num_batches
 
-        self.log_metrics(
-            auc=train_auc,
-            accuracy=train_accuracy,
-            loss=train_loss,
-            current_epoch_nr=current_epoch_nr,
-            metric_type="train"
-        )
+
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=train_auc,
+                accuracy=train_accuracy,
+                loss=train_loss,
+                current_epoch_nr=current_epoch_nr,
+                metric_type="train"
+            )
 
     def evaluate(self, current_epoch_nr):
         self.model.eval()
@@ -139,13 +143,14 @@ class TransformerTrainer(Trainer):
         validation_accuracy = correct / total
         validation_loss = running_loss / num_batches
 
-        self.log_metrics(
-            auc=validation_auc,
-            accuracy=validation_accuracy,
-            loss=validation_loss,
-            current_epoch_nr=current_epoch_nr,
-            metric_type="val"
-        )
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=validation_auc,
+                accuracy=validation_accuracy,
+                loss=validation_loss,
+                current_epoch_nr=current_epoch_nr,
+                metric_type="val"
+            )
 
     def test(self):
         self.model.eval()
@@ -183,10 +188,14 @@ class TransformerTrainer(Trainer):
         test_accuracy = correct / total
         test_loss = running_loss / num_batches
 
-        self.log_metrics(
-            auc=test_auc,
-            accuracy=test_accuracy,
-            loss=test_loss,
-            current_epoch_nr=-1,
-            metric_type="test"
-        )
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=test_auc,
+                accuracy=test_accuracy,
+                loss=test_loss,
+                current_epoch_nr=-1,
+                metric_type="test"
+            )
+
+        current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
+        self.save_model(self.model, f"{current_datetime}-AUC-{test_auc:.4f}.pt")

@@ -1,3 +1,0 @@
-_target_: dataloaders.linformer.LinformerDataLoader
-batch_size: ${general.batch_size}
-data_path: ${dataset.path}
