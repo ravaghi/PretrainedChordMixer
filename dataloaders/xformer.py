@@ -2,6 +2,7 @@ from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 import torch
 import os
+import numpy as np
 
 from .dataloader import Dataloader
 
@@ -18,6 +19,39 @@ class TaxonomyClassificationDataset(Dataset):
 
     def __len__(self):
         return len(self.dataframe)
+    
+
+class VariantEffectPredictionDataset(Dataset):
+    def __init__(self, dataframe):
+        self.dataframe = dataframe
+
+    def __getitem__(self, index):
+        reference, alternate, tissue, label = self.dataframe.iloc[index, :]
+        reference = torch.tensor(reference)
+        alternate = torch.tensor(alternate)
+        tissue = torch.tensor(tissue)
+        label = torch.tensor(label)
+        return reference, alternate, tissue, label
+
+    def __len__(self):
+        return len(self.dataframe)
+    
+
+class PlantDeepSEADataset(Dataset):
+    def __init__(self, dataframe):
+        self.sequences = np.array(dataframe.sequence.values.tolist())
+        target_list = dataframe.columns.tolist()[1:]
+        self.labels = dataframe[target_list].values
+
+    def __getitem__(self, index):
+        X = self.sequences[index]
+        Y = self.labels[index]
+        X = torch.tensor(X)
+        Y = torch.tensor(Y)
+        return X, Y
+
+    def __len__(self):
+        return len(self.sequences)
 
 
 class XFormerDataLoader(Dataloader):
@@ -32,10 +66,24 @@ class XFormerDataLoader(Dataloader):
         )
 
     def _create_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        pass
+        dataframe = self.process_variant_effect_prediction_dataframe(dataframe, "Xformer")
+        dataset = VariantEffectPredictionDataset(dataframe)
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            drop_last=False
+        )
 
     def _create_plant_deepsea_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        pass
+        dataframe = self.process_plantdeepsea_dataframe(dataframe, "Xformer")
+        dataset = PlantDeepSEADataset(dataframe)
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            drop_last=False
+        )
     
     def create_dataloaders(self):
         train_dataframe = self.read_data(self.train_dataset)[:2000]

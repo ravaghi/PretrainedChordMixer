@@ -58,6 +58,36 @@ class XFormerTrainer(Trainer):
         else:
             raise ValueError(f"Task: {self.task} not found.")
 
+
+    def calculate_predictions(self, y: torch.Tensor, y_hat: torch.Tensor) -> tuple:
+        """
+        Calculate the predictions for the given y and y_hat
+
+        Args:
+            y (torch.Tensor): The y
+            y_hat (torch.Tensor): The y_hat
+
+        Returns:
+            tuple: The predicted and correct predictions
+        """
+        if self.task == "TaxonomyClassification":
+            _, predicted = y_hat.max(1)
+            correct_predictions = predicted.eq(y).sum().item()
+
+        elif self.task == "VariantEffectPrediction":
+            predicted = y_hat
+            correct_predictions = torch.round(y_hat).eq(y).sum().item()
+
+        elif self.task == "PlantDeepSEA":
+            predicted = y_hat
+            correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
+        
+        else:
+            raise ValueError(f"Task: {self.task} not found.")
+
+        return predicted, correct_predictions
+    
+
     def train(self, current_epoch_nr):
         self.model.train()
 
@@ -82,9 +112,9 @@ class XFormerTrainer(Trainer):
 
             running_loss += loss.item()
 
-            _, predicted = y_hat.max(1)
+            predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+            correct += correct_predictions
             total += y.size(0)
-            correct += predicted.eq(y).sum().item()
 
             targets.extend(y.detach().cpu().numpy().flatten())
             preds.extend(predicted.detach().cpu().numpy().flatten())
@@ -128,9 +158,9 @@ class XFormerTrainer(Trainer):
 
                 running_loss += loss.item()
 
-                _, predicted = y_hat.max(1)
+                predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+                correct += correct_predictions
                 total += y.size(0)
-                correct += predicted.eq(y).sum().item()
 
                 targets.extend(y.detach().cpu().numpy().flatten())
                 preds.extend(predicted.detach().cpu().numpy().flatten())
@@ -173,9 +203,9 @@ class XFormerTrainer(Trainer):
 
                 running_loss += loss.item()
 
-                _, predicted = y_hat.max(1)
+                predicted, correct_predictions = self.calculate_predictions(y, y_hat)
+                correct += correct_predictions
                 total += y.size(0)
-                correct += predicted.eq(y).sum().item()
 
                 targets.extend(y.detach().cpu().numpy().flatten())
                 preds.extend(predicted.detach().cpu().numpy().flatten())

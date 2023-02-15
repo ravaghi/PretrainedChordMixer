@@ -146,7 +146,7 @@ class Dataloader(ABC):
         Returns:
             processed dataframe
         """
-        if model_name in ["ChordMixer", "CNN"]:
+        if model_name in ["ChordMixer", "CNN", "Xformer"]:
             dataframe["reference"] = dataframe["reference"].apply(
                 lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe["alternate"] = dataframe["alternate"].apply(
@@ -179,7 +179,7 @@ class Dataloader(ABC):
             dataframe = dataframe.rename(columns={'seq': 'sequence'})
             dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
             dataframe["bin"] = -1
-        elif model_name == "CNN":
+        elif model_name in ["CNN", "Xformer"]:
             dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe = dataframe.drop(columns=['sequence'])
             dataframe = dataframe.rename(columns={'seq': 'sequence'})
