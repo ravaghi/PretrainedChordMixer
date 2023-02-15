@@ -173,12 +173,17 @@ class Dataloader(ABC):
         Returns:
             processed dataframe
         """
-        if model_name in ["ChordMixer", "CNN"]:
+        if model_name == "ChordMixer":
             dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
             dataframe = dataframe.drop(columns=['sequence'])
             dataframe = dataframe.rename(columns={'seq': 'sequence'})
             dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
             dataframe["bin"] = -1
+        elif model_name == "CNN":
+            dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
+            dataframe = dataframe.drop(columns=['sequence'])
+            dataframe = dataframe.rename(columns={'seq': 'sequence'})
+            return dataframe
         else:
             raise ValueError(f"Model: {model_name} not supported")
         return dataframe

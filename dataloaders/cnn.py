@@ -6,80 +6,82 @@ import os
 
 from .dataloader import Dataloader
 
-
-class PlantDeepSeaDatasetCreator(Dataset):
-    def __init__(self, df):
-        self.df = df
-        target_list = df.columns.tolist()[:-3]
-        self.targets = self.df[target_list].values
+class PlantDeepSEADataset(Dataset):
+    def __init__(self, dataframe):
+        self.sequences = torch.tensor(np.array(dataframe.sequence.values.tolist(), dtype=np.float32))
+        target_list = dataframe.columns.tolist()[:-1]
+        self.labels = torch.tensor(dataframe[target_list].values)
 
     def __getitem__(self, index):
-        X = self.df.iloc[index]['sequence']
-        length = self.df.iloc[index]['len']
-        bin = self.df.iloc[index]['bin']
-        Y = torch.FloatTensor(self.targets[index])
-        X = torch.from_numpy(X)
-        return X, Y, length, bin
+        x = self.sequences[index]
+        y = self.labels[index]
+        return x, y
 
     def __len__(self):
-        return len(self.df)
+        return len(self.sequences)
 
 
 class CNNDataLoader(Dataloader):
-    def create_dataloader(self):
-        data_path = os.path.join(self.data_path, self.dataset_filename)
-        dataframe = pd.read_csv(data_path)
+    def _create_taxonomic_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_taxonomy_classification_dataframe(dataframe, "CNN")
+
+        sequences = torch.tensor(np.array(dataframe.sequence.values.tolist(), dtype=np.float32))
+        labels = torch.tensor(dataframe.label.values)
+
+        dataset = TensorDataset(sequences, labels)
+
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            drop_last=False
+        )
+
+    def _create_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_variant_effect_prediction_dataframe(dataframe, "CNN")
+
+        references = torch.tensor(np.array(dataframe.reference.values.tolist(), dtype=np.float32))
+        alternatives = torch.tensor(np.array(dataframe.alternate.values.tolist(), dtype=np.float32))
+        tissues = torch.tensor(dataframe.tissue.values)
+        labels = torch.tensor(dataframe.label.values)
+
+        dataset = TensorDataset(references, alternatives, tissues, labels)
+
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            drop_last=False
+        )
+
+    def _create_plant_deepsea_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_plantdeepsea_dataframe(dataframe, "CNN")
+        dataset = PlantDeepSEADataset(dataframe)
+        return DataLoader(
+            dataset,
+            batch_size=self.batch_size,
+            shuffle=False,
+            drop_last=False
+        )
+    def create_dataloaders(self):
+        train_dataframe = self.read_data(self.train_dataset)
+        val_dataframe = self.read_data(self.val_dataset)
+        test_dataframe = self.read_data(self.test_dataset)
 
         if self.dataset_type == "TaxonomyClassification":
-            dataframe = self.process_taxonomy_classification_dataframe(dataframe, "CNN")
-
-            sequences = np.array(dataframe.sequence.values.tolist(), dtype=np.float32)
-            labels = dataframe.label.values.tolist()
-
-            sequences = torch.tensor(sequences)
-            labels = torch.tensor(labels)
-
-            dataset = TensorDataset(sequences, labels)
-
-            return DataLoader(
-                dataset,
-                batch_size=self.batch_size,
-                shuffle=False,
-                drop_last=False
-            )
-
+            train_dataloader = self._create_taxonomic_classification_dataloader(train_dataframe)
+            val_dataloader = self._create_taxonomic_classification_dataloader(val_dataframe)
+            test_dataloader = self._create_taxonomic_classification_dataloader(test_dataframe)
         elif self.dataset_type == "VariantEffectPrediction":
-            dataframe = self.process_variant_effect_prediction_dataframe(dataframe, "CNN")
-            
-            references = np.array(dataframe.reference.values.tolist(), dtype=np.float32)
-            alternates = np.array(dataframe.alternate.values.tolist(), dtype=np.float32)
-            tissues = dataframe.tissue.values.tolist()
-            labels = dataframe.label.values.tolist()
-
-            references = torch.tensor(references)
-            alternates = torch.tensor(alternates)
-            tissues = torch.tensor(tissues, dtype=torch.int64)
-            labels = torch.tensor(labels)
-
-            dataset = TensorDataset(references, alternates, tissues, labels)
-
-            return DataLoader(
-                dataset,
-                batch_size=self.batch_size,
-                shuffle=True,
-                drop_last=False
-            )
-
+            train_dataloader = self._create_variant_effect_prediction_dataloader(train_dataframe)
+            val_dataloader = self._create_variant_effect_prediction_dataloader(val_dataframe)
+            test_dataloader = self._create_variant_effect_prediction_dataloader(test_dataframe)
         elif self.dataset_type == "PlantDeepSEA":
-            dataframe = self.process_plantdeepsea_dataframe(dataframe, "CNN")
-            dataset = PlantDeepSeaDatasetCreator(df=dataframe)
-            return DataLoader(
-                dataset,
-                batch_size=self.batch_size,
-                shuffle=False,
-                drop_last=False
-            )
-
+            train_dataloader = self._create_plant_deepsea_dataloader(train_dataframe)
+            val_dataloader = self._create_plant_deepsea_dataloader(val_dataframe)
+            test_dataloader = self._create_plant_deepsea_dataloader(test_dataframe)
         else:
             raise ValueError(f"Dataset type {self.dataset_type} not supported.")
+
+        return train_dataloader, val_dataloader, test_dataloader
             

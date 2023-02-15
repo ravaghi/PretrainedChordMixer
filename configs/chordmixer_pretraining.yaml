@@ -27,7 +27,7 @@ general:
   log_interval: 100
   log_to_wandb: true
   use_multi_gpu: true
-  save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}
+  save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}/${dataset.type}/${dataset.name}
 
 hydra:
   run:

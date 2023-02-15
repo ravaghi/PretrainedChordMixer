@@ -93,7 +93,6 @@ class CNN(nn.Module):
             tissue = tissue.unsqueeze(0).t()
             data = torch.gather(data, 1, tissue)  
             data = data.reshape(-1)
-            data = torch.sigmoid(data)
 
             return data
 
@@ -111,12 +110,7 @@ class CNN(nn.Module):
             x = self.pool(x)
             x = x.view(-1, self.num_flat_features(x))
             x = self.dropout(x)
-
-            #x = x[:, 400:600]
-
             x = self.fc1(x)
-
-            x = torch.sigmoid(x)
 
             return x
         

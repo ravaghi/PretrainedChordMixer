@@ -1,6 +1,7 @@
 from tqdm import tqdm
 from sklearn import metrics
 import torch
+from datetime import datetime
 
 from .trainer import Trainer
 
@@ -43,9 +44,9 @@ class CNNTrainer(Trainer):
             return y, y_hat
 
         elif self.task == "PlantDeepSEA":
-            x, y, seq_len, bin = data
+            x, y = data
             x = x.to(self.device)
-            y = y.to(self.device)
+            y = y.to(self.device).float()
             model_input = {
                 "task": self.task,
                 "x": x
@@ -123,13 +124,14 @@ class CNNTrainer(Trainer):
         train_loss = running_loss / num_batches
         train_auc = metrics.roc_auc_score(targets, preds)
 
-        self.log_metrics(
-            auc=train_auc,
-            accuracy=train_accuracy,
-            loss=train_loss,
-            current_epoch_nr=current_epoch_nr,
-            metric_type="train"
-        )
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=train_auc,
+                accuracy=train_accuracy,
+                loss=train_loss,
+                current_epoch_nr=current_epoch_nr,
+                metric_type="train"
+            )
 
     def evaluate(self, current_epoch_nr):
         self.model.eval()
@@ -168,13 +170,14 @@ class CNNTrainer(Trainer):
         validation_loss = running_loss / num_batches
         validation_auc = metrics.roc_auc_score(targets, preds)
 
-        self.log_metrics(
-            auc=validation_auc,
-            accuracy=validation_accuracy,
-            loss=validation_loss,
-            current_epoch_nr=current_epoch_nr,
-            metric_type="val"
-        )
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=validation_auc,
+                accuracy=validation_accuracy,
+                loss=validation_loss,
+                current_epoch_nr=current_epoch_nr,
+                metric_type="val"
+            )
 
     def test(self):
         """
@@ -216,10 +219,14 @@ class CNNTrainer(Trainer):
         test_loss = running_loss / num_batches
         test_auc = metrics.roc_auc_score(targets, preds)
 
-        self.log_metrics(
-            auc=test_auc,
-            accuracy=test_accuracy,
-            loss=test_loss,
-            current_epoch_nr=-1,
-            metric_type="test"
-        )
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=test_auc,
+                accuracy=test_accuracy,
+                loss=test_loss,
+                current_epoch_nr=-1,
+                metric_type="test"
+            )
+
+        current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
+        self.save_model(self.model, f"{current_datetime}-AUC-{test_auc:.4f}.pt")
