@@ -6,7 +6,7 @@ import torch
 import os
 from gensim.models.word2vec import Word2Vec
 
-from .dataloader import Dataloader
+from .dataloader.dataloader import Dataloader
 
 
 class TaxonomyClassificationDataset(Dataset):

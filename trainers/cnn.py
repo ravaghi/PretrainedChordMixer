@@ -3,7 +3,7 @@ from sklearn import metrics
 import torch
 from datetime import datetime
 
-from .trainer import Trainer
+from .trainer.trainer import Trainer
 
 
 class CNNTrainer(Trainer):

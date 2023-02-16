@@ -2,7 +2,7 @@ from torch.utils.data import DataLoader
 import pandas as pd
 from typing import Tuple
 
-from .dataloader import Dataloader
+from .dataloader.dataloader import Dataloader
 from .chordmixer import concater_collate, TaxonomyClassificationDataset, VariantEffectPredictionDataset, PlantDeepSEADataset
 
 

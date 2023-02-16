@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import os
 
-from .dataloader import Dataloader
+from .dataloader.dataloader import Dataloader
 
 class PlantDeepSEADataset(Dataset):
     def __init__(self, dataframe):

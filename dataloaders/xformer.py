@@ -4,7 +4,7 @@ import torch
 import os
 import numpy as np
 
-from .dataloader import Dataloader
+from .dataloader.dataloader import Dataloader
 
 
 class TaxonomyClassificationDataset(Dataset):

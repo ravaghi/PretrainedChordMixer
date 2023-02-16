@@ -4,7 +4,7 @@ import random
 import torch
 from typing import Tuple
 
-from .dataloader import Dataloader
+from .dataloader.dataloader import Dataloader
 
 
 def complete_batch(dataframe: pd.DataFrame, batch_size: int) -> pd.DataFrame:

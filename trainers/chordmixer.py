@@ -2,7 +2,7 @@ from tqdm import tqdm
 from sklearn import metrics
 import torch
 
-from .trainer import Trainer
+from .trainer.trainer import Trainer
 
 
 class ChordMixerTrainer(Trainer):

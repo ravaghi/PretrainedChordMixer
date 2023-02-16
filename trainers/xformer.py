@@ -4,7 +4,7 @@ import torch
 
 from datetime import datetime
 
-from .trainer import Trainer
+from .trainer.trainer import Trainer
 
 
 class XFormerTrainer(Trainer):

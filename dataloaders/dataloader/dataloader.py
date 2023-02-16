@@ -1,9 +1,8 @@
-from abc import ABC
 from torch.utils.data import DataLoader
+from abc import ABC
 import pandas as pd
 import numpy as np
 import os
-from sklearn.preprocessing import LabelBinarizer
 
 DNA_BASE_DICT = {
     'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
@@ -40,7 +39,7 @@ class Dataloader(ABC):
             dataframe
         """
         data_path = os.path.join(self.data_path, filename)
-        dataframe = pd.read_csv(data_path)
+        dataframe = pd.read_parquet(data_path)
         return dataframe
 
     @staticmethod
