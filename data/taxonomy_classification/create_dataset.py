@@ -1,41 +1,52 @@
 import pandas as pd
 import os
 
-from experiments.dataloaders.dataloader import DNA_BASE_DICT_REVERSED
+DNA_BASE_DICT_REVERSED = {
+    0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M',
+    8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'
+}
 
 
-def pickle_to_csv(train: str, val: str, dataset_name: str) -> None:
+def pickle_to_parquet(train_data: str, test_data: str, dataset_name: str) -> None:
     """
-    Convert the pickled dataframes to csv files
+    Converts and joins two pickled dataframes to parquet format and splits them into train, val and test sets.
 
     Args:
-        train: path to the train dataframe
-        val: path to the validation dataframe
-        dataset_name: name of the dataset
+        train_data: path to the train dataframe
+        test_data: path to the test dataframe
+        dataset_name: name of the new dataset
 
     Returns:
         None
     """
-    train_data = pd.read_pickle(train)
-    val_data = pd.read_pickle(val)
+    print(f"Processing {dataset_name} datasets...")
 
-    data = pd.concat([train_data, val_data])
+    train_data = pd.read_pickle(train_data)
+    test_data = pd.read_pickle(test_data)
 
-    data = data.sample(frac=1).reset_index(drop=True)
+    dataframe = pd.concat([train_data, test_data])
 
-    data["sequence"] = data["sequence"].apply(lambda x: "".join([DNA_BASE_DICT_REVERSED[i] for i in x]))
-    data["bin"].fillna(0, inplace=True)
+    dataframe = dataframe.sample(frac=1).reset_index(drop=True)
 
-    train = data[:int(0.8 * len(data))]
-    val = data[int(0.8 * len(data)):int(0.9 * len(data))]
-    test = data[int(0.9 * len(data)):]
+    dataframe["sequence"] = dataframe["sequence"].apply(
+        lambda x: "".join([DNA_BASE_DICT_REVERSED[i] for i in x])).astype(str)
+    dataframe["label"] = dataframe["label"].astype("int8")
 
-    os.mkdir(dataset_name)
-    train.to_csv(f"{dataset_name}/{dataset_name}_train.csv", index=False)
-    val.to_csv(f"{dataset_name}/{dataset_name}_val.csv", index=False)
-    test.to_csv(f"{dataset_name}/{dataset_name}_test.csv", index=False)
+    dataframe = dataframe.drop(columns=["bin", "len"])
+
+    train = dataframe[:int(0.8 * len(dataframe))]
+    val = dataframe[int(0.8 * len(dataframe)):int(0.9 * len(dataframe))]
+    test = dataframe[int(0.9 * len(dataframe)):]
+
+    if not os.path.exists(dataset_name):
+        os.mkdir(dataset_name)
+
+    train.to_parquet(f"{dataset_name}/{dataset_name}_train.parquet", index=False)
+    val.to_parquet(f"{dataset_name}/{dataset_name}_val.parquet", index=False)
+    test.to_parquet(f"{dataset_name}/{dataset_name}_test.parquet", index=False)
 
 
-pickle_to_csv("carassius_labeo_train.pkl", "carassius_labeo_val.pkl", "carassius_labeo")
-pickle_to_csv("danio_cyprinus_train.pkl", "danio_cyprinus_val.pkl", "danio_cyprinus")
-pickle_to_csv("sus_bos_train.pkl", "sus_bos_val.pkl", "sus_bos")
+if __name__ == "__main__":
+    pickle_to_parquet("carassius_labeo_train.pkl", "carassius_labeo_test.pkl", "carassius_labeo")
+    pickle_to_parquet("danio_cyprinus_train.pkl", "danio_cyprinus_test.pkl", "danio_cyprinus")
+    pickle_to_parquet("sus_bos_train.pkl", "sus_bos_test.pkl", "sus_bos")

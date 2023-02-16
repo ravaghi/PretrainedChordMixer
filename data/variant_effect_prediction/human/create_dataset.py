@@ -2,7 +2,7 @@ from kipoiseq import Interval, Variant
 from kipoiseq.extractors import VariantSeqExtractor
 import pandas as pd
 import pyfaidx
-import csv
+from typing import Tuple, List
 
 
 class FastaStringExtractor:
@@ -39,29 +39,28 @@ class FastaStringExtractor:
         return self.fasta.close()
 
 
-def variant_sequence_extractor(
-        chr: int,
-        pos: int,
-        ref: int,
-        alt: int,
-        length: int,
-        fasta_extractor: FastaStringExtractor
-) -> (str, str):
+def variant_sequence_extractor(chromosome: str,
+                               position: int,
+                               reference: str,
+                               alternate: str,
+                               length: int,
+                               fasta_extractor: FastaStringExtractor
+                               ) -> Tuple[str, str]:
     """
     Extracts the reference and alternate sequences of a variant
 
     Args:
-        chr: chromosome number
-        pos: position of the variant
-        ref: reference sequence position
-        alt: alternate sequence position
+        chromosome: chromosome name
+        position: position of the variant
+        reference: reference base
+        alternate: alternate base
         length: length of the sequence
         fasta_extractor: FastaStringExtractor object
 
     Returns:
         (str, str): reference and alternate sequences
     """
-    variant = Variant(chr, pos, ref, alt)
+    variant = Variant(chromosome, position, reference, alternate)
     interval = Interval(variant.chrom, variant.start, variant.start).resize(length)
     seq_extractor = VariantSeqExtractor(reference_sequence=fasta_extractor)
     center = interval.center() - interval.start
@@ -70,7 +69,10 @@ def variant_sequence_extractor(
     return reference, alternate
 
 
-def get_data(dataframe: pd.DataFrame, length: int, fasta_extractor: FastaStringExtractor) -> (list, list, list, list):
+def sample_data(dataframe: pd.DataFrame,
+                length: int,
+                fasta_extractor: FastaStringExtractor
+                ) -> Tuple[List, List, List, List]:
     """
     Extracts the reference and alternate sequences of a variant
 
@@ -80,34 +82,40 @@ def get_data(dataframe: pd.DataFrame, length: int, fasta_extractor: FastaStringE
         fasta_extractor: FastaStringExtractor object
 
     Returns:
-        (list, list, list, list): reference and alternate sequences
+        (List, List, List, List): reference, alternate, tissue and label sequences
     """
-    ref_all = []
-    alt_all = []
-    tissue_all = []
-    label_all = []
+    references = []
+    alternates = []
+    tissues = []
+    labels = []
     for _, seq in dataframe.iterrows():
-        ref, alt = variant_sequence_extractor(
-            seq["chr"], seq["pos"], seq["ref"], seq["alt"], length, fasta_extractor
+        reference, alternate = variant_sequence_extractor(
+            seq["chr"],
+            seq["pos"],
+            seq["ref"],
+            seq["alt"],
+            length,
+            fasta_extractor
         )
         tissue = seq["tissue"]
         label = seq["label"]
-        ref_all.append(ref)
-        alt_all.append(alt)
-        tissue_all.append(tissue)
-        label_all.append(label)
+        references.append(reference)
+        alternates.append(alternate)
+        tissues.append(tissue)
+        labels.append(label)
 
-    return ref_all, alt_all, tissue_all, label_all
+    return references, alternates, tissues, labels
 
 
-fasta_extractor = FastaStringExtractor("hg38.fa")
-cols = ["reference", "alternate", "tissue", "label"]
+if __name__ == "__main__":
+    fasta_extractor = FastaStringExtractor("hg38.fa")
+    columns = ["reference", "alternate", "tissue", "label"]
 
-for dataset in ["train", "val", "test"]:
-    dataframe = pd.read_csv(f"label811_49_{dataset}.csv")
-    data = get_data(dataframe, 1000, fasta_extractor)
+    for dataset in ["train", "val", "test"]:
+        print(f"Creating homo_sapien_{dataset}.parquet...")
+        
+        dataframe = pd.read_csv(f"label811_49_{dataset}.csv")
+        rows = sample_data(dataframe, 2000, fasta_extractor)
 
-    with open(f"variant_effect_prediction_{dataset}.csv", "w") as f:
-        writer = csv.writer(f)
-        writer.writerow(cols)
-        writer.writerows(zip(*data))
+        data = pd.DataFrame(zip(*rows), columns=columns)
+        data.to_parquet(f"homo_sapien/homo_sapien_{dataset}.parquet", index=False)

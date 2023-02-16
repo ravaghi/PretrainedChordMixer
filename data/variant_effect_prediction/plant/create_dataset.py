@@ -1,7 +1,7 @@
 from sequence_processor import GenomeSequence, GenomicFeatures
 from sampler import BedFileSampler
+import pandas as pd
 import numpy as np
-import csv
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -89,7 +89,7 @@ dataset_metadata = [
 
 def create_dataset(fields: list, dataset: list, dataset_type: str, dataset_name: str) -> None:
     """
-    Creates and saves a csv file for the given dataset.
+    Creates and saves a dataset in parquet format.
 
     Args:
         fields: List of column headers
@@ -100,7 +100,7 @@ def create_dataset(fields: list, dataset: list, dataset_type: str, dataset_name:
     Returns:
         None
     """
-    print("-- Creating {}_{}.csv".format(dataset_name, dataset_type))
+    print("-- Creating {}_{}.parquet".format(dataset_name, dataset_type))
     rows = []
     for batch in dataset:
         X = batch[0]
@@ -109,49 +109,47 @@ def create_dataset(fields: list, dataset: list, dataset_type: str, dataset_name:
         for x, y in zip(X, Y):
             rows.append([x.upper()] + y.astype(int).tolist())
 
-    if not os.path.exists(f"../{dataset_name}"):
-        os.mkdir(f"../{dataset_name}")
+    if not os.path.exists(f"{dataset_name}"):
+        os.mkdir(f"{dataset_name}")
 
-    with open(f"../{dataset_name}/{dataset_name}_{dataset_type}.csv", "w") as f:
-        csvwriter = csv.writer(f)
-        csvwriter.writerow(fields)
-        csvwriter.writerows(rows)
+    dataframe = pd.DataFrame(rows, columns=fields)
+    dataframe.to_parquet(f"{dataset_name}/{dataset_name}_{dataset_type}.parquet", index=False)
 
+if __name__ == "__main__":
+    for metadata in dataset_metadata:
+        print("\nProcessing {}".format(metadata["species"]))
 
-for metadata in dataset_metadata:
-    print("\nProcessing {}".format(metadata["species"]))
+        folder_name = metadata["species"].replace(" ", "_").lower()
 
-    folder_name = metadata["species"].replace(" ", "_").lower()
+        reference_genome_path = os.path.join(BASE_DIR, 'plant/reference_genomes', metadata["reference_genome"])
+        data_path = os.path.join(BASE_DIR, "plant/data", folder_name, metadata["data"])
+        feature_path = os.path.join(BASE_DIR, "plant/data", folder_name, metadata["features"])
 
-    reference_genome_path = os.path.join(BASE_DIR, 'processing/reference_genomes', metadata["reference_genome"])
-    data_path = os.path.join(BASE_DIR, "processing/data", folder_name, metadata["data"])
-    feature_path = os.path.join(BASE_DIR, "processing/data", folder_name, metadata["features"])
+        sequences = GenomeSequence(reference_genome_path)
+        features = GenomicFeatures(data_path, feature_path)
 
-    sequences = GenomeSequence(reference_genome_path)
-    features = GenomicFeatures(data_path, feature_path)
+        train_path = os.path.join(BASE_DIR, "plant/models", folder_name, metadata["model"]["train"])
+        val_path = os.path.join(BASE_DIR, "plant/models", folder_name, metadata["model"]["val"])
+        test_path = os.path.join(BASE_DIR, "plant/models", folder_name, metadata["model"]["test"])
 
-    train_path = os.path.join(BASE_DIR, "processing/models", folder_name, metadata["model"]["train"])
-    val_path = os.path.join(BASE_DIR, "processing/models", folder_name, metadata["model"]["val"])
-    test_path = os.path.join(BASE_DIR, "processing/models", folder_name, metadata["model"]["test"])
+        train_sampler = BedFileSampler(train_path, sequences, features)
+        val_sampler = BedFileSampler(val_path, sequences, features)
+        test_sampler = BedFileSampler(test_path, sequences, features)
 
-    train_sampler = BedFileSampler(train_path, sequences, features)
-    val_sampler = BedFileSampler(val_path, sequences, features)
-    test_sampler = BedFileSampler(test_path, sequences, features)
+        batch_size = 250
+        train_size = 160_000
+        val_size = 20_000
+        test_size = 20_000
 
-    batch_size = 250
-    train_size = 80_000
-    val_size = 10_000
-    test_size = 10_000
+        print("- Sampling training data")
+        train_data = train_sampler.get_data_and_targets(batch_size, train_size, encoding=False)
+        print("- Sampling validation data")
+        val_data = val_sampler.get_data_and_targets(batch_size, val_size, encoding=False)
+        print("- Sampling test data")
+        test_data = test_sampler.get_data_and_targets(batch_size, test_size, encoding=False)
 
-    print("- Sampling training data")
-    train_data = train_sampler.get_data_and_targets(batch_size, train_size, encoding=False)
-    print("- Sampling validation data")
-    val_data = val_sampler.get_data_and_targets(batch_size, val_size, encoding=False)
-    print("- Sampling test data")
-    test_data = test_sampler.get_data_and_targets(batch_size, test_size, encoding=False)
+        fields = ["sequence"] + np.loadtxt(feature_path, dtype=str).tolist()
 
-    fields = ["sequence"] + np.loadtxt(feature_path, dtype=str).tolist()
-
-    create_dataset(fields, train_data, "train", folder_name)
-    create_dataset(fields, val_data, "val", folder_name)
-    create_dataset(fields, test_data, "test", folder_name)
+        create_dataset(fields, train_data, "train", folder_name)
+        create_dataset(fields, val_data, "val", folder_name)
+        create_dataset(fields, test_data, "test", folder_name)
