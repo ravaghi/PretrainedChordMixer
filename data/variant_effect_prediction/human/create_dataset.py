@@ -1,8 +1,9 @@
-from kipoiseq import Interval, Variant
 from kipoiseq.extractors import VariantSeqExtractor
+from kipoiseq import Interval, Variant
+from typing import Tuple, List
 import pandas as pd
 import pyfaidx
-from typing import Tuple, List
+import os
 
 
 class FastaStringExtractor:
@@ -115,7 +116,10 @@ if __name__ == "__main__":
         print(f"Creating homo_sapien_{dataset}.parquet...")
         
         dataframe = pd.read_csv(f"label811_49_{dataset}.csv")
-        rows = sample_data(dataframe, 2000, fasta_extractor)
+        rows = sample_data(dataframe, 1000, fasta_extractor)
+
+        if not os.path.exists("homo_sapien"):
+            os.mkdir("homo_sapien")
 
         data = pd.DataFrame(zip(*rows), columns=columns)
         data.to_parquet(f"homo_sapien/homo_sapien_{dataset}.parquet", index=False)
