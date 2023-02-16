@@ -7,11 +7,6 @@ metric:
 parameters:
   wandb.name:
     value: ""
-  dataloader._target_:
-    values:
-      - dataloaders.chordmixer_pretraining_v0.PretrainedChordMixerDataLoader
-      - dataloaders.chordmixer_pretraining_v1.PretrainedChordMixerDataLoader
-    distribution: categorical
   dataloader.mask_ratio:
     max: 0.50
     min: 0.05
