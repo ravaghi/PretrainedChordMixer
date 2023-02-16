@@ -9,8 +9,7 @@
 *.model
 *.csv
 *.pt*
-plant/
-processing/
+*.parquet
 
 # Logs
 outputs/
