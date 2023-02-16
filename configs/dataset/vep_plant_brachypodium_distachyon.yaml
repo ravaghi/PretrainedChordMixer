@@ -1,6 +1,6 @@
-type: PlantDeepSEA
+type: VariantEffectPrediction
 name: BrachypodiumDistachyon
-path: ${hydra:runtime.cwd}/data/plant_deepsea/brachypodium_distachyon
+path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/brachypodium_distachyon
 train_data: brachypodium_distachyon_train.csv
 val_data: brachypodium_distachyon_val.csv
 test_data: brachypodium_distachyon_test.csv

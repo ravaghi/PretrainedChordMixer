@@ -1,6 +1,6 @@
-type: PlantDeepSEA
+type: VariantEffectPrediction
 name: ZeaMays
-path: ${hydra:runtime.cwd}/data/plant_deepsea/zea_mays
+path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/zea_mays
 train_data: zea_mays_train.csv
 val_data: zea_mays_val.csv
 test_data: zea_mays_test.csv

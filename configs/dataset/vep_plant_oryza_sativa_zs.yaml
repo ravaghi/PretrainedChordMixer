@@ -1,6 +1,6 @@
-type: PlantDeepSEA
+type: VariantEffectPrediction
 name: OryzaSativaZS
-path: ${hydra:runtime.cwd}/data/plant_deepsea/oryza_sativa_zs
+path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/oryza_sativa_zs
 train_data: oryza_sativa_zs_train.csv
 val_data: oryza_sativa_zs_val.csv
 test_data: oryza_sativa_zs_test.csv

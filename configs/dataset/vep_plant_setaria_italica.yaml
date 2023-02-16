@@ -1,6 +1,6 @@
-type: PlantDeepSEA
+type: VariantEffectPrediction
 name: SetariaItalica
-path: ${hydra:runtime.cwd}/data/plant_deepsea/setaria_italica
+path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/setaria_italica
 train_data: setaria_italica_train.csv
 val_data: setaria_italica_val.csv
 test_data: setaria_italica_test.csv

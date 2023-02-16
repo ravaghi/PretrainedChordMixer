@@ -1,6 +1,6 @@
-type: PlantDeepSEA
+type: VariantEffectPrediction
 name: ArabidopsisThaliana
-path: ${hydra:runtime.cwd}/data/plant_deepsea/arabidopsis_thaliana
+path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/arabidopsis_thaliana
 train_data: arabidopsis_thaliana_train.csv
 val_data: arabidopsis_thaliana_val.csv
 test_data: arabidopsis_thaliana_test.csv
