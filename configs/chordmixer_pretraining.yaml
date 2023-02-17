@@ -6,7 +6,7 @@ defaults:
   - trainer: chordmixer_pretraining
 
 dataset:
-  path: ${hydra:runtime.cwd}/data/variant_effect_prediction
+  path: ${hydra:runtime.cwd}/data/variant_effect_prediction/human
   name: hg38.fa
   type: pretraining
 
@@ -16,7 +16,7 @@ optimizer:
 
 wandb: 
   entity: ravaghi
-  project: PDT
+  project: PretrainedChordMixer
   name: ${general.name}
 
 general:
@@ -25,9 +25,9 @@ general:
   batch_size: 32
   max_epochs: 10
   log_interval: 100
-  log_to_wandb: true
-  use_multi_gpu: true
-  save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}/${dataset.type}/${dataset.name}
+  log_to_wandb: false
+  use_multi_gpu: false
+  save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}
 
 hydra:
   run:

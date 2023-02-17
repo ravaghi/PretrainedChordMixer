@@ -1,10 +1,11 @@
 from torch.utils.data import Dataset, DataLoader
+from typing import Tuple, List
 import pandas as pd
 import random
 import torch
-from typing import Tuple
 
-from .dataloader.dataloader import Dataloader
+from dataloader.dataloader import Dataloader
+from preprocessor.preprocessor import Preprocessor
 
 
 def complete_batch(dataframe: pd.DataFrame, batch_size: int) -> pd.DataFrame:
@@ -53,7 +54,7 @@ def shuffle_batches(dataframe: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(batch_bins).reset_index(drop=True)
 
 
-def concater_collate(batch: list) -> tuple:
+def concater_collate(batch: List) -> Tuple:
     """
     Collate function for the dataloader. It concatenates the sequences and returns the labels, lengths and bins.
     
@@ -61,171 +62,102 @@ def concater_collate(batch: list) -> tuple:
         batch: list of tuples (sequence, label, length, bin) 
 
     Returns:
-        tuple of concatenated sequences, labels, lengths and bins
+        tuple of concatenated sequences, lengths. bins and labels
     """
-    (xx, yy, lengths, bins) = zip(*batch)
-    xx = torch.cat(xx, 0)
-    yy = torch.tensor(yy)
-    return xx, yy, list(lengths), list(bins)
+    (sequence, _len, _bin, label) = zip(*batch)
+    sequence = torch.cat(sequence, 0)
+    label = torch.tensor(label)
+    return sequence, list(_len), list(_bin), label
 
 
 class TaxonomyClassificationDataset(Dataset):
-    """Dataset for the taxonomy classification task."""
+    """Taxonomy classification dataset class"""
 
-    def __init__(self, dataframe, batch_size, var_len=False):
-        if var_len:
-            dataframe = complete_batch(dataframe=dataframe, batch_size=batch_size)
-            self.dataframe = shuffle_batches(dataframe=dataframe)[['sequence', 'label', 'len', 'bin']]
-        else:
-            self.dataframe = dataframe
+    def __init__(self, dataframe, batch_size):
+        dataframe = complete_batch(dataframe=dataframe, batch_size=batch_size)
+        self.dataframe = shuffle_batches(dataframe=dataframe)[['sequence', 'len', 'bin', 'label']]
 
     def __getitem__(self, index):
-        X, Y, length, bin = self.dataframe.iloc[index, :]
-        Y = torch.tensor(Y)
-        X = torch.from_numpy(X)
-        return X, Y, length, bin
+        sequence, _len, _bin, label = self.dataframe.iloc[index, :]
+        sequence = torch.from_numpy(sequence)
+        label = torch.tensor(label)
+        return sequence, _len, _bin, label
 
     def __len__(self):
         return len(self.dataframe)
 
 
-class VariantEffectPredictionDataset(Dataset):
-    """Dataset for the variant effect prediction task."""
+class HumanVariantEffectPredictionDataset(Dataset):
+    """Human variant effect prediction dataset class"""
 
     def __init__(self, dataframe):
-        self.dataframe = dataframe
-        self.reference = dataframe["reference"].values
-        self.alternate = dataframe["alternate"].values
-        self.tissue = dataframe["tissue"].values
-        self.label = dataframe["label"].values
+        self.references = dataframe["reference"].values
+        self.alternates = dataframe["alternate"].values
+        self.tissues = dataframe["tissue"].values
+        self.labels = dataframe["label"].values
 
     def __getitem__(self, index):
-        return self.reference[index], self.alternate[index], self.tissue[index], self.label[index]
+        reference = torch.tensor(self.references[index])
+        alternate = torch.tensor(self.alternates[index])
+        tissue = torch.tensor(self.tissues[index])
+        label = torch.tensor(self.labels[index])
+        return reference, alternate, tissue, label
 
     def __len__(self):
-        return len(self.dataframe)
+        return len(self.references)
 
 
-class PlantDeepSEADataset(Dataset):
-    """Dataset for the PlantDeepSEA task."""
+class PlantVariantEffectPredictionDataset(Dataset):
+    """Plant variant effect prediction dataset class"""
 
-    def __init__(self, dataframe, batch_size, var_len=False):
-        if var_len:
-            target_list = dataframe.columns.tolist()[:-3]
-            dataframe = complete_batch(dataframe=dataframe, batch_size=batch_size)
-            columns = ['sequence', 'len', 'bin'] + target_list
-            self.dataframe = shuffle_batches(dataframe=dataframe)[columns]
-            self.targets = self.dataframe[target_list].values
-        else:
-            self.dataframe = dataframe
+    def __init__(self, dataframe):
+        self.sequences = dataframe["sequence"].values
+        self.lengths = dataframe["len"].values
+        self.bins = dataframe["bin"].values
+        target_list = dataframe.columns.tolist()[:-3]
+        self.labels = dataframe[target_list].values
 
     def __getitem__(self, index):
-        X = self.dataframe.iloc[index]['sequence']
-        length = self.dataframe.iloc[index]['len']
-        bin = self.dataframe.iloc[index]['bin']
-        Y = torch.FloatTensor(self.targets[index])
-        X = torch.from_numpy(X)
-        return X, Y, length, bin
+        sequence = torch.tensor(self.sequences[index])
+        _len = torch.tensor(self.lengths[index])
+        _bin = torch.tensor(self.bins[index])
+        label = torch.tensor(self.labels[index])
+        return sequence, _len, _bin, label
 
     def __len__(self):
-        return len(self.dataframe)
+        return len(self.sequences)
 
 
-class ChordMixerDataLoader(Dataloader):
-    def _create_taxonomic_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        """
-        Creates a dataloader for the taxonomy classification task.
-        
-        Args:
-            dataframe: dataframe with the sequences
+class ChordMixerDataLoader(Dataloader, Preprocessor):
+    """ChordMixer dataloader class"""
 
-        Returns:
-            dataloader for the taxonomy classification task
-        """
-        dataframe = self.process_taxonomy_classification_dataframe(dataframe, "ChordMixer")
-        dataset = TaxonomyClassificationDataset(
-            dataframe=dataframe,
-            batch_size=self.batch_size,
-            var_len=True
-        )
+    def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="ChordMixer")
+        dataset = TaxonomyClassificationDataset(dataframe=dataframe, batch_size=self.batch_size)
+
         return DataLoader(
-            dataset,
-            batch_size=self.batch_size,
-            shuffle=False,
-            collate_fn=concater_collate,
-            drop_last=False
-        )
-
-    def _create_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        """
-        Creates a dataloader for the variant effect prediction task.
-        
-        Args:
-            dataframe: dataframe with the sequences
-
-        Returns:
-            dataloader for the variant effect prediction task
-        """
-        dataframe = self.process_variant_effect_prediction_dataframe(dataframe, "ChordMixer")
-        dataset = VariantEffectPredictionDataset(dataframe)
-        return DataLoader(
-            dataset,
+            dataset=dataset,
             batch_size=self.batch_size,
             shuffle=True,
-            drop_last=False
+            collate_fn=concater_collate
         )
 
-    def _create_plant_deepsea_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        """
-        Creates a dataloader for the PlantDeepSEA task.
-        
-        Args:
-            dataframe: dataframe with the sequences
+    def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_human_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="ChordMixer")
+        dataset = HumanVariantEffectPredictionDataset(dataframe=dataframe)
 
-        Returns:
-            dataloader for the PlantDeepSEA task
-        """
-        dataframe = self.process_plantdeepsea_dataframe(dataframe, "ChordMixer")
-        dataset = PlantDeepSEADataset(
-            dataframe=dataframe,
-            batch_size=self.batch_size,
-            var_len=False
-        )
         return DataLoader(
-            dataset,
+            dataset=dataset,
             batch_size=self.batch_size,
-            shuffle=False,
-            collate_fn=concater_collate,
-            drop_last=False
+            shuffle=True
         )
 
-    def create_dataloaders(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
-        """
-        Creates the dataloaders for the train, validation and test set.
-        
-        Returns:
-            dataloaders for the train, validation and test set
-            
-        Raises:
-            ValueError: if the dataset type is not supported
-        """
-        train_dataframe = self.read_data(self.train_dataset)
-        val_dataframe = self.read_data(self.val_dataset)
-        test_dataframe = self.read_data(self.test_dataset)
+    def create_plant_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_plant_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="ChordMixer")
+        dataset = PlantVariantEffectPredictionDataset(dataframe=dataframe)
 
-        if self.dataset_type == "TaxonomyClassification":
-            train_dataloader = self._create_taxonomic_classification_dataloader(train_dataframe)
-            val_dataloader = self._create_taxonomic_classification_dataloader(val_dataframe)
-            test_dataloader = self._create_taxonomic_classification_dataloader(test_dataframe)
-        elif self.dataset_type == "VariantEffectPrediction":
-            train_dataloader = self._create_variant_effect_prediction_dataloader(train_dataframe)
-            val_dataloader = self._create_variant_effect_prediction_dataloader(val_dataframe)
-            test_dataloader = self._create_variant_effect_prediction_dataloader(test_dataframe)
-        elif self.dataset_type == "PlantDeepSEA":
-            train_dataloader = self._create_plant_deepsea_dataloader(train_dataframe)
-            val_dataloader = self._create_plant_deepsea_dataloader(val_dataframe)
-            test_dataloader = self._create_plant_deepsea_dataloader(test_dataframe)
-        else:
-            raise ValueError(f"Dataset type {self.dataset_type} not supported.")
-
-        return train_dataloader, val_dataloader, test_dataloader
+        return DataLoader(
+            dataset=dataset,
+            batch_size=self.batch_size,
+            shuffle=True
+        )

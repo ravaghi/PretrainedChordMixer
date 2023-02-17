@@ -1,4 +1,4 @@
-type: VariantEffectPrediction
+type: PlantVariantEffectPrediction
 name: SorghumBicolor
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/sorghum_bicolor
 train_data: sorghum_bicolor_train.csv

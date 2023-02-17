@@ -1,17 +1,8 @@
 from torch.utils.data import DataLoader
+from typing import Tuple
 from abc import ABC
 import pandas as pd
-import numpy as np
 import os
-
-DNA_BASE_DICT = {
-    'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4, 'Y': 5, 'R': 6, 'M': 7,
-    'W': 8, 'K': 9, 'S': 10, 'B': 11, 'H': 12, 'D': 13, 'V': 14
-}
-DNA_BASE_DICT_REVERSED = {
-    0: 'A', 1: 'C', 2: 'G', 3: 'T', 4: 'N', 5: 'Y', 6: 'R', 7: 'M',
-    8: 'W', 9: 'K', 10: 'S', 11: 'B', 12: 'H', 13: 'D', 14: 'V'
-}
 
 
 class Dataloader(ABC):
@@ -24,165 +15,89 @@ class Dataloader(ABC):
         self.val_dataset = val_dataset
         self.test_dataset = test_dataset
 
-    def create_dataloaders(self) -> DataLoader:
-        raise NotImplementedError
-
-
     def read_data(self, filename: str) -> pd.DataFrame:
         """
-        Read data from csv file
+        Read data from a parquet file
 
         Args:
-            filename: filename to read
+            filename: name of the dataset file
 
         Returns:
             dataframe
+
+        Raises:
+            FileNotFoundError: if the file is not found
         """
-        data_path = os.path.join(self.data_path, filename)
-        dataframe = pd.read_parquet(data_path)
-        return dataframe
-
-    @staticmethod
-    def pad_sequences(dataframe: pd.DataFrame, max_len: int = 1000) -> pd.DataFrame:
-        """
-        Pad sequences to max length
-
-        Args:
-            dataframe: dataframe to pad
-            max_len: max length to pad or truncate to
-
-        Returns:
-            padded dataframe
-        """
-        max_seq_len = dataframe["sequence"].apply(lambda x: len(x)).max()
-        if max_seq_len < max_len:
-            max_seq_len = max_len
-        dataframe["sequence"] = dataframe["sequence"].str.pad(max_seq_len, side="right", fillchar="N")
-        dataframe["sequence"] = dataframe["sequence"].apply(lambda x: x[:max_len].upper())
-        return dataframe
-
-    @staticmethod
-    def convert_base_to_index(dataframe: pd.DataFrame) -> pd.DataFrame:
-        """
-        Convert DNA sequence bases to indices
-
-        Args:
-            dataframe: dataframe to convert
-
-        Returns:
-            converted dataframe
-        """
-        dataframe["new_sequence"] = dataframe["sequence"].apply(lambda x: [DNA_BASE_DICT[base] for base in x])
-        dataframe = dataframe.drop(columns=["sequence"])
-        dataframe = dataframe.rename(columns={"new_sequence": "sequence"})
-        dataframe = dataframe.sample(frac=1).reset_index(drop=True)
-        return dataframe
-
-    def process_taxonomy_classification_dataframe(self, dataframe: pd.DataFrame, model_name: str) -> pd.DataFrame:
-        """
-        Process the taxonomy classification dataset for a specific model
-
-        Args:
-            dataframe: dataframe to process
-            model_name: model
-
-        Returns:
-            processed dataframe
-        """
-        if model_name == "ChordMixer":
-            dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-            dataframe = dataframe.drop(columns=['sequence'])
-            dataframe = dataframe.rename(columns={'seq': 'sequence'})
-            return dataframe[["sequence", "label", "bin", "len"]]
-
-        elif model_name in ["CNN", "Xformer"]:
-            dataframe = dataframe.drop(columns=["len", "bin"])
-
-            if self.dataset_type == "TaxonomyClassification":
-                max_len = 25_000
-                if model_name == "Reformer":
-                    max_len = 16_000
-
-            dataframe = self.pad_sequences(dataframe, max_len)
-            dataframe = self.convert_base_to_index(dataframe)
-
-            return dataframe[["sequence", "label"]]
-
-        elif model_name == "KeGRU":
-            dataframe = dataframe.drop(columns=["len", "bin"])
-
-            if self.dataset_type == "TaxonomyClassification":
-                max_len = 10_000
-
-            dataframe = self.pad_sequences(dataframe, max_len)
-
-            return dataframe[["sequence", "label"]]
-
-        elif model_name == "PretrainedChordMixer":
-            label_binarizer = LabelBinarizer()
-            label_binarizer.fit(["A", "C", "G", "T", "N"])
-
-            def _one_hot_encode(sequence):
-                return label_binarizer.transform(list(sequence))
-
-            dataframe["seq"] = dataframe["sequence"].apply(_one_hot_encode)
-            dataframe = dataframe.drop(columns=['sequence'])
-            dataframe = dataframe.rename(columns={'seq': 'sequence'})
-            return dataframe[["sequence", "label", "bin", "len"]]
-
+        path = os.path.join(self.data_path, filename)
+        if os.path.exists(path):
+            dataframe = pd.read_parquet(path)
         else:
-            raise ValueError(f"Model: {model_name} not supported")
-
-    @staticmethod
-    def process_variant_effect_prediction_dataframe(dataframe: pd.DataFrame, model_name: str) -> pd.DataFrame:
-        """
-        Process the variant effect prediction dataset for a specific model
-
-        Args:
-            dataframe: dataframe to process
-            model_name: model
-
-        Returns:
-            processed dataframe
-        """
-        if model_name in ["ChordMixer", "CNN", "Xformer"]:
-            dataframe["reference"] = dataframe["reference"].apply(
-                lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-            dataframe["alternate"] = dataframe["alternate"].apply(
-                lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-            dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
-
-        elif model_name == "KeGRU":
-            dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
-
-        else:
-            raise ValueError(f"Model: {model_name} not supported")
-
+            raise FileNotFoundError(f"File {path} not found.")
         return dataframe
 
-    @staticmethod
-    def process_plantdeepsea_dataframe(dataframe: pd.DataFrame, model_name: str) -> pd.DataFrame:
+    def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
         """
-        Process the PlantDeepSEA dataset for a specific model
+        Process taxonomy classification dataset and create a dataloader
 
         Args:
-            dataframe: dataframe to process
-            model_name: model
+            dataframe: dataframe containing the dataset
 
         Returns:
-            processed dataframe
+            dataloader
         """
-        if model_name == "ChordMixer":
-            dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-            dataframe = dataframe.drop(columns=['sequence'])
-            dataframe = dataframe.rename(columns={'seq': 'sequence'})
-            dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
-            dataframe["bin"] = -1
-        elif model_name in ["CNN", "Xformer"]:
-            dataframe["seq"] = dataframe["sequence"].apply(lambda x: np.array([DNA_BASE_DICT[base] for base in x]))
-            dataframe = dataframe.drop(columns=['sequence'])
-            dataframe = dataframe.rename(columns={'seq': 'sequence'})
-            return dataframe
+        raise NotImplementedError
+
+    def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        """
+        Process human variant effect prediction dataset and create a dataloader
+
+        Args:
+            dataframe: dataframe containing the dataset
+
+        Returns:
+            dataloader
+        """
+        raise NotImplementedError
+
+    def create_plant_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        """
+        Process plant variant effect prediction dataset and create a dataloader
+
+        Args:
+            dataframe: dataframe containing the dataset
+
+        Returns:
+            dataloader
+        """
+        raise NotImplementedError
+
+    def create_dataloaders(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
+        """
+        Create dataloaders for the train, validation and test sets
+
+        Returns:
+            train, validation and test dataloaders
+
+        Raises:
+            ValueError: if the dataset type is not supported
+        """
+        train_dataframe = self.read_data(self.train_dataset)
+        val_dataframe = self.read_data(self.val_dataset)
+        test_dataframe = self.read_data(self.test_dataset)
+
+        if self.dataset_type == "TaxonomyClassification":
+            train_dataloader = self.create_taxonomy_classification_dataloader(train_dataframe)
+            val_dataloader = self.create_taxonomy_classification_dataloader(val_dataframe)
+            test_dataloader = self.create_taxonomy_classification_dataloader(test_dataframe)
+        elif self.dataset_type == "HumanVariantEffectPrediction":
+            train_dataloader = self.create_human_variant_effect_prediction_dataloader(train_dataframe)
+            val_dataloader = self.create_human_variant_effect_prediction_dataloader(val_dataframe)
+            test_dataloader = self.create_human_variant_effect_prediction_dataloader(test_dataframe)
+        elif self.dataset_type == "PlantVariantEffectPrediction":
+            train_dataloader = self.create_plant_variant_effect_prediction_dataloader(train_dataframe)
+            val_dataloader = self.create_plant_variant_effect_prediction_dataloader(val_dataframe)
+            test_dataloader = self.create_plant_variant_effect_prediction_dataloader(test_dataframe)
         else:
-            raise ValueError(f"Model: {model_name} not supported")
-        return dataframe
+            raise ValueError(f"Dataset type {self.dataset_type} not supported.")
+
+        return train_dataloader, val_dataloader, test_dataloader

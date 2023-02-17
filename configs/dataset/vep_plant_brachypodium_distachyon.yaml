@@ -1,4 +1,4 @@
-type: VariantEffectPrediction
+type: PlantVariantEffectPrediction
 name: BrachypodiumDistachyon
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/brachypodium_distachyon
 train_data: brachypodium_distachyon_train.csv

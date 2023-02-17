@@ -1,4 +1,4 @@
-_target_: models.pretrained_chordmixer.PretrainedChordMixer
+_target_: models.chordmixer_finetuning.FineTunedChordMixer
 freeze: True
 variable_length: ${dataset.variable_length}
 n_class: ${dataset.n_class}

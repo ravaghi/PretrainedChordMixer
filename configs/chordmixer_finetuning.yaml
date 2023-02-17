@@ -12,12 +12,12 @@ optimizer:
   lr: 0.0005
 
 general:
-  name: ChordMixerFinetuning
+  name: FineTunedChordMixer
   seed: 42
   device_id: 0
   batch_size: 2
   max_epochs: 30
-  log_to_wandb: true
+  log_to_wandb: false
   use_multi_gpu: false
   save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}/${dataset.type}/${dataset.name}
 

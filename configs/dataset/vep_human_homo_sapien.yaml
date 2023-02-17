@@ -1,4 +1,4 @@
-type: VariantEffectPrediction
+type: HumanVariantEffectPrediction
 name: HomoSapien
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/human/homo_sapien
 train_data: homo_sapien_train.csv

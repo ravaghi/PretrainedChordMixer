@@ -1,4 +1,4 @@
-type: VariantEffectPrediction
+type: PlantVariantEffectPrediction
 name: OryzaSativaZS
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/oryza_sativa_zs
 train_data: oryza_sativa_zs_train.csv

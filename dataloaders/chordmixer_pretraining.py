@@ -2,11 +2,10 @@ import os
 import torch
 from Bio import SeqIO
 from tqdm import tqdm
-from typing import Tuple
+from typing import Tuple, Dict
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
 from torch import Tensor
-import random
 
 
 class SequenceProcessor:
@@ -55,7 +54,7 @@ class SequenceProcessor:
         print(f"Splitting sequences into sequences of length {self.sequence_length}")
         return torch.stack(torch.split(sequence_ids, self.sequence_length))
 
-    def mask(self, sequence_ids: Tensor) -> dict:
+    def mask(self, sequence_ids: Tensor) -> Dict:
         """
         Masks and one hot encodes a 2D tensor with the given mask ratio
 
@@ -63,7 +62,7 @@ class SequenceProcessor:
             sequence_ids (Tensor): 2D Tensor of integers representing a DNA sequence
 
         Returns:
-            dict: Dictionary containing the masked sequences, masks and labels
+            Dict: Dictionary containing the masked sequences, masks and labels
         """
         labels = sequence_ids.clone()
 
@@ -89,7 +88,7 @@ class SequenceProcessor:
 class HG38Dataset(Dataset):
     """Dataset for the hg38 dataset"""
 
-    def __init__(self, data: dict):
+    def __init__(self, data: Dict):
         self.sequence_ids = data["sequence_ids"].to(torch.float32)
         self.masks = data["masks"]
         self.labels = data["labels"].to(torch.long)
@@ -146,7 +145,7 @@ class PretrainedChordMixerDataLoader:
             sequences += str(sequences_dict[chromosome].seq).upper()
         return sequences
 
-    def _process_sequences(self, sequences: str) -> dict:
+    def _process_sequences(self, sequences: str) -> Dict:
         """
         Processes the sequences by tokenizing, splitting and masking
 
@@ -154,7 +153,7 @@ class PretrainedChordMixerDataLoader:
             sequences (str): DNA sequences
 
         Returns:
-            dict: Dictionary containing the masked sequences, masks and labels
+            Dict: Dictionary containing the masked sequences, masks and labels
         """
         sequence_processor = SequenceProcessor(self.mask_ratio, self.sequence_length)
         tokenized_sequences = sequence_processor.tokenize(sequences)
@@ -163,17 +162,18 @@ class PretrainedChordMixerDataLoader:
         return masked_sequences
 
     @staticmethod
-    def _split_dataset(masked_sequences: dict) -> Tuple[dict, dict]:
+    def _split_dataset(masked_sequences: Dict) -> Tuple[Dict, Dict, Dict]:
         """
-        Splits the sequences into train, and test sets
+        Splits the sequences into train, validation, and test sets
 
         Args:
-            masked_sequences (dict): Dictionary containing the masked sequences, masks and labels
+            masked_sequences (Dict): Dictionary containing the masked sequences, masks and labels
 
         Returns:
-            Tuple[dict, dict]: Tuple containing the train, and test sets
+            Tuple[Dict, Dict, Dict]: Tuple containing the train, validation, and test sets
         """
-        train_size = int(0.9 * len(masked_sequences["sequence_ids"]))
+        train_size = int(0.8 * len(masked_sequences["sequence_ids"]))
+        val_size = int(0.1 * len(masked_sequences["sequence_ids"]))
 
         train = {
             "sequence_ids": masked_sequences["sequence_ids"][:train_size],
@@ -181,27 +181,54 @@ class PretrainedChordMixerDataLoader:
             "labels": masked_sequences["labels"][:train_size]
         }
 
-        test = {
-            "sequence_ids": masked_sequences["sequence_ids"][train_size::],
-            "masks": masked_sequences["masks"][train_size:],
-            "labels": masked_sequences["labels"][train_size:]
+        val = {
+            "sequence_ids": masked_sequences["sequence_ids"][train_size:train_size + val_size],
+            "masks": masked_sequences["masks"][train_size:train_size + val_size],
+            "labels": masked_sequences["labels"][train_size:train_size + val_size]
         }
 
-        return train, test
+        test = {
+            "sequence_ids": masked_sequences["sequence_ids"][train_size + val_size:],
+            "masks": masked_sequences["masks"][train_size + val_size:],
+            "labels": masked_sequences["labels"][train_size + val_size:]
+        }
+
+        return train, val, test
 
     def create_dataloaders(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
         """
-        Processes the dataset and creates dataloaders for the train, and test sets
+        Processes the dataset and creates dataloaders for the train, validation, and test sets
 
         Returns:
-            Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, and test dataloaders
+            Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, validation, and test dataloaders
         """
         # sequences = "".join(["ACGTN"[random.randint(0, 4)] for _ in range(1000_000)])
         sequences = self._load_sequences()
         masked_sequences = self._process_sequences(sequences)
-        train, test = self._split_dataset(masked_sequences)
+        train, val, test = self._split_dataset(masked_sequences)
 
-        train_dataloader = DataLoader(HG38Dataset(train), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=1)
-        test_dataloader = DataLoader(HG38Dataset(test), batch_size=self.batch_size, shuffle=True, pin_memory=True, num_workers=1)
+        train_dataloader = DataLoader(
+            dataset=HG38Dataset(train),
+            batch_size=self.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            num_workers=1
+        )
 
-        return train_dataloader, test_dataloader, test_dataloader
+        val_dataloader = DataLoader(
+            dataset=HG38Dataset(val),
+            batch_size=self.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            num_workers=1
+        )
+
+        test_dataloader = DataLoader(
+            dataset=HG38Dataset(test),
+            batch_size=self.batch_size,
+            shuffle=True,
+            pin_memory=True,
+            num_workers=1
+        )
+
+        return train_dataloader, val_dataloader, test_dataloader
