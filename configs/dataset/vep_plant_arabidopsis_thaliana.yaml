@@ -1,9 +1,9 @@
 type: PlantVariantEffectPrediction
 name: ArabidopsisThaliana
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/arabidopsis_thaliana
-train_data: arabidopsis_thaliana_train.csv
-val_data: arabidopsis_thaliana_val.csv
-test_data: arabidopsis_thaliana_test.csv
+train_data: arabidopsis_thaliana_train.parquet
+val_data: arabidopsis_thaliana_val.parquet
+test_data: arabidopsis_thaliana_test.parquet
 variable_length: false
 max_seq_len: 1000
 vocab_size: 20

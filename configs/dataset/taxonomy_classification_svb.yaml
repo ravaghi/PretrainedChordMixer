@@ -1,9 +1,9 @@
 type: TaxonomyClassification
 name: SusVsBos
 path: ${hydra:runtime.cwd}/data/taxonomy_classification/sus_bos
-train_data: sus_bos_train.csv
-val_data: sus_bos_val.csv
-test_data: sus_bos_test.csv
+train_data: sus_bos_train.parquet
+val_data: sus_bos_val.parquet
+test_data: sus_bos_test.parquet
 variable_length: true
 max_seq_len: 447010
 vocab_size: 20

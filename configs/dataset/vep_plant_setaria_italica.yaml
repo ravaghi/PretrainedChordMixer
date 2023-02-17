@@ -1,9 +1,9 @@
 type: PlantVariantEffectPrediction
 name: SetariaItalica
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/setaria_italica
-train_data: setaria_italica_train.csv
-val_data: setaria_italica_val.csv
-test_data: setaria_italica_test.csv
+train_data: setaria_italica_train.parquet
+val_data: setaria_italica_val.parquet
+test_data: setaria_italica_test.parquet
 variable_length: false
 max_seq_len: 1000
 vocab_size: 20

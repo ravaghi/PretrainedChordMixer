@@ -1,9 +1,9 @@
 type: HumanVariantEffectPrediction
 name: HomoSapien
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/human/homo_sapien
-train_data: homo_sapien_train.csv
-val_data: homo_sapien_val.csv
-test_data: homo_sapien_test.csv
+train_data: homo_sapien_train.parquet
+val_data: homo_sapien_val.parquet
+test_data: homo_sapien_test.parquet
 variable_length: false
 max_seq_len: 2000
 vocab_size: 20

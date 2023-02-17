@@ -1,9 +1,9 @@
 type: PlantVariantEffectPrediction
 name: SorghumBicolor
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/sorghum_bicolor
-train_data: sorghum_bicolor_train.csv
-val_data: sorghum_bicolor_val.csv
-test_data: sorghum_bicolor_test.csv
+train_data: sorghum_bicolor_train.parquet
+val_data: sorghum_bicolor_val.parquet
+test_data: sorghum_bicolor_test.parquet
 variable_length: false
 max_seq_len: 1000
 vocab_size: 20

@@ -1,9 +1,9 @@
 type: PlantVariantEffectPrediction
 name: ZeaMays
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/zea_mays
-train_data: zea_mays_train.csv
-val_data: zea_mays_val.csv
-test_data: zea_mays_test.csv
+train_data: zea_mays_train.parquet
+val_data: zea_mays_val.parquet
+test_data: zea_mays_test.parquet
 variable_length: false
 max_seq_len: 1000
 vocab_size: 20

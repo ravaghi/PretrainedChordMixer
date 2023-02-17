@@ -1,9 +1,9 @@
 type: TaxonomyClassification
 name: DanioVsCyprinus
 path: ${hydra:runtime.cwd}/data/taxonomy_classification/danio_cyprinus
-train_data: danio_cyprinus_train.csv
-val_data: danio_cyprinus_val.csv
-test_data: danio_cyprinus_test.csv
+train_data: danio_cyprinus_train.parquet
+val_data: danio_cyprinus_val.parquet
+test_data: danio_cyprinus_test.parquet
 variable_length: true
 max_seq_len: 261943
 vocab_size: 20

@@ -7,8 +7,11 @@ defaults:
 
 dataset:
   path: ${hydra:runtime.cwd}/data/variant_effect_prediction/human
-  name: hg38.fa
   type: pretraining
+  name: hg38.fa
+  train_data: label811_49_train.csv
+  val_data: label811_49_val.csv
+  test_data: label811_49_test.csv
 
 optimizer:
   _target_: torch.optim.Adam

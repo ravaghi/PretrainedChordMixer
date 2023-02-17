@@ -1,9 +1,9 @@
 type: PlantVariantEffectPrediction
 name: OryzaSativaMH
 path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/oryza_sativa_mh
-train_data: oryza_sativa_mh_train.csv
-val_data: oryza_sativa_mh_val.csv
-test_data: oryza_sativa_mh_test.csv
+train_data: oryza_sativa_mh_train.parquet
+val_data: oryza_sativa_mh_val.parquet
+test_data: oryza_sativa_mh_test.parquet
 variable_length: false
 max_seq_len: 1000
 vocab_size: 20

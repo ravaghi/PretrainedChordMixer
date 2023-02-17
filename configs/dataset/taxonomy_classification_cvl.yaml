@@ -1,9 +1,9 @@
 type: TaxonomyClassification
 name: CarassiusVsLabeo
 path: ${hydra:runtime.cwd}/data/taxonomy_classification/carassius_labeo
-train_data: carassius_labeo_train.csv
-val_data: carassius_labeo_val.csv
-test_data: carassius_labeo_test.csv
+train_data: carassius_labeo_train.parquet
+val_data: carassius_labeo_val.parquet
+test_data: carassius_labeo_test.parquet
 variable_length: true
 max_seq_len: 100101
 vocab_size: 20
