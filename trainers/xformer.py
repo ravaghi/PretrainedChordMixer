@@ -1,92 +1,12 @@
-from tqdm import tqdm
-from sklearn import metrics
-import torch
-
 from datetime import datetime
+from sklearn import metrics
+from tqdm import tqdm
+import torch
 
 from .trainer.trainer import Trainer
 
 
 class XFormerTrainer(Trainer):
-    def calculate_y_hat(self, data: tuple) -> tuple:
-        """
-        Calculate the y_hat for the given data and task
-
-        Args:
-            data (tuple): The data to calculate the y_hat for
-
-        Returns:
-            tuple: The y and y_hat
-        """
-        if self.task == "TaxonomyClassification":
-            x, y = data
-            x = x.to(self.device)
-            y = y.to(self.device)
-            model_input = {
-                "task": self.task,
-                "x": x
-            }
-            y_hat = self.model(model_input)
-            return y, y_hat
-
-        elif self.task == "VariantEffectPrediction":
-            x1, x2, tissue, y = data
-            x1 = x1.to(self.device)
-            x2 = x2.to(self.device)
-            tissue = tissue.to(self.device)
-            y = y.to(self.device).float()
-            model_input = {
-                "task": self.task,
-                "x1": x1,
-                "x2": x2,
-                "tissue": tissue
-            }
-            y_hat = self.model(model_input)
-            return y, y_hat
-
-        elif self.task == "PlantDeepSEA":
-            x, y, seq_len, bin = data
-            x = x.to(self.device)
-            y = y.to(self.device)
-            model_input = {
-                "task": self.task,
-                "x": x
-            }
-            y_hat = self.model(model_input)
-            return y, y_hat
-
-        else:
-            raise ValueError(f"Task: {self.task} not found.")
-
-
-    def calculate_predictions(self, y: torch.Tensor, y_hat: torch.Tensor) -> tuple:
-        """
-        Calculate the predictions for the given y and y_hat
-
-        Args:
-            y (torch.Tensor): The y
-            y_hat (torch.Tensor): The y_hat
-
-        Returns:
-            tuple: The predicted and correct predictions
-        """
-        if self.task == "TaxonomyClassification":
-            _, predicted = y_hat.max(1)
-            correct_predictions = predicted.eq(y).sum().item()
-
-        elif self.task == "VariantEffectPrediction":
-            predicted = y_hat
-            correct_predictions = torch.round(y_hat).eq(y).sum().item()
-
-        elif self.task == "PlantDeepSEA":
-            predicted = y_hat
-            correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-        
-        else:
-            raise ValueError(f"Task: {self.task} not found.")
-
-        return predicted, correct_predictions
-    
 
     def train(self, current_epoch_nr):
         self.model.train()
@@ -126,7 +46,6 @@ class XFormerTrainer(Trainer):
         train_auc = metrics.roc_auc_score(targets, preds)
         train_accuracy = correct / total
         train_loss = running_loss / num_batches
-
 
         if self.log_to_wandb:
             self.log_metrics(

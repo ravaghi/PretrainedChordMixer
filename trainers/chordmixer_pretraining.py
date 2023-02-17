@@ -164,10 +164,8 @@ class PretrainedChordMixerTrainer(Trainer):
                 accuracies = []
                 aucs = []
 
-
     def evaluate(self, current_epoch_nr) -> None:
         pass
-
 
     def test(self) -> None:
         """
@@ -203,7 +201,8 @@ class PretrainedChordMixerTrainer(Trainer):
 
                 target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
-                current_accuracy = metrics.accuracy_score(target.detach().cpu().numpy(), prediction.detach().cpu().numpy())
+                current_accuracy = metrics.accuracy_score(target.detach().cpu().numpy(),
+                                                          prediction.detach().cpu().numpy())
                 current_auc = self._calculate_auc(y, y_hat, masks)
 
                 aucs.append(current_auc)
@@ -216,7 +215,6 @@ class PretrainedChordMixerTrainer(Trainer):
         test_loss = running_loss / total
         test_accuracy = float(np.mean(accuracies))
         test_auc = float(np.mean(aucs))
-
 
         if self.log_to_wandb:
             self.log_metrics(test_auc, test_accuracy, test_loss, 'test')

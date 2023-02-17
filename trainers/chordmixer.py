@@ -1,5 +1,6 @@
-from tqdm import tqdm
 from sklearn import metrics
+from typing import Tuple
+from tqdm import tqdm
 import torch
 
 from .trainer.trainer import Trainer
@@ -7,95 +8,83 @@ from .trainer.trainer import Trainer
 
 class ChordMixerTrainer(Trainer):
 
-    def calculate_y_hat(self, data: tuple) -> tuple:
+    def calculate_y_hat(self, data: Tuple) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Calculate the y_hat for the given data and task
+        Calculate y_hat for a batch depnding on the task
 
         Args:
-            data (tuple): The data to calculate the y_hat for
+            data (tuple): One batch of data
 
         Returns:
-            tuple: The y and y_hat
+            tuple: y and y_hat
+
+        Raises:
+            ValueError: If the task is not supported
         """
         if self.task == "TaxonomyClassification":
-            x, y, seq_len, bin = data
-            x = x.to(self.device)
-            y = y.to(self.device)
-            model_input = {
+            x, _len, _bin, y = data
+            x, y = x.to(self.device), y.to(self.device)
+
+            y_hat = self.model({
                 "task": self.task,
                 "x": x,
-                "seq_len": seq_len
-            }
-            y_hat = self.model(model_input)
-            return y, y_hat
+                "seq_len": _len
+            })
 
-        elif self.task == "VariantEffectPrediction":
+        elif self.task == "HumanVariantEffectPrediction":
             x1, x2, tissue, y = data
-            x1 = x1.to(self.device)
-            x2 = x2.to(self.device)
-            tissue = tissue.to(self.device)
-            y = y.to(self.device).float()
-            model_input = {
+            x1, x2, tissue, y = x1.to(self.device), x2.to(self.device), tissue.to(self.device), y.to(self.device)
+
+            y_hat = self.model({
                 "task": self.task,
                 "x1": x1,
                 "x2": x2,
                 "tissue": tissue
-            }
-            y_hat = self.model(model_input)
-            return y, y_hat
+            })
 
-        elif self.task == "PlantDeepSEA":
-            x, y, seq_len, bin = data
-            x = x.to(self.device)
-            y = y.to(self.device)
-            model_input = {
+        elif self.task == "PlantVariantEffectPrediction":
+            x, y = data
+            x, y = x.to(self.device), y.to(self.device)
+
+            y_hat = self.model({
                 "task": self.task,
                 "x": x
-            }
-            y_hat = self.model(model_input)
-            return y, y_hat
+            })
 
         else:
-            raise ValueError(f"Task: {self.task} not found.")
+            raise ValueError(f"Task: {self.task} not supported.")
 
-    def calculate_predictions(self, y: torch.Tensor, y_hat: torch.Tensor) -> tuple:
+        return y, y_hat
+
+    def calculate_predictions(self, y: torch.Tensor, y_hat: torch.Tensor) -> Tuple[torch.Tensor, int]:
         """
-        Calculate the predictions for the given y and y_hat
+        Calculate predictions and the number of correct predictions
 
         Args:
             y (torch.Tensor): The y
             y_hat (torch.Tensor): The y_hat
 
         Returns:
-            tuple: The predicted and correct predictions
+            tuple: Predictions and the number of correct predictions
         """
         if self.task == "TaxonomyClassification":
             _, predicted = y_hat.max(1)
             correct_predictions = predicted.eq(y).sum().item()
 
-        elif self.task == "VariantEffectPrediction":
+        elif self.task == "HumanVariantEffectPrediction":
             predicted = y_hat
             correct_predictions = torch.round(y_hat).eq(y).sum().item()
 
-        elif self.task == "PlantDeepSEA":
+        elif self.task == "PlantVariantEffectPrediction":
             predicted = y_hat
             correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-        
+
         else:
             raise ValueError(f"Task: {self.task} not found.")
 
         return predicted, correct_predictions
 
     def train(self, current_epoch_nr: int) -> None:
-        """
-        Train the model for one epoch
-
-        Args:
-            current_epoch_nr (int): The current epoch number
-
-        Returns:
-            None
-        """
         self.model.train()
 
         num_batches = len(self.train_dataloader)
@@ -143,15 +132,6 @@ class ChordMixerTrainer(Trainer):
         )
 
     def evaluate(self, current_epoch_nr: int) -> None:
-        """
-        Evaluate the model for one epoch
-
-        Args:
-            current_epoch_nr (int): The current epoch number
-
-        Returns:
-            None
-        """
         self.model.eval()
 
         num_batches = len(self.val_dataloader)
@@ -197,9 +177,6 @@ class ChordMixerTrainer(Trainer):
         )
 
     def test(self):
-        """
-        Test the model
-        """
         self.model.eval()
 
         num_batches = len(self.test_dataloader)
