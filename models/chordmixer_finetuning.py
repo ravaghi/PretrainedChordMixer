@@ -2,12 +2,14 @@ import torch
 from .pretraining import ChordMixerEncoder
 
 
-class PretrainedChordMixer(torch.nn.Module):
+class FineTunedChordMixer(torch.nn.Module):
+    """Fine-tuned ChordMixer"""
+
     def __init__(self, freeze, variable_length, n_class):
-        super(PretrainedChordMixer, self).__init__()
+        super(FineTunedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder.from_pretrained(
-            model="/cluster/home/mahdih/PDT/models/PretrainedChordMixer-AUC0.7445990444685686.pt", 
-            freeze=freeze, 
+            model="/cluster/home/mahdih/PDT/models/PretrainedChordMixer-AUC0.7445990444685686.pt",
+            freeze=freeze,
             variable_length=variable_length
         )
         self.classifier = torch.nn.Linear(self.encoder.prelinear_out_features, n_class)
@@ -19,11 +21,11 @@ class PretrainedChordMixer(torch.nn.Module):
 
             encoded = self.encoder(x, lengths)
             return self.classifier(encoded)
-        
-        elif input_data["task"] == "VariantEffectPrediction":
+
+        elif input_data["task"] == "HumanVariantEffectPrediction":
             pass
 
-        elif input_data["task"] == "PlantDeepSEA":
+        elif input_data["task"] == "PlantVariantEffectPrediction":
             pass
 
         else:
