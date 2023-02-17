@@ -1,9 +1,9 @@
 from torch.utils.data import DataLoader
 import pandas as pd
 
-from dataloader.dataloader import Dataloader
-from preprocessor.preprocessor import Preprocessor
-from chordmixer import (
+from .dataloader.dataloader import Dataloader
+from .preprocessor.preprocessor import Preprocessor
+from .chordmixer import (
     concater_collate,
     TaxonomyClassificationDataset,
     HumanVariantEffectPredictionDataset,

@@ -4,8 +4,8 @@ import pandas as pd
 import random
 import torch
 
-from dataloader.dataloader import Dataloader
-from preprocessor.preprocessor import Preprocessor
+from .dataloader.dataloader import Dataloader
+from .preprocessor.preprocessor import Preprocessor
 
 
 def complete_batch(dataframe: pd.DataFrame, batch_size: int) -> pd.DataFrame:

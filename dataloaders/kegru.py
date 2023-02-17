@@ -6,7 +6,7 @@ import gensim
 import torch
 import os
 
-from preprocessor.preprocessor import Preprocessor
+from .preprocessor.preprocessor import Preprocessor
 
 
 def convert_data_to_index(kmers: List, embeddings: KeyedVectors) -> List:

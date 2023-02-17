@@ -3,8 +3,8 @@ import pandas as pd
 import numpy as np
 import torch
 
-from dataloader.dataloader import Dataloader
-from preprocessor.preprocessor import Preprocessor
+from .dataloader.dataloader import Dataloader
+from .preprocessor.preprocessor import Preprocessor
 
 
 class PlantVariantEffectPredictionDataset(Dataset):
