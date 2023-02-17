@@ -3,29 +3,48 @@ import torch
 import numpy as np
 from torch import nn
 from collections import OrderedDict
+from typing import Dict
 
 from .chordmixer import ChordMixerBlock
 
 
 class ChordMixerEncoder(nn.Module):
     """ChordMixerEncoder, to be used as a pretrained model in subsequent downstream tasks."""
-    def __init__(self, vocab_size, n_blocks, track_size, hidden_size, prelinear_out_features, mlp_dropout, layer_dropout, variable_length=False):
+
+    def __init__(self,
+                 vocab_size,
+                 n_blocks,
+                 track_size,
+                 hidden_size,
+                 prelinear_out_features,
+                 mlp_dropout,
+                 layer_dropout,
+                 variable_length=False
+                 ):
         super(ChordMixerEncoder, self).__init__()
         self.variable_length = variable_length
         self.prelinear_out_features = prelinear_out_features
         self.n_blocks = n_blocks
-        n_tracks = n_blocks
 
         self.prelinear = nn.Linear(vocab_size, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
             [
-                ChordMixerBlock(prelinear_out_features, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
+                ChordMixerBlock(prelinear_out_features, n_blocks, track_size, hidden_size, mlp_dropout, layer_dropout)
                 for _ in range(n_blocks)
             ]
         )
 
     @staticmethod
-    def _get_encoder_state_dict(model):
+    def _get_encoder_state_dict(model: Dict) -> Dict:
+        """
+        Get the state dict of the encoder from a pretrained model.
+
+        Args:
+            model: The state dict of the pretrained model.
+
+        Returns:
+            The state dict of the encoder, with every other component removed.
+        """
         state_dict = OrderedDict()
         for key, value in model.items():
             if "encoder" in key:
@@ -34,11 +53,21 @@ class ChordMixerEncoder(nn.Module):
         return state_dict
 
     @classmethod
-    def from_pretrained(cls, model, freeze=True, variable_length=False):
-        """Load a pretrained model from a file."""
+    def from_pretrained(cls, model: str, freeze: bool = True, variable_length: bool = False) -> nn.Module:
+        """
+        Load a pretrained model and return the encoder.
+
+        Args:
+            model: The path to the pretrained model.
+            freeze: Whether to freeze the parameters of the encoder.
+            variable_length: Whether the encoder should be able to handle variable length sequences.
+
+        Returns:
+            The encoder module.
+        """
         print(f"Loading {model}")
         model = torch.load(model)
-        encoder_state_dict = cls._get_encoder_state_dict(model)
+        encoder_state_dict = cls._get_encoder_state_dict(model=model)
 
         encoder = cls(
             vocab_size=5,
@@ -77,15 +106,25 @@ class ChordMixerEncoder(nn.Module):
 
 
 class ChordMixerDecoder(nn.Module):
-    def __init__(self, vocab_size, n_blocks, track_size, hidden_size, prelinear_in_features, prelinear_out_features, mlp_dropout, layer_dropout):
+    """ChordMixerDecoder, used only during pretraining"""
+
+    def __init__(self,
+                 vocab_size,
+                 n_blocks,
+                 track_size,
+                 hidden_size,
+                 prelinear_in_features,
+                 prelinear_out_features,
+                 mlp_dropout,
+                 layer_dropout
+                 ):
         super(ChordMixerDecoder, self).__init__()
         self.n_blocks = n_blocks
-        n_tracks = n_blocks
 
         self.prelinear = nn.Linear(prelinear_in_features, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
             [
-                ChordMixerBlock(prelinear_out_features, n_tracks, track_size, hidden_size, mlp_dropout, layer_dropout)
+                ChordMixerBlock(prelinear_out_features, n_blocks, track_size, hidden_size, mlp_dropout, layer_dropout)
                 for _ in range(n_blocks)
             ]
         )
@@ -102,6 +141,8 @@ class ChordMixerDecoder(nn.Module):
 
 
 class PretrainedChordMixer(nn.Module):
+    """Complete architecture of the pretrained model."""
+
     def __init__(self,
                  vocab_size,
                  n_blocks,

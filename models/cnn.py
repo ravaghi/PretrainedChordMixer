@@ -26,11 +26,11 @@ class CNN(nn.Module):
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool1d(3, 2, 1)
         self.dropout = nn.Dropout(p=0.5)
-        if self.dataset_type == "TaxonomyClassification": 
+        if self.dataset_type == "TaxonomyClassification":
             in_features = 277600
-        elif self.dataset_type == "VariantEffectPrediction":
+        elif self.dataset_type == "HumanVariantEffectPrediction":
             in_features = 11200
-        elif self.dataset_type == "PlantDeepSEA":
+        elif self.dataset_type == "PlantVariantEffectPrediction":
             in_features = 11200
         self.fc1 = nn.Linear(in_features, self.n_class)
 
@@ -57,8 +57,8 @@ class CNN(nn.Module):
             x = self.dropout(x)
             x = self.fc1(x)
             return x
-        
-        elif input_data["task"] == "VariantEffectPrediction":
+
+        elif input_data["task"] == "HumanVariantEffectPrediction":
             x1 = input_data["x1"]
             x2 = input_data["x2"]
             tissue = input_data["tissue"]
@@ -73,7 +73,6 @@ class CNN(nn.Module):
             x1 = self.relu(x1)
             x1 = self.pool(x1)
             x1 = x1.view(-1, self.num_flat_features(x1))
-            #x1 = self.dropout(x1)
 
             x2 = x2.to(torch.int64)
             x2 = self.encoder(x2)
@@ -85,18 +84,17 @@ class CNN(nn.Module):
             x2 = self.relu(x2)
             x2 = self.pool(x2)
             x2 = x2.view(-1, self.num_flat_features(x2))
-            #x2 = self.dropout(x2)
 
             x = x1 - x2
             data = self.fc1(x)
 
             tissue = tissue.unsqueeze(0).t()
-            data = torch.gather(data, 1, tissue)  
+            data = torch.gather(data, 1, tissue)
             data = data.reshape(-1)
 
             return data
 
-        elif input_data["task"] == "PlantDeepSEA":
+        elif input_data["task"] == "PlantVariantEffectPrediction":
             x = input_data['x']
 
             x = x.to(torch.int64)
@@ -113,6 +111,6 @@ class CNN(nn.Module):
             x = self.fc1(x)
 
             return x
-        
+
         else:
             raise ValueError(f"Task: {input_data['task']} is not supported.")

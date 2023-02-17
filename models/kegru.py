@@ -5,7 +5,16 @@ import os
 
 
 class KeGru(nn.Module):
-    def __init__(self, num_layers, hidden_size, dropout, kmer_embedding_path, kmer_embedding_name, embedding_size, device_id, num_class):
+    def __init__(self,
+                 num_layers,
+                 hidden_size,
+                 dropout,
+                 kmer_embedding_path,
+                 kmer_embedding_name,
+                 embedding_size,
+                 device_id,
+                 num_class
+                 ):
         super(KeGru, self).__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
@@ -18,20 +27,25 @@ class KeGru(nn.Module):
         ke_weights = torch.FloatTensor(model.wv.vectors)
 
         self.embedding = nn.Embedding.from_pretrained(ke_weights, freeze=False)
-        self.gru = nn.GRU(embedding_size, hidden_size, num_layers, bidirectional=True, batch_first=True, dropout=dropout)
+        self.gru = nn.GRU(embedding_size,
+                          hidden_size,
+                          num_layers,
+                          bidirectional=True,
+                          batch_first=True,
+                          dropout=dropout)
         self.linear = nn.Linear(hidden_size * 2, num_class)
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
-            x = input_data["x"] 
-            h0 =  torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(self.device)
-            y = self.embedding(y) 
+            x = input_data["x"]
+            h0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(self.device)
+            y = self.embedding(x)
             y, _ = self.gru(y, h0)
             y = y[:, -1, :]
             y = self.linear(y)
             return y
 
-        elif input_data["task"] == "VariantEffectPrediction":
+        elif input_data["task"] == "HumanVariantEffectPrediction":
             x1 = input_data["x1"]
             x2 = input_data["x2"]
             tissue = input_data["tissue"]
@@ -56,7 +70,7 @@ class KeGru(nn.Module):
 
             return y
 
-        elif input_data["task"] == "PlantDeepSEA":
+        elif input_data["task"] == "PlantVariantEffectPrediction":
             x = input_data["x"]
 
             h0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(self.device)

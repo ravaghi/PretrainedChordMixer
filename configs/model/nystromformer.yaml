@@ -5,5 +5,4 @@ num_heads: 2
 num_layers: 2
 const_vector_length: 25000
 n_class: ${dataset.n_class}
-pooling: flatten
 device_id: ${general.device_id}

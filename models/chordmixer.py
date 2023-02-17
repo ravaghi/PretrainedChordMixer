@@ -150,7 +150,6 @@ class ChordMixer(nn.Module):
             embedding_size,
             n_class
         )
-        
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
@@ -169,8 +168,8 @@ class ChordMixer(nn.Module):
             data = self.final(data)
 
             return data
-        
-        elif input_data["task"] == "VariantEffectPrediction":
+
+        elif input_data["task"] == "HumanVariantEffectPrediction":
             x1 = input_data["x1"]
             x2 = input_data["x2"]
             tissue = input_data["tissue"]
@@ -191,13 +190,13 @@ class ChordMixer(nn.Module):
             data = self.final(data)
 
             tissue = tissue.unsqueeze(0).t()
-            data = torch.gather(data, 1, tissue)  
+            data = torch.gather(data, 1, tissue)
             data = data.reshape(-1)
             data = torch.sigmoid(data)
 
             return data
 
-        elif input_data["task"] == "PlantDeepSEA":
+        elif input_data["task"] == "PlantVariantEffectPrediction":
             data = input_data["x"]
 
             n_layers = self.max_n_layers

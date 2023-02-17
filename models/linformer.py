@@ -19,7 +19,7 @@ class Linformer(nn.Module):
             one_kv_head=True,
             share_kv=True
         )
-        self.const_vector_length = const_vector_length 
+        self.const_vector_length = const_vector_length
         self.final = nn.Linear(embedding_size * const_vector_length, n_class)
         self.linear = nn.Linear(2, embedding_size, bias=True)
 
@@ -34,7 +34,7 @@ class Linformer(nn.Module):
             x = self.final(x.view(x.size(0), -1))
             return x
 
-        elif input_data["task"] == "VariantEffectPrediction":
+        elif input_data["task"] == "HumanVariantEffectPrediction":
             x1 = input_data["x1"]
             x2 = input_data["x2"]
             tissue = input_data["tissue"]
@@ -62,9 +62,9 @@ class Linformer(nn.Module):
 
             return y
 
-            
 
-        elif input_data["task"] == "PlantDeepSEA":
+
+        elif input_data["task"] == "PlantVariantEffectPrediction":
             pass
 
         else:
