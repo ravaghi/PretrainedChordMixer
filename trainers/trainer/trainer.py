@@ -28,10 +28,10 @@ class Trainer(ABC):
         Returns:
             None
         """
-        if (not os.path.exists(self.save_dir)):
+        if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
-        model_path = os.path.join(self.save_dir, f'{name}.pt')
+        model_path = os.path.join(self.save_dir, name)
 
         # Save model to disk
         torch.save(model.state_dict(), model_path)
