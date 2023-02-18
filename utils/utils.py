@@ -96,8 +96,7 @@ def print_model_params(model: torch.nn.Module) -> None:
     Returns:
         None
     """
-    parameters = sum([np.prod(p.size()) for p in model.parameters()])
-    trainable_parameters = filter(lambda p: p.requires_grad, model.parameters())
-    trainable_parameters = sum([np.prod(p.size()) for p in trainable_parameters])
+    parameters = sum(p.numel() for p in model.parameters())
+    trainable_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Number of parameters: {parameters:,}")
     print(f"Number of trainable parameters: {trainable_parameters:,}")
