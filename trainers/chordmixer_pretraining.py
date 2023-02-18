@@ -1,11 +1,11 @@
-from tqdm import tqdm
+from datetime import datetime
 from sklearn import metrics
+from torch import Tensor
+from typing import Tuple
+from tqdm import tqdm
+import numpy as np
 import torch
 import wandb
-from typing import Tuple
-import numpy as np
-from torch import Tensor
-from datetime import datetime
 
 from .trainer.trainer import Trainer
 
@@ -89,19 +89,15 @@ class PretrainedChordMixerTrainer(Trainer):
         """
         if metric_type == 'train':
             wandb.log({
-                "train": {
-                    'train_auc': auc,
-                    'train_accuracy': accuracy,
-                    'train_loss': loss
-                }
+                'train_auc': auc,
+                'train_accuracy': accuracy,
+                'train_loss': loss
             })
         elif metric_type == 'val':
             wandb.log({
-                "val": {
-                    'val_auc': auc,
-                    'val_accuracy': accuracy,
-                    'val_loss': loss
-                }
+                'val_auc': auc,
+                'val_accuracy': accuracy,
+                'val_loss': loss
             })
         elif metric_type == 'test':
             wandb.run.summary['test_auc'] = auc
@@ -161,14 +157,14 @@ class PretrainedChordMixerTrainer(Trainer):
             aucs.append(current_auc)
 
             loop.set_description(f'Epoch {current_epoch_nr}')
-            loop.set_postfix(train_loss=round(current_loss, 5),
-                             train_acc=round(current_accuracy, 5))
+            loop.set_postfix(train_acc=round(current_accuracy, 5),
+                             train_loss=round(current_loss, 5))
 
             if (idx + 1) % self.log_interval == 0 and self.log_to_wandb:
                 train_auc = float(np.mean(aucs))
                 train_accuracy = float(np.mean(accuracies))
                 train_loss = running_loss / total
-                self.log_metrics(train_auc, train_accuracy, train_loss, 'train')
+                self._log_metrics(train_auc, train_accuracy, train_loss, 'train')
                 running_loss = 0.0
                 total = 0
                 targets = []
@@ -221,20 +217,15 @@ class PretrainedChordMixerTrainer(Trainer):
                 accuracies.append(current_accuracy)
 
                 loop.set_description(f'Testing')
-                loop.set_postfix(test_loss=round(current_loss, 5),
-                                 test_acc=round(current_accuracy, 5))
+                loop.set_postfix(test_acc=round(current_accuracy, 5),
+                                 test_loss=round(current_loss, 5))
 
         test_loss = running_loss / total
         test_accuracy = float(np.mean(accuracies))
         test_auc = float(np.mean(aucs))
 
         if self.log_to_wandb:
-            self.log_metrics(test_auc, test_accuracy, test_loss, 'test')
-        else:
-            print(f'Test loss: {test_loss}, Test accuracy: {test_accuracy}, Test AUC: {test_auc}')
-
-        current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
-
-        self.save_model(self.model, f"{current_datetime}-ChordMixerPretraining-{test_auc:.4f}.pt")
-
-        return test_auc
+            self._log_metrics(test_auc, test_accuracy, test_loss, 'test')
+            current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
+            model_name = f"{current_datetime}-AUC-{test_auc:.4f}"
+            self.save_model(model=self.model, name=model_name)

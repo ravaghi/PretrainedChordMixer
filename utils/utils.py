@@ -43,10 +43,6 @@ def init_wandb(config: DictConfig) -> None:
         dir=os.path.join(BASE_DIR, 'logs')
     )
 
-    wandb.define_metric("test_auc", summary="max")
-    wandb.define_metric("test_accuracy", summary="max")
-    wandb.define_metric("test_loss", summary="min")
-
 
 def init_run(config: DictConfig) -> str:
     """

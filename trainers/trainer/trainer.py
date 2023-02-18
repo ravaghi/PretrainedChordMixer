@@ -48,15 +48,15 @@ class Trainer(ABC):
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
-        model_path = os.path.join(self.save_dir, name)
+        model_path = os.path.join(self.save_dir, name + ".pt")
 
         # Save model to disk
         torch.save(model.state_dict(), model_path)
 
         if self.log_to_wandb:
             # Save model to wandb
-            artifact = wandb.Artifact(name, type='model')
-            artifact.add_file(model_path + ".pt")
+            artifact = wandb.Artifact(type(model).__name__, type='model')
+            artifact.add_file(model_path)
             wandb.run.log_artifact(artifact)
 
     @staticmethod
@@ -76,19 +76,15 @@ class Trainer(ABC):
         """
         if metric_type == 'train':
             wandb.log({
-                "train": {
-                    'train_auc': auc,
-                    'train_accuracy': accuracy,
-                    'train_loss': loss
-                }
+                'train_auc': auc,
+                'train_accuracy': accuracy,
+                'train_loss': loss
             }, step=current_epoch_nr)
         elif metric_type == 'val':
             wandb.log({
-                "val": {
-                    'val_auc': auc,
-                    'val_accuracy': accuracy,
-                    'val_loss': loss
-                }
+                'val_auc': auc,
+                'val_accuracy': accuracy,
+                'val_loss': loss
             }, step=current_epoch_nr)
         elif metric_type == 'test':
             wandb.run.summary['test_auc'] = auc
@@ -150,7 +146,7 @@ class Trainer(ABC):
         elif self.task == "PlantVariantEffectPrediction":
             predicted = torch.round(torch.sigmoid(y_hat))
             correct_predictions = predicted.eq(y).sum().item() // y.size(1)
-            
+
         else:
             raise ValueError(f"Task: {self.task} not found.")
 

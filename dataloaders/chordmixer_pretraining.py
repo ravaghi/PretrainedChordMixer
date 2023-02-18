@@ -1,11 +1,11 @@
-import os
-import torch
-from Bio import SeqIO
-from tqdm import tqdm
-from typing import Tuple, Dict
-import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+import torch.nn.functional as F
 from torch import Tensor
+from typing import Tuple, Dict
+from tqdm import tqdm
+from Bio import SeqIO
+import torch
+import os
 
 
 class SequenceProcessor:
@@ -108,7 +108,7 @@ class HG38Dataset(Dataset):
     def __len__(self) -> int:
         """
         Returns the length of the dataset
-        
+
         Returns:
             int: Length of the dataset
         """
@@ -124,10 +124,24 @@ class PretrainedChordMixerDataLoader:
         "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY"
     ]
 
-    def __init__(self, data_path: str, dataset_filename: str, batch_size: int, mask_ratio: float, sequence_length: int):
-        self.data_path = data_path
-        self.dataset_filename = dataset_filename
+    def __init__(self,
+                 batch_size,
+                 data_path,
+                 dataset_type,
+                 dataset_name,
+                 train_dataset,
+                 val_dataset,
+                 test_dataset,
+                 mask_ratio,
+                 sequence_length,
+                 ):
         self.batch_size = batch_size
+        self.data_path = data_path
+        self.dataset_type = dataset_type
+        self.dataset_name = dataset_name
+        self.train_dataset = train_dataset
+        self.val_dataset = val_dataset
+        self.test_dataset = test_dataset
         self.mask_ratio = mask_ratio
         self.sequence_length = sequence_length
 
@@ -138,7 +152,7 @@ class PretrainedChordMixerDataLoader:
         Returns:
             str: Concatenated DNA sequences
         """
-        data_path = os.path.join(self.data_path, self.dataset_filename)
+        data_path = os.path.join(self.data_path, self.dataset_name)
         sequences_dict = SeqIO.to_dict(SeqIO.parse(data_path, "fasta"))
         sequences = ""
         for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences"):
@@ -202,6 +216,7 @@ class PretrainedChordMixerDataLoader:
         Returns:
             Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, validation, and test dataloaders
         """
+        # import random
         # sequences = "".join(["ACGTN"[random.randint(0, 4)] for _ in range(1000_000)])
         sequences = self._load_sequences()
         masked_sequences = self._process_sequences(sequences)
