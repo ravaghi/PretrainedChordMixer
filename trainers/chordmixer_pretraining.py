@@ -74,7 +74,7 @@ class PretrainedChordMixerTrainer(Trainer):
             return 0.5
 
     @staticmethod
-    def log_metrics(auc: float, accuracy: float, loss: float, metric_type: str) -> None:
+    def _log_metrics(auc: float, accuracy: float, loss: float, metric_type: str) -> None:
         """
         Log metrics to wandb
 
@@ -88,9 +88,21 @@ class PretrainedChordMixerTrainer(Trainer):
             None
         """
         if metric_type == 'train':
-            wandb.log({'train_auc': auc})
-            wandb.log({'train_accuracy': accuracy})
-            wandb.log({'train_loss': loss})
+            wandb.log({
+                "train": {
+                    'train_auc': auc,
+                    'train_accuracy': accuracy,
+                    'train_loss': loss
+                }
+            })
+        elif metric_type == 'val':
+            wandb.log({
+                "val": {
+                    'val_auc': auc,
+                    'val_accuracy': accuracy,
+                    'val_loss': loss
+                }
+            })
         elif metric_type == 'test':
             wandb.run.summary['test_auc'] = auc
             wandb.run.summary['test_accuracy'] = accuracy

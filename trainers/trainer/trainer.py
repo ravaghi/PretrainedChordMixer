@@ -1,4 +1,7 @@
+from sklearn.metrics import roc_auc_score
+from datetime import datetime
 from typing import Tuple
+from tqdm import tqdm
 from abc import ABC
 import wandb
 import torch
@@ -6,6 +9,8 @@ import os
 
 
 class Trainer(ABC):
+    """Trainer class"""
+
     def __init__(self,
                  device,
                  model,
@@ -31,7 +36,7 @@ class Trainer(ABC):
 
     def save_model(self, model: torch.nn.Module, name: str) -> None:
         """
-        Save the model and log to wandb
+        Save the model to disk, and log it to wandb as an artifact of the run
 
         Args:
             model (torch.nn.Module): Model to save
@@ -51,7 +56,7 @@ class Trainer(ABC):
         if self.log_to_wandb:
             # Save model to wandb
             artifact = wandb.Artifact(name, type='model')
-            artifact.add_file(model_path)
+            artifact.add_file(model_path + ".pt")
             wandb.run.log_artifact(artifact)
 
     @staticmethod
@@ -70,24 +75,32 @@ class Trainer(ABC):
             None
         """
         if metric_type == 'train':
-            wandb.log({'train_auc': auc}, step=current_epoch_nr)
-            wandb.log({'train_accuracy': accuracy}, step=current_epoch_nr)
-            wandb.log({'train_loss': loss}, step=current_epoch_nr)
+            wandb.log({
+                "train": {
+                    'train_auc': auc,
+                    'train_accuracy': accuracy,
+                    'train_loss': loss
+                }
+            }, step=current_epoch_nr)
         elif metric_type == 'val':
-            wandb.log({'val_auc': auc}, step=current_epoch_nr)
-            wandb.log({'val_accuracy': accuracy}, step=current_epoch_nr)
-            wandb.log({'val_loss': loss}, step=current_epoch_nr)
+            wandb.log({
+                "val": {
+                    'val_auc': auc,
+                    'val_accuracy': accuracy,
+                    'val_loss': loss
+                }
+            }, step=current_epoch_nr)
         elif metric_type == 'test':
             wandb.run.summary['test_auc'] = auc
             wandb.run.summary['test_accuracy'] = accuracy
             wandb.run.summary['test_loss'] = loss
 
-    def calculate_y_hat(self, data: Tuple) -> Tuple[torch.Tensor, torch.Tensor]:
+    def calculate_y_hat(self, batch: Tuple) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Calculate y_hat for a batch depnding on the task
 
         Args:
-            data (tuple): One batch of data
+            batch (tuple): One batch of data
 
         Returns:
             tuple: y and y_hat
@@ -95,8 +108,8 @@ class Trainer(ABC):
         Raises:
             ValueError: If the task is not supported
         """
-        if self.task == "TaxonomyClassification":
-            x, y = data
+        if self.task in ["TaxonomyClassification", "PlantVariantEffectPrediction"]:
+            x, y = batch
             x, y = x.to(self.device), y.to(self.device)
             y_hat = self.model({
                 "task": self.task,
@@ -104,7 +117,7 @@ class Trainer(ABC):
             })
 
         elif self.task == "HumanVariantEffectPrediction":
-            x1, x2, tissue, y = data
+            x1, x2, tissue, y = batch
             x1, x2, tissue, y = x1.to(self.device), x2.to(self.device), tissue.to(self.device), y.to(self.device)
 
             y_hat = self.model({
@@ -112,15 +125,6 @@ class Trainer(ABC):
                 "x1": x1,
                 "x2": x2,
                 "tissue": tissue
-            })
-
-        elif self.task == "PlantVariantEffectPrediction":
-            x, y = data
-            x, y = x.to(self.device), y.to(self.device)
-
-            y_hat = self.model({
-                "task": self.task,
-                "x": x
             })
 
         else:
@@ -166,7 +170,53 @@ class Trainer(ABC):
         Returns:
             None
         """
-        raise NotImplementedError
+        self.model.train()
+
+        num_batches = len(self.train_dataloader)
+
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        targets = []
+        preds = []
+
+        loop = tqdm(self.train_dataloader, total=num_batches)
+        for batch in loop:
+            self.optimizer.zero_grad()
+
+            y, y_hat = self.calculate_y_hat(batch=batch)
+
+            loss = self.criterion(y_hat, y)
+            loss.backward()
+            self.optimizer.step()
+
+            running_loss += loss.item()
+
+            predicted, correct_predictions = self.calculate_predictions(y=y, y_hat=y_hat)
+
+            correct += correct_predictions
+            total += y.size(0)
+
+            targets.extend(y.cpu().detach().numpy())
+            preds.extend(predicted.cpu().detach().numpy())
+
+            loop.set_description(f"Epoch: {current_epoch_nr + 1}")
+            loop.set_postfix(train_acc=round(correct / total, 5),
+                             train_loss=round(running_loss / total, 5))
+
+        train_auc = roc_auc_score(y_true=targets, y_score=preds)
+        train_accuracy = correct / total
+        train_loss = running_loss / total
+
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=train_auc,
+                accuracy=train_accuracy,
+                loss=train_loss,
+                current_epoch_nr=current_epoch_nr,
+                metric_type='train'
+            )
 
     def evaluate(self, current_epoch_nr: int) -> None:
         """
@@ -178,7 +228,50 @@ class Trainer(ABC):
         Returns:
             None
         """
-        raise NotImplementedError
+        self.model.eval()
+
+        num_batches = len(self.val_dataloader)
+
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        targets = []
+        preds = []
+
+        with torch.no_grad():
+            loop = tqdm(self.val_dataloader, total=num_batches)
+            for batch in loop:
+                y, y_hat = self.calculate_y_hat(batch=batch)
+
+                loss = self.criterion(y_hat, y)
+
+                running_loss += loss.item()
+
+                predicted, correct_predictions = self.calculate_predictions(y=y, y_hat=y_hat)
+
+                correct += correct_predictions
+                total += y.size(0)
+
+                targets.extend(y.detach().cpu().numpy())
+                preds.extend(predicted.detach().cpu().numpy())
+
+                loop.set_description(f'Epoch {current_epoch_nr}')
+                loop.set_postfix(val_acc=round(correct / total, 5),
+                                 val_loss=round(running_loss / total, 5))
+
+        validation_auc = roc_auc_score(y_true=targets, y_score=preds)
+        validation_accuracy = correct / total
+        validation_loss = running_loss / num_batches
+
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=validation_auc,
+                accuracy=validation_accuracy,
+                loss=validation_loss,
+                current_epoch_nr=current_epoch_nr,
+                metric_type="val"
+            )
 
     def test(self) -> None:
         """
@@ -187,4 +280,51 @@ class Trainer(ABC):
         Returns:
             None
         """
-        raise NotImplementedError
+        self.model.eval()
+
+        num_batches = len(self.test_dataloader)
+
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        targets = []
+        preds = []
+
+        with torch.no_grad():
+            loop = tqdm(self.test_dataloader, total=num_batches)
+            for batch in loop:
+                y, y_hat = self.calculate_y_hat(batch=batch)
+
+                loss = self.criterion(y_hat, y)
+
+                running_loss += loss.item()
+
+                predicted, correct_predictions = self.calculate_predictions(y=y, y_hat=y_hat)
+
+                correct += correct_predictions
+                total += y.size(0)
+
+                targets.extend(y.detach().cpu().numpy())
+                preds.extend(predicted.detach().cpu().numpy())
+
+                loop.set_description('Testing')
+                loop.set_postfix(test_acc=round(correct / total, 5),
+                                 test_loss=round(running_loss / total, 5))
+
+        test_auc = roc_auc_score(y_true=targets, y_score=preds)
+        test_accuracy = correct / total
+        test_loss = running_loss / num_batches
+
+        if self.log_to_wandb:
+            self.log_metrics(
+                auc=test_auc,
+                accuracy=test_accuracy,
+                loss=test_loss,
+                current_epoch_nr=-1,
+                metric_type="test"
+            )
+
+        current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
+        model_name = f"{current_datetime}-AUC-{test_auc:.4f}"
+        self.save_model(model=self.model, name=model_name)
