@@ -60,20 +60,21 @@ class Preprocessor(ABC):
         return dataframe
 
     @staticmethod
-    def one_hot_encode(dataframe: pd.DataFrame) -> pd.DataFrame:
+    def one_hot_encode(dataframe: pd.DataFrame, column: str) -> pd.DataFrame:
         """
         One hot encode sequences
 
         Args:
             dataframe: dataframe containing the DNA sequences
+            columns: name of the column containing the sequences
 
         Returns:
             dataframe with one hot encoded sequences
         """
         label_binarizer = LabelBinarizer()
         label_binarizer.fit(["A", "C", "G", "T", "N"])
-        dataframe["sequence"] = dataframe["sequence"].apply(list)
-        dataframe["sequence"] = dataframe["sequence"].apply(label_binarizer.transform)
+        dataframe[column] = dataframe[column].apply(list)
+        dataframe[column] = dataframe[column].apply(label_binarizer.transform)
         return dataframe
 
     def process_taxonomy_classification_dataframe(
@@ -113,7 +114,7 @@ class Preprocessor(ABC):
         elif model_name == "FineTunedChordMixer":
             dataframe["len"] = dataframe["sequence"].apply(lambda x: len(x))
             dataframe = self.get_bins(dataframe)
-            dataframe = self.one_hot_encode(dataframe)
+            dataframe = self.one_hot_encode(dataframe, "sequence")
             dataframe = dataframe[["sequence", "len", "bin", "label"]]
         else:
             raise ValueError(f"Model: {model_name} not supported")
@@ -145,6 +146,11 @@ class Preprocessor(ABC):
         elif model_name == "KeGRU":
             dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
 
+        elif model_name == "FineTunedChordMixer":
+            dataframe = self.one_hot_encode(dataframe, "reference")
+            dataframe = self.one_hot_encode(dataframe, "alternate")
+            dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
+
         else:
             raise ValueError(f"Model: {model_name} not supported")
 
@@ -167,13 +173,13 @@ class Preprocessor(ABC):
         Raises:
             ValueError: if model is not supported
         """
-        if model_name == "ChordMixer":
-            dataframe = self.tokenize(dataframe, "sequence")
-            dataframe["len"] = 1000
-            dataframe["bin"] = -1
-        elif model_name in ["CNN", "Xformer"]:
+        if model_name in ["ChordMixer", "CNN", "Xformer"]:
             dataframe = self.tokenize(dataframe, "sequence")
 
+        elif model_name == "FineTunedChordMixer":
+            dataframe = self.one_hot_encode(dataframe, "sequence")
+        
         else:
             raise ValueError(f"Model: {model_name} not supported")
+        
         return dataframe
