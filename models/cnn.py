@@ -44,19 +44,22 @@ class CNN(nn.Module):
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
             x = input_data['x']
+
             x = x.to(torch.int64)
-            x = self.encoder(x)
-            x = x.permute(0, 2, 1)
-            x = self.conv1(x)
-            x = self.relu(x)
-            x = self.pool(x)
-            x = self.conv2(x)
-            x = self.relu(x)
-            x = self.pool(x)
-            x = x.view(-1, self.num_flat_features(x))
-            x = self.dropout(x)
-            x = self.fc1(x)
-            return x
+            y_hat = self.encoder(x)
+            y_hat = y_hat.permute(0, 2, 1)
+            y_hat = self.conv1(y_hat)
+            y_hat = self.relu(y_hat)
+            y_hat = self.pool(y_hat)
+            y_hat = self.conv2(y_hat)
+            y_hat = self.relu(y_hat)
+            y_hat = self.pool(y_hat)
+            y_hat = y_hat.view(-1, self.num_flat_features(y_hat))
+            y_hat = self.dropout(y_hat)
+            y_hat = self.fc1(y_hat)
+            y_hat = y_hat.view(-1)
+
+            return y_hat
 
         elif input_data["task"] == "HumanVariantEffectPrediction":
             x1 = input_data["x1"]
@@ -64,53 +67,53 @@ class CNN(nn.Module):
             tissue = input_data["tissue"]
 
             x1 = x1.to(torch.int64)
-            x1 = self.encoder(x1)
-            x1 = x1.permute(0, 2, 1)
-            x1 = self.conv1(x1)
-            x1 = self.relu(x1)
-            x1 = self.pool(x1)
-            x1 = self.conv2(x1)
-            x1 = self.relu(x1)
-            x1 = self.pool(x1)
-            x1 = x1.view(-1, self.num_flat_features(x1))
+            y_hat_1 = self.encoder(x1)
+            y_hat_1 = y_hat_1.permute(0, 2, 1)
+            y_hat_1 = self.conv1(y_hat_1)
+            y_hat_1 = self.relu(y_hat_1)
+            y_hat_1 = self.pool(y_hat_1)
+            y_hat_1 = self.conv2(y_hat_1)
+            y_hat_1 = self.relu(y_hat_1)
+            y_hat_1 = self.pool(y_hat_1)
+            y_hat_1 = y_hat_1.view(-1, self.num_flat_features(y_hat_1))
 
             x2 = x2.to(torch.int64)
-            x2 = self.encoder(x2)
-            x2 = x2.permute(0, 2, 1)
-            x2 = self.conv1(x2)
-            x2 = self.relu(x2)
-            x2 = self.pool(x2)
-            x2 = self.conv2(x2)
-            x2 = self.relu(x2)
-            x2 = self.pool(x2)
-            x2 = x2.view(-1, self.num_flat_features(x2))
+            y_hat_2 = self.encoder(x2)
+            y_hat_2 = y_hat_2.permute(0, 2, 1)
+            y_hat_2 = self.conv1(y_hat_2)
+            y_hat_2 = self.relu(y_hat_2)
+            y_hat_2 = self.pool(y_hat_2)
+            y_hat_2 = self.conv2(y_hat_2)
+            y_hat_2 = self.relu(y_hat_2)
+            y_hat_2 = self.pool(y_hat_2)
+            y_hat_2 = y_hat_2.view(-1, self.num_flat_features(y_hat_2))
 
-            x = x1 - x2
-            data = self.fc1(x)
+            y_hat = y_hat_1 - y_hat_2
+            y_hat = self.fc1(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
-            data = torch.gather(data, 1, tissue)
-            data = data.reshape(-1)
+            y_hat = torch.gather(y_hat, 1, tissue)
+            y_hat = y_hat.reshape(-1)
 
-            return data
+            return y_hat
 
         elif input_data["task"] == "PlantVariantEffectPrediction":
             x = input_data['x']
 
             x = x.to(torch.int64)
-            x = self.encoder(x)
-            x = x.permute(0, 2, 1)
-            x = self.conv1(x)
-            x = self.relu(x)
-            x = self.pool(x)
-            x = self.conv2(x)
-            x = self.relu(x)
-            x = self.pool(x)
-            x = x.view(-1, self.num_flat_features(x))
-            x = self.dropout(x)
-            x = self.fc1(x)
+            y_hat = self.encoder(x)
+            y_hat = y_hat.permute(0, 2, 1)
+            y_hat = self.conv1(y_hat)
+            y_hat = self.relu(y_hat)
+            y_hat = self.pool(y_hat)
+            y_hat = self.conv2(y_hat)
+            y_hat = self.relu(y_hat)
+            y_hat = self.pool(y_hat)
+            y_hat = y_hat.view(-1, self.num_flat_features(y_hat))
+            y_hat = self.dropout(y_hat)
+            y_hat = self.fc1(y_hat)
 
-            return x
+            return y_hat
 
         else:
             raise ValueError(f"Task: {input_data['task']} is not supported.")
