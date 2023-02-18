@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - model: chordmixer
-  - loss: cross_entropy
+  - loss: binary_cross_entropy_with_logits
   - dataset: ???
   - dataloader: chordmixer
   - trainer: chordmixer

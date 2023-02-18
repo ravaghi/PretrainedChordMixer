@@ -7,4 +7,4 @@ test_data: carassius_labeo_test.parquet
 variable_length: true
 max_seq_len: 100101
 vocab_size: 20
-n_class: 2
+n_class: 1

@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - model: reformer
-  - loss: cross_entropy
+  - loss: binary_cross_entropy_with_logits
   - dataset: ???
   - dataloader: xformer
   - trainer: xformer
