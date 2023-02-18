@@ -143,18 +143,14 @@ class Trainer(ABC):
         Returns:
             tuple: Predictions and the number of correct predictions
         """
-        if self.task == "TaxonomyClassification":
-            _, predicted = y_hat.max(1)
+        if self.task in ["TaxonomyClassification", "HumanVariantEffectPrediction"]:
+            predicted = torch.round(torch.sigmoid(y_hat))
             correct_predictions = predicted.eq(y).sum().item()
 
-        elif self.task == "HumanVariantEffectPrediction":
-            predicted = y_hat
-            correct_predictions = torch.round(y_hat).eq(y).sum().item()
-
         elif self.task == "PlantVariantEffectPrediction":
-            predicted = y_hat
-            correct_predictions = (torch.round(y_hat).eq(y).sum().item() / y.size(1))
-
+            predicted = torch.round(torch.sigmoid(y_hat))
+            correct_predictions = predicted.eq(y).sum().item() // y.size(1)
+            
         else:
             raise ValueError(f"Task: {self.task} not found.")
 
@@ -201,7 +197,7 @@ class Trainer(ABC):
             targets.extend(y.cpu().detach().numpy())
             preds.extend(predicted.cpu().detach().numpy())
 
-            loop.set_description(f"Epoch: {current_epoch_nr + 1}")
+            loop.set_description(f"Epoch {current_epoch_nr}")
             loop.set_postfix(train_acc=round(correct / total, 5),
                              train_loss=round(running_loss / total, 5))
 

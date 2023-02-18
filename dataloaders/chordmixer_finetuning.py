@@ -11,7 +11,7 @@ from .chordmixer import (
 )
 
 
-class FinedTunedChordMixerDataLoader(Dataloader, Preprocessor):
+class FineTunedChordMixerDataLoader(Dataloader, Preprocessor):
     """ChordMixer finetuning dataloader class"""
 
     def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:

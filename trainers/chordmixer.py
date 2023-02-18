@@ -1,6 +1,4 @@
-from sklearn import metrics
 from typing import Tuple
-from tqdm import tqdm
 import torch
 
 from .trainer.trainer import Trainer
@@ -23,7 +21,7 @@ class ChordMixerTrainer(Trainer):
             ValueError: If the task is not supported
         """
         if self.task == "TaxonomyClassification":
-            x, _len, _bin, y = batch
+            x, _len, _, y = batch
             x, y = x.to(self.device), y.to(self.device)
 
             y_hat = self.model({
