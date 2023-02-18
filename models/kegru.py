@@ -1,5 +1,5 @@
-import torch
 import torch.nn as nn
+import torch
 import gensim
 import os
 
@@ -38,12 +38,14 @@ class KeGru(nn.Module):
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
             x = input_data["x"]
+
             h0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(self.device)
-            y = self.embedding(x)
-            y, _ = self.gru(y, h0)
-            y = y[:, -1, :]
-            y = self.linear(y)
-            return y
+            y_hat = self.embedding(x)
+            y_hat, _ = self.gru(y_hat, h0)
+            y_hat = y_hat[:, -1, :]
+            y_hat = self.linear(y_hat)
+            y_hat = y_hat.view(-1)
+            return y_hat
 
         elif input_data["task"] == "HumanVariantEffectPrediction":
             x1 = input_data["x1"]
@@ -51,35 +53,35 @@ class KeGru(nn.Module):
             tissue = input_data["tissue"]
 
             h0_1 = torch.zeros(self.num_layers * 2, x1.size(0), self.hidden_size).to(self.device)
-            y1 = self.embedding(x1)
-            y1, _ = self.gru(y1, h0_1)
-            y1 = y1[:, -1, :]
+            y_hat_1 = self.embedding(x1)
+            y_hat_1, _ = self.gru(y_hat_1, h0_1)
+            y_hat_1 = y_hat_1[:, -1, :]
 
             h0_2 = torch.zeros(self.num_layers * 2, x2.size(0), self.hidden_size).to(self.device)
-            y2 = self.embedding(x2)
-            y2, _ = self.gru(y2, h0_2)
-            y2 = y2[:, -1, :]
+            y_hat_2 = self.embedding(x2)
+            y_hat_2, _ = self.gru(y_hat_2, h0_2)
+            y_hat_2 = y_hat_2[:, -1, :]
 
-            y = y2 - y1
+            y_hat = y_hat_2 - y_hat_1
 
-            y = self.linear(y)
+            y_hat = self.linear(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
-            y = torch.gather(y, 1, tissue)
-            y = y.reshape(-1)
+            y_hat = torch.gather(y_hat, 1, tissue)
+            y_hat = y_hat.reshape(-1)
 
-            return y
+            return y_hat
 
         elif input_data["task"] == "PlantVariantEffectPrediction":
             x = input_data["x"]
 
             h0 = torch.zeros(self.num_layers * 2, x.size(0), self.hidden_size).to(self.device)
-            y = self.embedding(x)
-            y, _ = self.gru(y, h0)
-            y = y[:, -1, :]
-            y = self.linear(y)
+            y_hat = self.embedding(x)
+            y_hat, _ = self.gru(y_hat, h0)
+            y_hat = y_hat[:, -1, :]
+            y_hat = self.linear(y_hat)
 
-            return y
+            return y_hat
 
         else:
             raise ValueError(f"Task: {input_data['task']} is not supported.")
