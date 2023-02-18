@@ -25,6 +25,29 @@ def seed_everything(seed: int = 42) -> None:
     torch.cuda.manual_seed(seed)
 
 
+def init_wandb(config: DictConfig) -> None:
+    """
+    Initialize a new run on Weights & Biases.
+
+    Args:
+        config (DictConfig): Configuration file.
+
+    Returns:
+        None
+    """
+    wandb.init(
+        project=config.wandb.project,
+        entity=config.wandb.entity,
+        config=OmegaConf.to_container(config, resolve=True),
+        name=config.wandb.name,
+        dir=os.path.join(BASE_DIR, 'logs')
+    )
+
+    wandb.define_metric("test_auc", summary="max")
+    wandb.define_metric("test_accuracy", summary="max")
+    wandb.define_metric("test_loss", summary="min")
+
+
 def init_run(config: DictConfig) -> str:
     """
     Initialize a new run on Weights & Biases. Set random seeds and select cuda device.
@@ -40,11 +63,7 @@ def init_run(config: DictConfig) -> str:
     # Initiate wandb run
     if config.general.log_to_wandb:
         print(f"Logging to Weights & Biases: {config.wandb.project}/{config.wandb.name}")
-        wandb.init(project=config.wandb.project,
-                   entity=config.wandb.entity,
-                   config=OmegaConf.to_container(config, resolve=True),
-                   name=config.wandb.name,
-                   dir=os.path.join(BASE_DIR, 'logs'))
+        init_wandb(config=config)
     else:
         print(f"Skipping Weights & Biases logging. Set log_to_wandb to True in config to enable it.")
 
