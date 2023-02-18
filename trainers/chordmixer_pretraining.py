@@ -105,15 +105,6 @@ class PretrainedChordMixerTrainer(Trainer):
             wandb.run.summary['test_loss'] = loss
 
     def train(self, current_epoch_nr: int) -> None:
-        """
-        Train the model for one epoch
-
-        Args:
-            current_epoch_nr (int): The current epoch number
-
-        Returns:
-            None
-        """
         self.model.train()
 
         num_batches = len(self.train_dataloader)
@@ -173,15 +164,57 @@ class PretrainedChordMixerTrainer(Trainer):
                 aucs = []
 
     def evaluate(self, current_epoch_nr) -> None:
-        pass
+        self.model.eval()
+
+        num_batches = len(self.val_dataloader)
+
+        running_loss = 0.0
+        total = 0
+
+        accuracies = []
+        aucs = []
+
+        with torch.no_grad():
+            loop = tqdm(self.val_dataloader, total=num_batches)
+            for batch in loop:
+                y, y_hat, masks = self._calculate_y_hat(batch)
+
+                # Filling unmasked positions with 0
+                token_mask = ~masks.unsqueeze(-1).expand_as(y_hat)
+                y_hat = y_hat.masked_fill(token_mask, 0)
+
+                loss = self.criterion(y_hat.transpose(1, 2), y)
+
+                running_loss += loss.item()
+                total += y.size(0)
+                current_loss = running_loss / total
+
+                target, prediction = self._calcualte_predictions(y, y_hat, masks)
+
+                current_accuracy = metrics.accuracy_score(
+                    target.detach().cpu().numpy(),
+                    prediction.detach().cpu().numpy()
+                )
+                current_auc = self._calculate_auc(y, y_hat, masks)
+
+                accuracies.append(current_accuracy)
+                aucs.append(current_auc)
+
+                loop.set_description(f'Epoch {current_epoch_nr}')
+                loop.set_postfix(val_acc=round(current_accuracy, 5),
+                                 val_loss=round(current_loss, 5))
+
+        val_auc = float(np.mean(aucs))
+        val_accuracy = float(np.mean(accuracies))
+        val_loss = running_loss / total
+
+        if self.log_to_wandb:
+            self._log_metrics(val_auc, val_accuracy, val_loss, 'val')
+            current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
+            model_name = f"{current_datetime}-VAL_AUC-{val_auc:.4f}"
+            self.save_model(model=self.model, name=model_name)
 
     def test(self) -> None:
-        """
-        Test the model
-
-        Returns:
-            None
-        """
         self.model.eval()
 
         num_batches = len(self.test_dataloader)
@@ -209,20 +242,22 @@ class PretrainedChordMixerTrainer(Trainer):
 
                 target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
-                current_accuracy = metrics.accuracy_score(target.detach().cpu().numpy(),
-                                                          prediction.detach().cpu().numpy())
+                current_accuracy = metrics.accuracy_score(
+                    target.detach().cpu().numpy(),
+                    prediction.detach().cpu().numpy()
+                )
                 current_auc = self._calculate_auc(y, y_hat, masks)
 
-                aucs.append(current_auc)
                 accuracies.append(current_accuracy)
+                aucs.append(current_auc)
 
                 loop.set_description(f'Testing')
                 loop.set_postfix(test_acc=round(current_accuracy, 5),
                                  test_loss=round(current_loss, 5))
 
-        test_loss = running_loss / total
-        test_accuracy = float(np.mean(accuracies))
         test_auc = float(np.mean(aucs))
+        test_accuracy = float(np.mean(accuracies))
+        test_loss = running_loss / total
 
         if self.log_to_wandb:
             self._log_metrics(test_auc, test_accuracy, test_loss, 'test')
