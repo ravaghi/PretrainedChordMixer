@@ -66,7 +66,7 @@ class TaxonomyClassificationDataset(Dataset):
 
     def __getitem__(self, index):
         sequence = torch.tensor(self.sequences[index])
-        label = torch.tensor(self.labels[index])
+        label = torch.tensor(self.labels[index]).float()
         return sequence, label
 
     def __len__(self):
@@ -96,7 +96,7 @@ class HumanVariantEffectPredictionDataset(Dataset):
         reference = torch.tensor(self.references[index])
         alternate = torch.tensor(self.alternates[index])
         tissue = torch.tensor(self.tissues[index])
-        label = torch.tensor(self.labels[index])
+        label = torch.tensor(self.labels[index]).float()
         return reference, alternate, tissue, label
 
     def __len__(self):
@@ -120,7 +120,7 @@ class PlantVariantEffectPredictionDataset(Dataset):
 
     def __getitem__(self, index):
         sequence = torch.tensor(self.sequences[index])
-        label = torch.tensor(self.labels[index])
+        label = torch.tensor(self.labels[index]).float()
         return sequence, label
 
     def __len__(self):
@@ -177,7 +177,8 @@ class KeGruDataLoader(Preprocessor):
             raise FileNotFoundError(f"File {path} not found.")
         return dataframe
 
-    def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame,
+    def create_taxonomy_classification_dataloader(self, 
+                                                  dataframe: pd.DataFrame,
                                                   word_vectors: KeyedVectors) -> DataLoader:
         """
         Process taxonomy classification dataset and create a dataloader
@@ -188,7 +189,7 @@ class KeGruDataLoader(Preprocessor):
         Returns:
             dataloader
         """
-        dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="KeGRU")
+        dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="KeGRU", max_sequence_length=10_000)
         dataset = TaxonomyClassificationDataset(
             dataframe=dataframe,
             embeddings=word_vectors,
