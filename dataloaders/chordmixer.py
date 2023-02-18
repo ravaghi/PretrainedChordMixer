@@ -80,7 +80,7 @@ class TaxonomyClassificationDataset(Dataset):
     def __getitem__(self, index):
         sequence, _len, _bin, label = self.dataframe.iloc[index, :]
         sequence = torch.from_numpy(sequence)
-        label = torch.tensor(label)
+        label = torch.tensor(label).float()
         return sequence, _len, _bin, label
 
     def __len__(self):
@@ -100,7 +100,7 @@ class HumanVariantEffectPredictionDataset(Dataset):
         reference = torch.tensor(self.references[index])
         alternate = torch.tensor(self.alternates[index])
         tissue = torch.tensor(self.tissues[index])
-        label = torch.tensor(self.labels[index])
+        label = torch.tensor(self.labels[index]).float()
         return reference, alternate, tissue, label
 
     def __len__(self):
@@ -112,17 +112,13 @@ class PlantVariantEffectPredictionDataset(Dataset):
 
     def __init__(self, dataframe):
         self.sequences = dataframe["sequence"].values
-        self.lengths = dataframe["len"].values
-        self.bins = dataframe["bin"].values
-        target_list = dataframe.columns.tolist()[:-3]
+        target_list = dataframe.columns.tolist()[1:]
         self.labels = dataframe[target_list].values
 
     def __getitem__(self, index):
         sequence = torch.tensor(self.sequences[index])
-        _len = torch.tensor(self.lengths[index])
-        _bin = torch.tensor(self.bins[index])
-        label = torch.tensor(self.labels[index])
-        return sequence, _len, _bin, label
+        label = torch.tensor(self.labels[index]).float()
+        return sequence, label
 
     def __len__(self):
         return len(self.sequences)

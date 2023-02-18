@@ -16,7 +16,7 @@ class TaxonomyClassificationDataset(Dataset):
     def __getitem__(self, index):
         sequence, label = self.dataframe.iloc[index, :]
         sequence = torch.tensor(sequence)
-        label = torch.tensor(label)
+        label = torch.tensor(label).float()
         return sequence, label
 
     def __len__(self):
@@ -34,7 +34,7 @@ class HumanVariantEffectPredictionDataset(Dataset):
         reference = torch.tensor(reference)
         alternate = torch.tensor(alternate)
         tissue = torch.tensor(tissue)
-        label = torch.tensor(label)
+        label = torch.tensor(label).float()
         return reference, alternate, tissue, label
 
     def __len__(self):
@@ -51,7 +51,7 @@ class PlantVariantEffectPredictionDataset(Dataset):
 
     def __getitem__(self, index):
         sequence = torch.tensor(self.sequences[index])
-        label = torch.tensor(self.labels[index])
+        label = torch.tensor(self.labels[index]).float()
         return sequence, label
 
     def __len__(self):
@@ -62,7 +62,7 @@ class XFormerDataLoader(Dataloader, Preprocessor):
     """ XFormer dataloader class """
 
     def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="Xformer")
+        dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="Xformer", max_sequence_length=25_000)
         dataset = TaxonomyClassificationDataset(dataframe=dataframe)
 
         return DataLoader(
