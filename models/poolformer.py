@@ -139,33 +139,77 @@ class PoolFormerModel(nn.Module):
 class Poolformer(nn.Module):
     def __init__(self, vocab_size, embedding_size, num_layers, const_vector_length, n_class, device_id):
         super(Poolformer, self).__init__()
+        const_vector_length = 1000
         self.device = "cuda:{}".format(device_id) if torch.cuda.is_available() else "cpu"
         self.const_vector_length = int(const_vector_length)
         self.encoder = nn.Embedding(vocab_size, embedding_size)
         self.posenc = nn.Embedding(const_vector_length, embedding_size)
         self.poolformer = PoolFormerModel(embedding_size, num_layers)
         self.final = nn.Linear(embedding_size * const_vector_length, n_class)
-        self.linear = nn.Linear(2, embedding_size, bias=True)
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
             x = input_data["x"]
-            x = self.encoder(x).squeeze(-2)
+
+            y_hat = self.encoder(x).squeeze(-2)
             positions = torch.arange(0, self.const_vector_length) \
-                .expand(x.size(0), self.const_vector_length) \
+                .expand(y_hat.size(0), self.const_vector_length) \
                 .to(self.device)
-            x = self.posenc(positions) + x
-            x = torch.permute(x, (0, 2, 1))
-            x = self.poolformer(x)
-            x = torch.permute(x, (0, 2, 1))
-            x = self.final(x.view(x.size(0), -1))
-            return x
+            y_hat = self.posenc(positions) + y_hat
+            y_hat = torch.permute(y_hat, (0, 2, 1))
+            y_hat = self.poolformer(y_hat)
+            y_hat = torch.permute(y_hat, (0, 2, 1))
+            y_hat = self.final(y_hat.view(y_hat.size(0), -1))
+            y_hat = y_hat.view(-1)
+
+            return y_hat
 
         elif input_data["task"] == "HumanVariantEffectPrediction":
-            pass
+            x1 = input_data["x1"]
+            x2 = input_data["x2"]
+            tissue = input_data["tissue"]
+
+            y_hat_1 = self.encoder(x1).squeeze(-2)
+            positions_1 = torch.arange(0, self.const_vector_length) \
+                .expand(y_hat_1.size(0), self.const_vector_length) \
+                .to(self.device)
+            y_hat_1 = self.posenc(positions_1) + y_hat_1
+            y_hat_1 = torch.permute(y_hat_1, (0, 2, 1))
+            y_hat_1 = self.poolformer(y_hat_1)
+            y_hat_1 = torch.permute(y_hat_1, (0, 2, 1))
+
+            y_hat_2 = self.encoder(x2).squeeze(-2)
+            positions_2 = torch.arange(0, self.const_vector_length) \
+                .expand(y_hat_2.size(0), self.const_vector_length) \
+                .to(self.device)
+            y_hat_2 = self.posenc(positions_2) + y_hat_2
+            y_hat_2 = torch.permute(y_hat_2, (0, 2, 1))
+            y_hat_2 = self.poolformer(y_hat_2)
+            y_hat_2 = torch.permute(y_hat_2, (0, 2, 1))
+
+            y_hat = y_hat_1 - y_hat_2
+            y_hat = self.final(y_hat.view(y_hat.size(0), -1))
+
+            tissue = tissue.unsqueeze(0).t()
+            y_hat = torch.gather(y_hat, 1, tissue)
+            y_hat = y_hat.reshape(-1)
+
+            return y_hat
 
         elif input_data["task"] == "PlantVariantEffectPrediction":
-            pass
+            x = input_data["x"]
+
+            y_hat = self.encoder(x).squeeze(-2)
+            positions = torch.arange(0, self.const_vector_length) \
+                .expand(y_hat.size(0), self.const_vector_length) \
+                .to(self.device)
+            y_hat = self.posenc(positions) + y_hat
+            y_hat = torch.permute(y_hat, (0, 2, 1))
+            y_hat = self.poolformer(y_hat)
+            y_hat = torch.permute(y_hat, (0, 2, 1))
+            y_hat = self.final(y_hat.view(y_hat.size(0), -1))
+
+            return y_hat
 
         else:
             raise ValueError(f"Task: {input_data['task']} is not supported.")

@@ -21,51 +21,64 @@ class Linformer(nn.Module):
         )
         self.const_vector_length = const_vector_length
         self.final = nn.Linear(embedding_size * const_vector_length, n_class)
-        self.linear = nn.Linear(2, embedding_size, bias=True)
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
             x = input_data["x"]
-            x = self.encoder(x)
-            positions = torch.arange(0, self.const_vector_length).expand(x.size(0), self.const_vector_length).to(
-                self.device)
-            x = self.posenc(positions) + x
-            x = self.linformermodel(x)
-            x = self.final(x.view(x.size(0), -1))
-            return x
+
+            y_hat = self.encoder(x)
+            positions = torch.arange(0, self.const_vector_length) \
+                .expand(y_hat.size(0), self.const_vector_length) \
+                .to(self.device)
+            y_hat = self.posenc(positions) + y_hat
+            y_hat = self.linformermodel(y_hat)
+            y_hat = self.final(y_hat.view(y_hat.size(0), -1))
+            y_hat = y_hat.view(-1)
+
+            return y_hat
 
         elif input_data["task"] == "HumanVariantEffectPrediction":
             x1 = input_data["x1"]
             x2 = input_data["x2"]
             tissue = input_data["tissue"]
 
-            x1 = self.encoder(x1)
-            positions1 = torch.arange(0, self.const_vector_length).expand(x1.size(0), self.const_vector_length).to(
-                self.device)
-            x1 = self.posenc(positions1) + x1
-            x1 = self.linformermodel(x1)
-            x1 = x1.view(x1.size(0), -1)
+            y_hat_1 = self.encoder(x1)
+            positions1 = torch.arange(0, self.const_vector_length) \
+                .expand(y_hat_1.size(0), self.const_vector_length) \
+                .to(self.device)
+            y_hat_1 = self.posenc(positions1) + y_hat_1
+            y_hat_1 = self.linformermodel(y_hat_1)
+            y_hat_1 = y_hat_1.view(y_hat_1.size(0), -1)
 
-            x2 = self.encoder(x2)
-            positions2 = torch.arange(0, self.const_vector_length).expand(x2.size(0), self.const_vector_length).to(
-                self.device)
-            x2 = self.posenc(positions2) + x2
-            x2 = self.linformermodel(x2)
-            x2 = x2.view(x2.size(0), -1)
+            y_hat_2 = self.encoder(x2)
+            positions2 = torch.arange(0, self.const_vector_length) \
+                .expand(y_hat_2.size(0), self.const_vector_length) \
+                .to(self.device)
+            y_hat_2 = self.posenc(positions2) + y_hat_2
+            y_hat_2 = self.linformermodel(y_hat_2)
+            y_hat_2 = y_hat_2.view(y_hat_2.size(0), -1)
 
-            y = x2 - x1
-            y = self.final(y)
+            y_hat = y_hat_2 - y_hat_1
+            y_hat = self.final(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
-            y = torch.gather(y, 1, tissue)
-            y = y.reshape(-1)
+            y_hat = torch.gather(y_hat, 1, tissue)
+            y_hat = y_hat.reshape(-1)
 
-            return y
-
-
+            return y_hat
 
         elif input_data["task"] == "PlantVariantEffectPrediction":
-            pass
+            x = input_data["x"]
+
+            y_hat = self.encoder(x)
+            positions = torch.arange(0, self.const_vector_length) \
+                .expand(y_hat.size(0), self.const_vector_length) \
+                .to(self.device)
+            y_hat = self.posenc(positions) + y_hat
+            y_hat = self.linformermodel(y_hat)
+            y_hat = self.final(y_hat.view(y_hat.size(0), -1))
+
+            return y_hat
 
         else:
             raise ValueError(f"Task: {input_data['task']} is not supported.")

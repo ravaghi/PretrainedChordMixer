@@ -153,21 +153,22 @@ class ChordMixer(nn.Module):
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
-            data = input_data["x"]
+            x = input_data["x"]
             lengths = input_data["seq_len"]
 
             n_layers = math.ceil(np.log2(lengths[0]))
 
-            data = self.embedding(data)
+            y_hat = self.embedding(x)
             for layer in range(n_layers):
-                data = self.chordmixer_blocks[layer](data, lengths)
+                y_hat = self.chordmixer_blocks[layer](y_hat, lengths)
 
-            data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
-            data = torch.stack(data)
+            y_hat = [torch.mean(t, dim=0) for t in torch.split(y_hat, lengths)]
+            y_hat = torch.stack(y_hat)
 
-            data = self.final(data)
+            y_hat = self.final(y_hat)
+            y_hat = y_hat.view(-1)
 
-            return data
+            return y_hat
 
         elif input_data["task"] == "HumanVariantEffectPrediction":
             x1 = input_data["x1"]
@@ -176,43 +177,39 @@ class ChordMixer(nn.Module):
 
             n_layers = self.max_n_layers
 
-            y1 = self.embedding(x1)
+            y_hat_1 = self.embedding(x1)
             for layer in range(n_layers):
-                y1 = self.chordmixer_blocks[layer](y1, None)
+                y_hat_1 = self.chordmixer_blocks[layer](y_hat_1, None)
 
-            y2 = self.embedding(x2)
+            y_hat_2 = self.embedding(x2)
             for layer in range(n_layers):
-                y2 = self.chordmixer_blocks[layer](y2, None)
+                y_hat_2 = self.chordmixer_blocks[layer](y_hat_2, None)
 
-            y = y1 - y2
-            data = y
-            data = torch.mean(data, dim=1)
-            data = self.final(data)
+            y_hat = y_hat_1 - y_hat_2
+            y_hat = torch.mean(y_hat, dim=1)
+            y_hat = self.final(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
-            data = torch.gather(data, 1, tissue)
-            data = data.reshape(-1)
-            data = torch.sigmoid(data)
-
-            return data
+            y_hat = torch.gather(y_hat, 1, tissue)
+            y_hat = y_hat.reshape(-1)
+            
+            return y_hat
 
         elif input_data["task"] == "PlantVariantEffectPrediction":
-            data = input_data["x"]
+            x = input_data["x"]
 
             n_layers = self.max_n_layers
 
-            data = self.embedding(data)
+            y_hat = self.embedding(x)
             for layer in range(n_layers):
-                data = self.chordmixer_blocks[layer](data, None)
+                y_hat = self.chordmixer_blocks[layer](y_hat, None)
 
-            data = data[:, 400:600, :]
+            y_hat = y_hat[:, 400:600, :]
 
-            data = torch.mean(data, dim=1)
-            data = self.final(data)
+            y_hat = torch.mean(y_hat, dim=1)
+            y_hat = self.final(y_hat)
 
-            data = torch.sigmoid(data)
-
-            return data
+            return y_hat
 
         else:
             raise ValueError(f"Task: {input_data['task']} is not supported.")
