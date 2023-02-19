@@ -7,14 +7,15 @@ from .chordmixer_pretraining import ChordMixerEncoder
 class FineTunedChordMixer(nn.Module):
     """Fine-tuned ChordMixer"""
 
-    def __init__(self, freeze, variable_length, n_class):
+    def __init__(self, hidden_size, freeze, variable_length, n_class):
         super(FineTunedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder.from_pretrained(
-            model="/cluster/home/mahdih/PDT/logs/checkpoints/PretrainedChordMixer/16Feb2023_055748-ChordMixerPretraining-0.8016.pt.pt",
+            model="/cluster/home/mahdih/PretrainedChordMixer/models/PCM.pt",
             freeze=freeze,
             variable_length=variable_length
         )
-        self.classifier = nn.Linear(self.encoder.prelinear_out_features, n_class)
+        self.hidden = nn.Linear(self.encoder.prelinear_out_features, hidden_size)
+        self.classifier = nn.Linear(hidden_size, n_class)
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
@@ -22,6 +23,7 @@ class FineTunedChordMixer(nn.Module):
             lengths = input_data["seq_len"]
 
             y_hat = self.encoder(x, lengths)
+            y_hat = self.hidden(y_hat)
             y_hat = self.classifier(y_hat)
             y_hat = y_hat.view(-1)
 
