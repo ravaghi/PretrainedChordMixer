@@ -1,0 +1,26 @@
+program: train.py
+method: bayes
+metric:
+  goal: maximize
+  name: test_auc
+
+parameters:
+  wandb.name:
+    value: ""
+  general.batch_size:
+    max: 64
+    min: 2
+    q: 2
+    distribution: q_uniform
+  optimizer.lr:
+    max: 0.001
+    min: 0.000001
+    distribution: uniform
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - --config-name=chordmixer_finetuning
+  - dataset=taxonomy_classification_cvl
+  - ${args_no_hyphens}
