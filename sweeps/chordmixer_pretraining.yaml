@@ -5,26 +5,68 @@ metric:
   name: test_auc
 
 parameters:
+  general.batch_size:
+    max: 64
+    min: 2
+    q: 2
+    distribution: q_uniform
   wandb.name:
     value: ""
   dataloader.mask_ratio:
-    max: 0.50
+    max: 0.95
     min: 0.05
     q: 0.05
     distribution: q_uniform
   dataloader.sequence_length:
     max: 10_000
-    min: 1000
-    q: 1000
+    min: 500
+    q: 500
     distribution: q_uniform
   optimizer.lr:
     max: 0.001
     min: 0.000001
     distribution: uniform
+  model.encoder_track_size:
+    max: 32
+    min: 4
+    q: 2
+    distribution: q_uniform
+  model.decoder_track_size:
+    max: 32
+    min: 4
+    q: 2
+    distribution: q_uniform
+  model.encoder_prelinear_out_features:
+    max: 1000
+    min: 50
+    q: 10
+    distribution: q_uniform
+  model.decoder_prelinear_out_features:
+    max: 1000
+    min: 50
+    q: 10
+    distribution: q_uniform
+  model.hidden_size:
+    max: 1000
+    min: 50
+    q: 10
+    distribution: q_uniform
+  model.mlp_dropout:
+    max: 0.50
+    min: 0.00
+    q: 0.05
+    distribution: q_uniform
+  model.layer_dropout:
+    max: 0.50
+    min: 0.00
+    q: 0.05
+    distribution: q_uniform
+
 
 command:
   - ${env}
   - python
   - ${program}
   - --config-name=chordmixer_pretraining
+  - general.max_epochs=10
   - ${args_no_hyphens}
