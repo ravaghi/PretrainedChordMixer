@@ -11,9 +11,7 @@ from .trainer.trainer import Trainer
 
 
 class PretrainedChordMixerTrainer(Trainer):
-    def __init__(self, log_interval, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.log_interval = log_interval
+    """ Trainer for the pretrained ChordMixer model """
 
     def _calculate_y_hat(self, batch: Tuple[Tensor, Tensor, Tensor]) -> Tuple[Tensor, Tensor, Tensor]:
         """
@@ -108,6 +106,7 @@ class PretrainedChordMixerTrainer(Trainer):
         self.model.train()
 
         num_batches = len(self.train_dataloader)
+        log_interval = num_batches // 100
 
         running_loss = 0.0
         total = 0
@@ -151,7 +150,7 @@ class PretrainedChordMixerTrainer(Trainer):
             loop.set_postfix(train_acc=round(current_accuracy, 5),
                              train_loss=round(current_loss, 5))
 
-            if (idx + 1) % self.log_interval == 0 and self.log_to_wandb:
+            if (idx + 1) % log_interval == 0 and self.log_to_wandb:
                 train_auc = float(np.mean(aucs))
                 train_accuracy = float(np.mean(accuracies))
                 train_loss = running_loss / total

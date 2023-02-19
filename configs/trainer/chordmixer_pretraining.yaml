@@ -1,4 +1,3 @@
 _target_: trainers.chordmixer_pretraining.PretrainedChordMixerTrainer
-log_interval: ${general.log_interval}
 log_to_wandb: ${general.log_to_wandb}
 
