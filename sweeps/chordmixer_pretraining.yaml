@@ -46,22 +46,6 @@ parameters:
     min: 50
     q: 10
     distribution: q_uniform
-  model.hidden_size:
-    max: 1000
-    min: 50
-    q: 10
-    distribution: q_uniform
-  model.mlp_dropout:
-    max: 0.50
-    min: 0.00
-    q: 0.05
-    distribution: q_uniform
-  model.layer_dropout:
-    max: 0.50
-    min: 0.00
-    q: 0.05
-    distribution: q_uniform
-
 
 command:
   - ${env}
