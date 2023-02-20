@@ -38,7 +38,8 @@ class FineTunedChordMixer(nn.Module):
             y_hat_2 = self.encoder(x2)
             
             y_hat = y_hat_1 - y_hat_2
-            y_hat = torch.mean(y_hat, dim=1)           
+            y_hat = torch.mean(y_hat, dim=1)    
+            y_hat = self.hidden(y_hat)       
             y_hat = self.classifier(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
@@ -51,7 +52,11 @@ class FineTunedChordMixer(nn.Module):
             x = input_data["x"].float()
 
             y_hat = self.encoder(x)
+
+            y_hat = y_hat[:, 400:600, :]
+            
             y_hat = torch.mean(y_hat, dim=1)
+            y_hat = self.hidden(y_hat)
             y_hat = self.classifier(y_hat)
 
             return y_hat
