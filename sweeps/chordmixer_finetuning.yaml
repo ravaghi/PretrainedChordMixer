@@ -1,6 +1,6 @@
 program: train.py
 method: bayes
-run_cap: 50
+run_cap: 100
 metric:
   goal: maximize
   name: test_auc
