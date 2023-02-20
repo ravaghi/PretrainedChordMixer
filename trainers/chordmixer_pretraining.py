@@ -208,9 +208,8 @@ class PretrainedChordMixerTrainer(Trainer):
         val_loss = running_loss / total
 
         if self.log_to_wandb:
-            self._log_metrics(val_auc, val_accuracy, val_loss, 'val')
             current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
-            model_name = f"{current_datetime}-VAL_AUC-{val_auc:.4f}"
+            model_name = f"{current_datetime}-ValAuc-{val_auc:.4f}-ValAcc-{val_accuracy:.4f}"
             self.save_model(model=self.model, name=model_name)
 
     def test(self) -> None:
@@ -261,5 +260,5 @@ class PretrainedChordMixerTrainer(Trainer):
         if self.log_to_wandb:
             self._log_metrics(test_auc, test_accuracy, test_loss, 'test')
             current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
-            model_name = f"{current_datetime}-AUC-{test_auc:.4f}"
+            model_name = f"{current_datetime}-TestAuc-{test_auc:.4f}-TestAcc-{test_accuracy:.4f}"
             self.save_model(model=self.model, name=model_name)
