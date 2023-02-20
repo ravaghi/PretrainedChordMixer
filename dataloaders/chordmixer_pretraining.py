@@ -113,24 +113,21 @@ class PretrainedChordMixerDataLoader:
             HG38Dataset(sequences, vep_data, 800_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
-            pin_memory=True, 
-            num_workers=4
+            pin_memory=True
         )
 
         val_dataloader = DataLoader(
             HG38Dataset(sequences, vep_data, 100_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
-            pin_memory=True, 
-            num_workers=4
+            pin_memory=True
         )
 
         test_dataloader = DataLoader(
             HG38Dataset(sequences, vep_data, 100_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
-            pin_memory=True, 
-            num_workers=4
+            pin_memory=True
         )
 
         return train_dataloader, val_dataloader, test_dataloader
