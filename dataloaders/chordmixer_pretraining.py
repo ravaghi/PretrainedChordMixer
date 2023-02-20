@@ -5,11 +5,8 @@ from tqdm import tqdm
 from typing import Tuple
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
-from torch import Tensor
 import random
 import pandas as pd
-import copy
-import numpy as np
 
 class HG38Dataset(Dataset):
     _DNA_BASE_DICT = {
@@ -54,6 +51,9 @@ class HG38Dataset(Dataset):
         right_position = left_position + self.sequence_length
 
         sequence = sequence[left_position:right_position]
+        if sequence == ("N" * self.sequence_length):
+            return self.__getitem__(index)
+
         sequence, mask, label = self._get_sequence_mask_label(sequence)
 
         return sequence.float(), mask, label.long()
@@ -110,27 +110,27 @@ class PretrainedChordMixerDataLoader:
         sequences = {chromosome:hg38_dict[chromosome].seq.upper() for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 80_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, vep_data, 800_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True, 
-            num_workers=1
+            num_workers=4
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 10_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, vep_data, 100_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True, 
-            num_workers=1
+            num_workers=4
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 10_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, vep_data, 100_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True, 
-            num_workers=1
+            num_workers=4
         )
 
         return train_dataloader, val_dataloader, test_dataloader
