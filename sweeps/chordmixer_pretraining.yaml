@@ -52,5 +52,4 @@ command:
   - python
   - ${program}
   - --config-name=chordmixer_pretraining
-  - general.max_epochs=10
   - ${args_no_hyphens}
