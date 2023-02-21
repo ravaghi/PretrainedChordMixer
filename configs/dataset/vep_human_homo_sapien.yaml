@@ -5,6 +5,6 @@ train_data: homo_sapien_train.parquet
 val_data: homo_sapien_val.parquet
 test_data: homo_sapien_test.parquet
 variable_length: false
-max_seq_len: 2000
+max_seq_len: 1000
 vocab_size: 20
 n_class: 49
