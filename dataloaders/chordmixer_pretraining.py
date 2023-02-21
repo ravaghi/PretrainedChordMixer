@@ -110,21 +110,21 @@ class PretrainedChordMixerDataLoader:
         sequences = {chromosome:hg38_dict[chromosome].seq.upper() for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 800_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, vep_data, 160_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 100_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, vep_data, 20_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 100_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, vep_data, 20_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
