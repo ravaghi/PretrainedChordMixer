@@ -6,14 +6,14 @@ metric:
 
 parameters:
   general.batch_size:
-    max: 64
+    max: 32
     min: 2
     q: 2
     distribution: q_uniform
   wandb.name:
     value: ""
   dataloader.mask_ratio:
-    max: 0.95
+    max: 0.50
     min: 0.05
     q: 0.05
     distribution: q_uniform
@@ -27,15 +27,9 @@ parameters:
     min: 0.000001
     distribution: uniform
   model.encoder_track_size:
-    max: 32
-    min: 4
-    q: 2
-    distribution: q_uniform
+    values: [16, 32]
   model.decoder_track_size:
-    max: 32
-    min: 4
-    q: 2
-    distribution: q_uniform
+    values: [4, 8]
   model.encoder_prelinear_out_features:
     max: 1000
     min: 50
