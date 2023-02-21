@@ -7,8 +7,8 @@ metric:
 parameters:
   general.batch_size:
     max: 32
-    min: 2
-    q: 2
+    min: 4
+    q: 4
     distribution: q_uniform
   wandb.name:
     value: ""
@@ -19,26 +19,24 @@ parameters:
     distribution: q_uniform
   dataloader.sequence_length:
     max: 10_000
-    min: 500
-    q: 500
+    min: 1000
+    q: 1000
     distribution: q_uniform
   optimizer.lr:
     max: 0.001
     min: 0.000001
     distribution: uniform
-  model.encoder_track_size:
-    values: [16, 32]
   model.decoder_track_size:
     values: [4, 8]
   model.encoder_prelinear_out_features:
     max: 1000
     min: 50
-    q: 10
+    q: 50
     distribution: q_uniform
   model.decoder_prelinear_out_features:
     max: 1000
     min: 50
-    q: 10
+    q: 50
     distribution: q_uniform
 
 command:
@@ -46,4 +44,5 @@ command:
   - python
   - ${program}
   - --config-name=chordmixer_pretraining
+  - general.max_epochs=10
   - ${args_no_hyphens}
