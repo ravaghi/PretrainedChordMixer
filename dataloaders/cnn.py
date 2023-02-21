@@ -30,7 +30,7 @@ class CNNDataLoader(Dataloader, Preprocessor):
     def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
         dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="CNN", max_sequence_length=25_000)
 
-        sequences = torch.tensor(np.array(dataframe.sequence.values.tolist(), dtype=np.float32))
+        sequences = torch.tensor(np.array(dataframe.sequence.values.tolist(), dtype=np.int64))
         labels = torch.tensor(dataframe.label.values).float()
         dataset = TensorDataset(sequences, labels)
 
@@ -43,8 +43,8 @@ class CNNDataLoader(Dataloader, Preprocessor):
     def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
         dataframe = self.process_human_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="CNN")
 
-        references = torch.tensor(np.array(dataframe.reference.values.tolist(), dtype=np.float32))
-        alternatives = torch.tensor(np.array(dataframe.alternate.values.tolist(), dtype=np.float32))
+        references = torch.tensor(np.array(dataframe.reference.values.tolist(), dtype=np.int64))
+        alternatives = torch.tensor(np.array(dataframe.alternate.values.tolist(), dtype=np.int64))
         tissues = torch.tensor(dataframe.tissue.values)
         labels = torch.tensor(dataframe.label.values).float()
         dataset = TensorDataset(references, alternatives, tissues, labels)
