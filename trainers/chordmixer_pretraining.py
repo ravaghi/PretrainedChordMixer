@@ -67,7 +67,7 @@ class PretrainedChordMixerTrainer(Trainer):
             target = y.masked_select(mask).detach().cpu().numpy()
             # need to take the inverse since metrics.roc_auc_score expects probabilities, but we have logsoftmax values
             prediction = torch.exp(y_hat[mask == True]).detach().cpu().numpy()
-            return metrics.roc_auc_score(target, prediction, multi_class='ovr')
+            return metrics.roc_auc_score(target, prediction, multi_class='ovo')
         except ValueError:
             return 0.5
 
