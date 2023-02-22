@@ -45,6 +45,17 @@ class Trainer(ABC):
         Returns:
             None
         """
+
+        def _parse_model_name():
+            dir_list = self.save_dir.split("/")[7:]
+            model_name = ""
+            for index, dir in enumerate(dir_list):
+                if index == (len(dir_list) - 1):
+                    model_name += dir
+                else:
+                    model_name += dir + "-"
+            return model_name
+
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
@@ -55,7 +66,7 @@ class Trainer(ABC):
 
         if self.log_to_wandb:
             # Save model to wandb
-            artifact = wandb.Artifact(type(model).__name__, type='model')
+            artifact = wandb.Artifact(_parse_model_name(), type='model')
             artifact.add_file(model_path)
             wandb.run.log_artifact(artifact)
 
