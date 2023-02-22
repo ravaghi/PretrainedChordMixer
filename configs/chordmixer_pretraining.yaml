@@ -15,7 +15,7 @@ dataset:
 
 optimizer:
   _target_: torch.optim.Adam
-  lr: 0.00015
+  lr: 0.0003
 
 wandb: 
   entity: ravaghi
