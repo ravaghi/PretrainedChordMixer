@@ -13,10 +13,9 @@ class HG38Dataset(Dataset):
         'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4
     }
 
-    def __init__(self, sequences, vep_data, dataset_length, sequence_length, mask_ratio):
+    def __init__(self, sequences, dataset_size, sequence_length, mask_ratio):
         self.sequences = sequences
-        self.vep_data = vep_data
-        self.dataset_length = dataset_length
+        self.dataset_size = dataset_size
         self.sequence_length = sequence_length
         self.mask_ratio = mask_ratio
 
@@ -42,8 +41,8 @@ class HG38Dataset(Dataset):
 
 
     def __getitem__(self, index):
-        random_id = random.randint(0, len(self.vep_data)-1)
-        chromosome = self.vep_data.iloc[random_id]["chr"]
+        random_id = random.randint(0, len(self.sequences)-1)
+        chromosome = list(self.sequences.keys())[random_id]
         sequence = self.sequences[chromosome]
         
         chromosome_length = len(sequence)
@@ -59,7 +58,7 @@ class HG38Dataset(Dataset):
         return sequence.float(), mask, label.long()
 
     def __len__(self):
-        return self.dataset_length
+        return self.dataset_size
 
 
 class PretrainedChordMixerDataLoader:
@@ -100,31 +99,25 @@ class PretrainedChordMixerDataLoader:
         Returns:
             Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, validation, and test dataloaders
         """
-        train_data = pd.read_csv(os.path.join(self.data_path, self.train_dataset))
-        val_data = pd.read_csv(os.path.join(self.data_path, self.val_dataset))
-        test_data = pd.read_csv(os.path.join(self.data_path, self.test_dataset))
-        vep_data = pd.concat([train_data, val_data, test_data])
-
-
         hg38_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(self.data_path, self.dataset_name), "fasta"))
         sequences = {chromosome:hg38_dict[chromosome].seq.upper() for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 80_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, 80_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 10_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, 10_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, vep_data, 10_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, 10_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
