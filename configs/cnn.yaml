@@ -8,8 +8,10 @@ defaults:
   - wandb: wandb
 
 optimizer:
-  _target_: torch.optim.Adam
+  _target_: torch.optim.SGD
   lr: 0.001
+  weight_decay: 1e-6
+  momentum: 0.9
 
 general:
   name: CNN
@@ -17,7 +19,7 @@ general:
   device_id: 0
   batch_size: 50
   max_epochs: 30
-  log_to_wandb: false
+  log_to_wandb: true
   use_multi_gpu: false
   save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}/${dataset.type}/${dataset.name}
 
