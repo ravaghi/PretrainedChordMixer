@@ -173,10 +173,10 @@ class Preprocessor(ABC):
         Raises:
             ValueError: if model is not supported
         """
-        if model_name in ["ChordMixer", "CNN", "Xformer"]:
+        if model_name in ["ChordMixer", "Xformer"]:
             dataframe = self.tokenize(dataframe, "sequence")
 
-        elif model_name == "FineTunedChordMixer":
+        elif model_name in ["CNN", "FineTunedChordMixer"]:
             dataframe = self.one_hot_encode(dataframe, "sequence")
         
         else:
