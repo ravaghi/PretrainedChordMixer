@@ -1,5 +1,3 @@
 _target_: models.cnn.CNN
-vocab_size: 20
-feature_size: 2
 n_class: ${dataset.n_class}
 dataset_type: ${dataset.type}
