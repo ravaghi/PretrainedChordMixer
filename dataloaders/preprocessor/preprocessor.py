@@ -106,7 +106,12 @@ class Preprocessor(ABC):
             dataframe = self.pad_or_truncate(dataframe, max_sequence_length)
             dataframe = dataframe[["sequence", "label"]]
 
-        elif model_name in ["CNN", "Xformer"]:
+        elif model_name == "CNN":
+            dataframe = self.pad_or_truncate(dataframe, max_sequence_length)
+            dataframe = self.one_hot_encode(dataframe, "sequence")
+            dataframe = dataframe[["sequence", "label"]]
+
+        elif model_name == "Xformer":
             dataframe = self.pad_or_truncate(dataframe, max_sequence_length)
             dataframe = self.tokenize(dataframe, "sequence")
             dataframe = dataframe[["sequence", "label"]]
@@ -138,7 +143,7 @@ class Preprocessor(ABC):
         Raises:
             ValueError: if model is not supported
         """
-        if model_name in ["ChordMixer", "CNN", "Xformer"]:
+        if model_name in ["ChordMixer", "Xformer"]:
             dataframe = self.tokenize(dataframe, "reference")
             dataframe = self.tokenize(dataframe, "alternate")
             dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
@@ -146,7 +151,7 @@ class Preprocessor(ABC):
         elif model_name == "KeGRU":
             dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
 
-        elif model_name == "FineTunedChordMixer":
+        elif model_name in ["CNN", "FineTunedChordMixer"]:
             dataframe = self.one_hot_encode(dataframe, "reference")
             dataframe = self.one_hot_encode(dataframe, "alternate")
             dataframe = dataframe[["reference", "alternate", "tissue", "label"]]
