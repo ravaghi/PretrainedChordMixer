@@ -4,12 +4,17 @@ from nystrom_attention import Nystromformer as NystromformerModel
 
 
 class Nystromformer(nn.Module):
-    def __init__(self, vocab_size, embedding_size, num_heads, num_layers, const_vector_length, n_class, device_id):
+    def __init__(self, vocab_size, embedding_size, num_heads, num_layers, dataset_type, n_class, device_id):
         super(Nystromformer, self).__init__()
-        const_vector_length = 1000
+        
+        if dataset_type == "TaxonomyClassification":
+            self.sequence_length = 25000
+        else:
+            self.sequence_length = 1000
+
         self.device = f"cuda:{device_id}" if torch.cuda.is_available() else "cpu"
         self.encoder = nn.Embedding(vocab_size, embedding_size)
-        self.posenc = nn.Embedding(const_vector_length, embedding_size)
+        self.posenc = nn.Embedding(self.sequence_length, embedding_size)
         self.nystromformermodel = NystromformerModel(
             dim=embedding_size,
             dim_head=int(embedding_size / num_heads),
@@ -18,16 +23,15 @@ class Nystromformer(nn.Module):
             num_landmarks=256,  # number of landmarks
             pinv_iterations=6
         )
-        self.const_vector_length = const_vector_length
-        self.final = nn.Linear(embedding_size * const_vector_length, n_class)
+        self.final = nn.Linear(embedding_size * self.sequence_length, n_class)
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
             x = input_data["x"]
 
             y_hat = self.encoder(x)
-            positions = torch.arange(0, self.const_vector_length) \
-                .expand(y_hat.size(0), self.const_vector_length) \
+            positions = torch.arange(0, self.sequence_length) \
+                .expand(y_hat.size(0), self.sequence_length) \
                 .to(self.device)
             y_hat = self.posenc(positions) + y_hat
             y_hat = self.nystromformermodel(y_hat)
@@ -42,15 +46,15 @@ class Nystromformer(nn.Module):
             tissue = input_data["tissue"]
 
             y_hat_1 = self.encoder(x1)
-            positions1 = torch.arange(0, self.const_vector_length) \
-                .expand(y_hat_1.size(0), self.const_vector_length) \
+            positions1 = torch.arange(0, self.sequence_length) \
+                .expand(y_hat_1.size(0), self.sequence_length) \
                 .to(self.device)
             y_hat_1 = self.posenc(positions1) + y_hat_1
             y_hat_1 = self.nystromformermodel(y_hat_1)
 
             y_hat_2 = self.encoder(x2)
-            positions2 = torch.arange(0, self.const_vector_length) \
-                .expand(y_hat_2.size(0), self.const_vector_length) \
+            positions2 = torch.arange(0, self.sequence_length) \
+                .expand(y_hat_2.size(0), self.sequence_length) \
                 .to(self.device)
             y_hat_2 = self.posenc(positions2) + y_hat_2
             y_hat_2 = self.nystromformermodel(y_hat_2)
@@ -69,8 +73,8 @@ class Nystromformer(nn.Module):
             x = input_data["x"]
 
             y_hat = self.encoder(x)
-            positions = torch.arange(0, self.const_vector_length) \
-                .expand(y_hat.size(0), self.const_vector_length) \
+            positions = torch.arange(0, self.sequence_length) \
+                .expand(y_hat.size(0), self.sequence_length) \
                 .to(self.device)
             y_hat = self.posenc(positions) + y_hat
             y_hat = self.nystromformermodel(y_hat)

@@ -137,23 +137,27 @@ class PoolFormerModel(nn.Module):
 
 
 class Poolformer(nn.Module):
-    def __init__(self, vocab_size, embedding_size, num_layers, const_vector_length, n_class, device_id):
+    def __init__(self, vocab_size, embedding_size, num_layers, dataset_type, n_class, device_id):
         super(Poolformer, self).__init__()
-        const_vector_length = 1000
+        
+        if dataset_type == "TaxonomyClassification":
+            self.sequence_length = 25000
+        else:
+            self.sequence_length = 1000
+
         self.device = "cuda:{}".format(device_id) if torch.cuda.is_available() else "cpu"
-        self.const_vector_length = int(const_vector_length)
         self.encoder = nn.Embedding(vocab_size, embedding_size)
-        self.posenc = nn.Embedding(const_vector_length, embedding_size)
+        self.posenc = nn.Embedding(self.sequence_length, embedding_size)
         self.poolformer = PoolFormerModel(embedding_size, num_layers)
-        self.final = nn.Linear(embedding_size * const_vector_length, n_class)
+        self.final = nn.Linear(embedding_size * self.sequence_length, n_class)
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
             x = input_data["x"]
 
             y_hat = self.encoder(x).squeeze(-2)
-            positions = torch.arange(0, self.const_vector_length) \
-                .expand(y_hat.size(0), self.const_vector_length) \
+            positions = torch.arange(0, self.sequence_length) \
+                .expand(y_hat.size(0), self.sequence_length) \
                 .to(self.device)
             y_hat = self.posenc(positions) + y_hat
             y_hat = torch.permute(y_hat, (0, 2, 1))
@@ -170,8 +174,8 @@ class Poolformer(nn.Module):
             tissue = input_data["tissue"]
 
             y_hat_1 = self.encoder(x1).squeeze(-2)
-            positions_1 = torch.arange(0, self.const_vector_length) \
-                .expand(y_hat_1.size(0), self.const_vector_length) \
+            positions_1 = torch.arange(0, self.sequence_length) \
+                .expand(y_hat_1.size(0), self.sequence_length) \
                 .to(self.device)
             y_hat_1 = self.posenc(positions_1) + y_hat_1
             y_hat_1 = torch.permute(y_hat_1, (0, 2, 1))
@@ -179,8 +183,8 @@ class Poolformer(nn.Module):
             y_hat_1 = torch.permute(y_hat_1, (0, 2, 1))
 
             y_hat_2 = self.encoder(x2).squeeze(-2)
-            positions_2 = torch.arange(0, self.const_vector_length) \
-                .expand(y_hat_2.size(0), self.const_vector_length) \
+            positions_2 = torch.arange(0, self.sequence_length) \
+                .expand(y_hat_2.size(0), self.sequence_length) \
                 .to(self.device)
             y_hat_2 = self.posenc(positions_2) + y_hat_2
             y_hat_2 = torch.permute(y_hat_2, (0, 2, 1))
@@ -200,8 +204,8 @@ class Poolformer(nn.Module):
             x = input_data["x"]
 
             y_hat = self.encoder(x).squeeze(-2)
-            positions = torch.arange(0, self.const_vector_length) \
-                .expand(y_hat.size(0), self.const_vector_length) \
+            positions = torch.arange(0, self.sequence_length) \
+                .expand(y_hat.size(0), self.sequence_length) \
                 .to(self.device)
             y_hat = self.posenc(positions) + y_hat
             y_hat = torch.permute(y_hat, (0, 2, 1))

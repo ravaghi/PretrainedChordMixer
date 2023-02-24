@@ -3,6 +3,6 @@ vocab_size: ${dataset.vocab_size}
 embedding_size: 128
 num_heads: 2
 num_layers: 1
-const_vector_length: 25000
+dataset_type: ${dataset.type}
 n_class: ${dataset.n_class}
 device_id: ${general.device_id}
