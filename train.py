@@ -2,6 +2,7 @@ import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 from torch.nn import DataParallel
+import torch
 
 from utils.utils import init_run, print_model_params
 
@@ -30,6 +31,26 @@ def main(config: DictConfig) -> None:
     )
     train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
 
+    # scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    #     optimizer, 
+    #     max_lr=0.0006, 
+    #     steps_per_epoch=len(train_dataloader), 
+    #     epochs=config.general.max_epochs, 
+    #     anneal_strategy='cos'
+    # )
+
+    # scheduler = torch.optim.lr_scheduler.LinearLR(
+    #     optimizer, 
+    #     start_factor=0.3, # 0.0007 -> 0.00021
+    #     total_iters=30000
+    # )
+
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer,
+        T_max=len(train_dataloader) * config.general.max_epochs,
+        eta_min=0.00005
+    )
+
     trainer = instantiate(
         config=config.trainer,
         device=device,
@@ -41,7 +62,8 @@ def main(config: DictConfig) -> None:
         val_dataloader=val_dataloader,
         test_dataloader=test_dataloader,
         log_to_wandb=config.general.log_to_wandb,
-        save_dir=config.general.save_dir
+        save_dir=config.general.save_dir,
+        scheduler=scheduler
     )
 
     for epoch in range(1, config.general.max_epochs + 1):

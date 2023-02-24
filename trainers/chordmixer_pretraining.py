@@ -154,6 +154,9 @@ class PretrainedChordMixerTrainer(Trainer):
             loop.set_description(f'Epoch {current_epoch_nr}')
             loop.set_postfix(train_acc=round(current_accuracy, 5),
                              train_loss=round(current_loss, 5))
+            
+            self.scheduler.step()
+            wandb.log({'learning_rate': self.scheduler.get_last_lr()[0]})
 
             if (idx + 1) % log_interval == 0 and self.log_to_wandb:
                 train_auc = float(np.mean(aucs))

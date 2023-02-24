@@ -21,7 +21,8 @@ class Trainer(ABC):
                  val_dataloader,
                  test_dataloader,
                  log_to_wandb,
-                 save_dir
+                 save_dir,
+                 scheduler=None
                  ):
         self.device = device
         self.model = model
@@ -33,6 +34,7 @@ class Trainer(ABC):
         self.test_dataloader = test_dataloader
         self.log_to_wandb = log_to_wandb
         self.save_dir = save_dir
+        self.scheduler = scheduler
 
     def save_model(self, model: torch.nn.Module, name: str) -> None:
         """
