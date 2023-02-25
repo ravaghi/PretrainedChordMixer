@@ -153,12 +153,12 @@ class Trainer(ABC):
             tuple: Predictions and the number of correct predictions
         """
         if self.task in ["TaxonomyClassification", "HumanVariantEffectPrediction"]:
-            predicted = torch.round(torch.sigmoid(y_hat))
-            correct_predictions = predicted.eq(y).sum().item()
+            predicted = torch.sigmoid(y_hat)
+            correct_predictions = torch.round(predicted).eq(y).sum().item()
 
         elif self.task == "PlantVariantEffectPrediction":
-            predicted = torch.round(torch.sigmoid(y_hat))
-            correct_predictions = predicted.eq(y).sum().item() // y.size(1)
+            predicted = torch.sigmoid(y_hat)
+            correct_predictions = round(torch.round(predicted).eq(y).sum().item() / y.size(1))
 
         else:
             raise ValueError(f"Task: {self.task} not found.")
