@@ -18,6 +18,16 @@ def main(config: DictConfig) -> None:
     
     print_model_params(model)
 
+    dataloader = instantiate(
+        config=config.dataloader,
+        dataset_type=config.dataset.type,
+        dataset_name=config.dataset.name,
+        train_dataset=config.dataset.train_data,
+        val_dataset=config.dataset.val_data,
+        test_dataset=config.dataset.test_data
+    )
+    train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
+
     criterion = instantiate(config=config.loss)
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
     if config.general.use_scheduler:
@@ -29,16 +39,6 @@ def main(config: DictConfig) -> None:
         )
     else: 
         scheduler = None
-
-    dataloader = instantiate(
-        config=config.dataloader,
-        dataset_type=config.dataset.type,
-        dataset_name=config.dataset.name,
-        train_dataset=config.dataset.train_data,
-        val_dataset=config.dataset.val_data,
-        test_dataset=config.dataset.test_data
-    )
-    train_dataloader, val_dataloader, test_dataloader = dataloader.create_dataloaders()
 
     trainer = instantiate(
         config=config.trainer,
