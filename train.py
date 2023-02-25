@@ -2,6 +2,7 @@ import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 from torch.nn import DataParallel
+import torch
 
 from utils.utils import init_run, print_model_params
 
@@ -19,6 +20,15 @@ def main(config: DictConfig) -> None:
 
     criterion = instantiate(config=config.loss)
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
+    if config.general.use_scheduler:
+        scheduler = instantiate(
+            config=config.scheduler,
+            optimizer=optimizer,
+            T_max=len(train_dataloader) * config.general.max_epochs,
+            eta_min=config.scheduler.eta_min
+        )
+    else: 
+        scheduler = None
 
     dataloader = instantiate(
         config=config.dataloader,
@@ -42,7 +52,7 @@ def main(config: DictConfig) -> None:
         test_dataloader=test_dataloader,
         log_to_wandb=config.general.log_to_wandb,
         save_dir=config.general.save_dir,
-        scheduler=None
+        scheduler=scheduler
     )
 
     for epoch in range(1, config.general.max_epochs + 1):

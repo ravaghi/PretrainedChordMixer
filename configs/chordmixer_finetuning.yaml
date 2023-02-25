@@ -9,7 +9,7 @@ defaults:
 
 optimizer:
   _target_: torch.optim.Adam
-  lr: 0.00096
+  lr: 0.001
 
 general:
   name: FineTunedChordMixer
@@ -17,8 +17,9 @@ general:
   device_id: 0
   batch_size: 2
   max_epochs: 30
-  log_to_wandb: true
+  log_to_wandb: false
   use_multi_gpu: false
+  use_scheduler: false
   save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}/${dataset.type}/${dataset.name}
 
 hydra:

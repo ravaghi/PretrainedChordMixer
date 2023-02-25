@@ -20,6 +20,7 @@ general:
   max_epochs: 30
   log_to_wandb: false
   use_multi_gpu: false
+  use_scheduler: false
   save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}/${dataset.type}/${dataset.name}
 
 hydra:

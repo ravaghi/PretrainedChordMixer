@@ -155,8 +155,8 @@ class PretrainedChordMixerTrainer(Trainer):
             loop.set_postfix(train_acc=round(current_accuracy, 5),
                              train_loss=round(current_loss, 5))
             
-            self.scheduler.step()
-            wandb.log({'learning_rate': self.scheduler.get_last_lr()[0]})
+            if self.scheduler is not None:
+                self.scheduler.step()
 
             if (idx + 1) % log_interval == 0 and self.log_to_wandb:
                 train_auc = float(np.mean(aucs))
