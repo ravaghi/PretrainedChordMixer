@@ -6,7 +6,7 @@ metric:
 
 parameters:
   general.batch_size:
-    max: 32
+    max: 64
     min: 4
     q: 4
     distribution: q_uniform
@@ -23,7 +23,7 @@ parameters:
     q: 1000
     distribution: q_uniform
   optimizer.lr:
-    max: 0.001
+    max: 0.0006
     min: 0.000001
     distribution: uniform
   model.decoder_track_size:
