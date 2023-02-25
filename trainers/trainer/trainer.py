@@ -212,7 +212,7 @@ class Trainer(ABC):
 
         train_auc = roc_auc_score(y_true=targets, y_score=preds)
         train_accuracy = correct / total
-        train_loss = running_loss / total
+        train_loss = running_loss / num_batches
 
         if self.log_to_wandb:
             self.log_metrics(

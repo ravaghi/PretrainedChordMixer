@@ -114,7 +114,6 @@ class PretrainedChordMixerTrainer(Trainer):
         log_interval = num_batches // 100
 
         running_loss = 0.0
-        total = 0
 
         targets = []
         predictions = []
@@ -136,9 +135,8 @@ class PretrainedChordMixerTrainer(Trainer):
             loss.backward()
             self.optimizer.step()
 
-            running_loss += loss.item()
-            total += y.size(0)
-            current_loss = running_loss / total
+            current_loss = loss.item()
+            running_loss += current_loss
 
             target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
@@ -161,10 +159,9 @@ class PretrainedChordMixerTrainer(Trainer):
             if (idx + 1) % log_interval == 0 and self.log_to_wandb:
                 train_auc = float(np.mean(aucs))
                 train_accuracy = float(np.mean(accuracies))
-                train_loss = running_loss / total
+                train_loss = running_loss / log_interval
                 self._log_metrics(train_auc, train_accuracy, train_loss, 'train')
                 running_loss = 0.0
-                total = 0
                 targets = []
                 predictions = []
                 accuracies = []
@@ -174,9 +171,6 @@ class PretrainedChordMixerTrainer(Trainer):
         self.model.eval()
 
         num_batches = len(self.val_dataloader)
-
-        running_loss = 0.0
-        total = 0
 
         accuracies = []
         aucs = []
@@ -192,9 +186,7 @@ class PretrainedChordMixerTrainer(Trainer):
 
                 loss = self.criterion(y_hat.transpose(1, 2), y)
 
-                running_loss += loss.item()
-                total += y.size(0)
-                current_loss = running_loss / total
+                current_loss = loss.item()
 
                 target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
@@ -213,7 +205,6 @@ class PretrainedChordMixerTrainer(Trainer):
 
         val_auc = float(np.mean(aucs))
         val_accuracy = float(np.mean(accuracies))
-        val_loss = running_loss / total
 
         if self.log_to_wandb:
             current_datetime = datetime.now().strftime("%d%b%Y_%H%M%S")
@@ -226,7 +217,6 @@ class PretrainedChordMixerTrainer(Trainer):
         num_batches = len(self.test_dataloader)
 
         running_loss = 0.0
-        total = 0
 
         aucs = []
         accuracies = []
@@ -242,9 +232,8 @@ class PretrainedChordMixerTrainer(Trainer):
 
                 loss = self.criterion(y_hat.transpose(1, 2), y)
 
-                running_loss += loss.item()
-                total += y.size(0)
-                current_loss = running_loss / total
+                current_loss = loss.item()
+                running_loss += current_loss
 
                 target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
@@ -263,7 +252,7 @@ class PretrainedChordMixerTrainer(Trainer):
 
         test_auc = float(np.mean(aucs))
         test_accuracy = float(np.mean(accuracies))
-        test_loss = running_loss / total
+        test_loss = running_loss / num_batches
 
         if self.log_to_wandb:
             self._log_metrics(test_auc, test_accuracy, test_loss, 'test')
