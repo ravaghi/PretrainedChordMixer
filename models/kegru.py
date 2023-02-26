@@ -62,9 +62,11 @@ class KeGru(nn.Module):
             y_hat_2, _ = self.gru(y_hat_2, h0_2)
             y_hat_2 = y_hat_2[:, -1, :]
 
-            y_hat = y_hat_2 - y_hat_1
+        
+            y_hat_1 = self.linear(y_hat_1)
+            y_hat_2 = self.linear(y_hat_2)
 
-            y_hat = self.linear(y_hat)
+            y_hat = y_hat_2 - y_hat_1
 
             tissue = tissue.unsqueeze(0).t()
             y_hat = torch.gather(y_hat, 1, tissue)
