@@ -7,10 +7,10 @@ from .chordmixer_pretraining import ChordMixerEncoder
 class FineTunedChordMixer(nn.Module):
     """Fine-tuned ChordMixer"""
 
-    def __init__(self, hidden_size, freeze, variable_length, n_class):
+    def __init__(self, model, hidden_size, freeze, variable_length, n_class):
         super(FineTunedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder.from_pretrained(
-            model="/cluster/home/mahdih/PretrainedChordMixer/models/PCM.pt",
+            model=model,
             freeze=freeze,
             variable_length=variable_length
         )
