@@ -11,6 +11,10 @@ optimizer:
   _target_: torch.optim.Adam
   lr: 0.001
 
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  eta_min: 0.00001
+
 general:
   name: FineTunedChordMixer
   seed: 42
