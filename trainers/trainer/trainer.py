@@ -210,6 +210,9 @@ class Trainer(ABC):
             loop.set_postfix(train_acc=round(correct / total, 5),
                              train_loss=round(running_loss / total, 5))
 
+            if self.scheduler is not None:
+                self.scheduler.step()
+
         train_auc = roc_auc_score(y_true=targets, y_score=preds)
         train_accuracy = correct / total
         train_loss = running_loss / num_batches
