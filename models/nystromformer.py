@@ -6,36 +6,37 @@ from nystrom_attention import Nystromformer as NystromformerModel
 class Nystromformer(nn.Module):
     def __init__(self, vocab_size, embedding_size, num_heads, num_layers, dataset_type, n_class, device_id):
         super(Nystromformer, self).__init__()
+        self.device = f"cuda:{device_id}" if torch.cuda.is_available() else "cpu"
         
         if dataset_type == "TaxonomyClassification":
             self.sequence_length = 25000
         else:
             self.sequence_length = 1000
 
-        self.device = f"cuda:{device_id}" if torch.cuda.is_available() else "cpu"
-        self.encoder = nn.Embedding(vocab_size, embedding_size)
-        self.posenc = nn.Embedding(self.sequence_length, embedding_size)
-        self.nystromformermodel = NystromformerModel(
+        self.embedding = nn.Embedding(vocab_size, embedding_size)
+        self.positional_encoder = nn.Embedding(self.sequence_length, embedding_size)
+        self.nystromformer = NystromformerModel(
             dim=embedding_size,
             dim_head=int(embedding_size / num_heads),
             heads=num_heads,
             depth=num_layers,
-            num_landmarks=256,  # number of landmarks
+            num_landmarks=256,
             pinv_iterations=6
         )
-        self.final = nn.Linear(embedding_size * self.sequence_length, n_class)
+        self.classifier = nn.Linear(embedding_size * self.sequence_length, n_class)
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
             x = input_data["x"]
 
-            y_hat = self.encoder(x)
+            y_hat = self.embedding(x)
             positions = torch.arange(0, self.sequence_length) \
                 .expand(y_hat.size(0), self.sequence_length) \
                 .to(self.device)
-            y_hat = self.posenc(positions) + y_hat
-            y_hat = self.nystromformermodel(y_hat)
-            y_hat = self.final(y_hat.view(y_hat.size(0), -1))
+            y_hat = self.positional_encoder(positions) + y_hat
+            y_hat = self.nystromformer(y_hat)
+            y_hat = y_hat.view(y_hat.size(0), -1)
+            y_hat = self.classifier(y_hat)
             y_hat = y_hat.view(-1)
             
             return y_hat
@@ -45,22 +46,23 @@ class Nystromformer(nn.Module):
             x2 = input_data["x2"]
             tissue = input_data["tissue"]
 
-            y_hat_1 = self.encoder(x1)
+            y_hat_1 = self.embedding(x1)
             positions1 = torch.arange(0, self.sequence_length) \
                 .expand(y_hat_1.size(0), self.sequence_length) \
                 .to(self.device)
-            y_hat_1 = self.posenc(positions1) + y_hat_1
-            y_hat_1 = self.nystromformermodel(y_hat_1)
+            y_hat_1 = self.positional_encoder(positions1) + y_hat_1
+            y_hat_1 = self.nystromformer(y_hat_1)
 
-            y_hat_2 = self.encoder(x2)
+            y_hat_2 = self.embedding(x2)
             positions2 = torch.arange(0, self.sequence_length) \
                 .expand(y_hat_2.size(0), self.sequence_length) \
                 .to(self.device)
-            y_hat_2 = self.posenc(positions2) + y_hat_2
-            y_hat_2 = self.nystromformermodel(y_hat_2)
+            y_hat_2 = self.positional_encoder(positions2) + y_hat_2
+            y_hat_2 = self.nystromformer(y_hat_2)
 
             y_hat = y_hat_1 - y_hat_2
-            y_hat = self.final(y_hat.view(y_hat.size(0), -1))
+            y_hat = y_hat.view(y_hat.size(0), -1)
+            y_hat = self.classifier(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
             y_hat = torch.gather(y_hat, 1, tissue)
@@ -72,13 +74,14 @@ class Nystromformer(nn.Module):
         elif input_data["task"] == "PlantVariantEffectPrediction":
             x = input_data["x"]
 
-            y_hat = self.encoder(x)
+            y_hat = self.embedding(x)
             positions = torch.arange(0, self.sequence_length) \
                 .expand(y_hat.size(0), self.sequence_length) \
                 .to(self.device)
-            y_hat = self.posenc(positions) + y_hat
-            y_hat = self.nystromformermodel(y_hat)
-            y_hat = self.final(y_hat.view(y_hat.size(0), -1))
+            y_hat = self.positional_encoder(positions) + y_hat
+            y_hat = self.nystromformer(y_hat)
+            y_hat = y_hat.view(y_hat.size(0), -1)
+            y_hat = self.classifier(y_hat)
 
             return y_hat
 
