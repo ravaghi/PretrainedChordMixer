@@ -53,30 +53,30 @@ class ChordMixerEncoder(nn.Module):
         return state_dict
 
     @classmethod
-    def from_pretrained(cls, model: str, freeze: bool = True, variable_length: bool = False) -> nn.Module:
+    def from_pretrained(cls, model_path: str, freeze: bool = True, variable_length: bool = False) -> nn.Module:
         """
         Load a pretrained model and return the encoder.
 
         Args:
-            model: The path to the pretrained model.
+            model_path: The path to the pretrained model.
             freeze: Whether to freeze the parameters of the encoder.
             variable_length: Whether the encoder should be able to handle variable length sequences.
 
         Returns:
             The encoder module.
         """
-        print(f"Loading {model}")
-        model = torch.load(model)
+        print(f"Loading pretrained model: {model_path}")
+        model = torch.load(model_path)
         encoder_state_dict = cls._get_encoder_state_dict(model=model)
 
         encoder = cls(
-            vocab_size=5,
-            n_blocks=20,
-            track_size=16,
-            hidden_size=196,
-            prelinear_out_features=1000,
-            mlp_dropout=0,
-            layer_dropout=0,
+            vocab_size=encoder_state_dict["prelinear.weight"].shape[1],
+            n_blocks=encoder_state_dict["chordmixer_blocks.0.n_blocks"],
+            track_size=encoder_state_dict["chordmixer_blocks.0.track_size"],
+            hidden_size=encoder_state_dict["chordmixer_blocks.0.hidden_size"],
+            prelinear_out_features=encoder_state_dict["prelinear.weight"].shape[0],
+            mlp_dropout=encoder_state_dict["chordmixer_blocks.0.mlp_dropout"],
+            layer_dropout=encoder_state_dict["chordmixer_blocks.0.layer_dropout"],
             variable_length=variable_length
         )
 
