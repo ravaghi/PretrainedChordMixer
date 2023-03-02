@@ -70,13 +70,13 @@ class ChordMixerEncoder(nn.Module):
         encoder_state_dict = cls._get_encoder_state_dict(model=model)
 
         encoder = cls(
-            vocab_size=encoder_state_dict["prelinear.weight"].shape[1],
-            n_blocks=encoder_state_dict["chordmixer_blocks.0.n_blocks"],
-            track_size=encoder_state_dict["chordmixer_blocks.0.track_size"],
-            hidden_size=encoder_state_dict["chordmixer_blocks.0.hidden_size"],
-            prelinear_out_features=encoder_state_dict["prelinear.weight"].shape[0],
-            mlp_dropout=encoder_state_dict["chordmixer_blocks.0.mlp_dropout"],
-            layer_dropout=encoder_state_dict["chordmixer_blocks.0.layer_dropout"],
+            vocab_size=4,
+            n_blocks=20,
+            track_size=16,
+            hidden_size=196,
+            prelinear_out_features=950,
+            mlp_dropout=0.0,
+            layer_dropout=0.0,
             variable_length=variable_length
         )
 
