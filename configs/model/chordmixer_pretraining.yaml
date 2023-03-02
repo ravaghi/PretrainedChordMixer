@@ -1,5 +1,5 @@
   _target_: models.chordmixer_pretraining.PretrainedChordMixer
-  vocab_size: 5
+  vocab_size: 4
   n_blocks: 20
   encoder_track_size: 16
   decoder_track_size: 4

@@ -67,11 +67,6 @@ class PretrainedChordMixerTrainer(Trainer):
             target = y.masked_select(mask).detach().cpu().numpy()
             # need to take the inverse since metrics.roc_auc_score expects probabilities, but we have logsoftmax values
             prediction = torch.exp(y_hat[mask == True]).detach().cpu().numpy()
-
-            # Adding a 4 (N) class to the predictions and targets to make sure that the AUC is calculated correctly
-            target = np.append(target, 4)
-            prediction = np.append(prediction, np.array([[0, 0, 0, 0, 1]]), axis=0)
-
             return metrics.roc_auc_score(target, prediction, multi_class='ovo')
         except ValueError:
             return 0.5
@@ -115,9 +110,6 @@ class PretrainedChordMixerTrainer(Trainer):
 
         running_loss = 0.0
 
-        targets = []
-        predictions = []
-
         accuracies = []
         aucs = []
 
@@ -140,10 +132,10 @@ class PretrainedChordMixerTrainer(Trainer):
 
             target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
-            targets.extend(target.detach().cpu().numpy())
-            predictions.extend(prediction.detach().cpu().numpy())
-
-            current_accuracy = metrics.accuracy_score(targets, predictions)
+            current_accuracy = metrics.accuracy_score(
+                target.detach().cpu().numpy(), 
+                prediction.detach().cpu().numpy()
+            )
             current_auc = self._calculate_auc(y, y_hat, masks)
 
             accuracies.append(current_accuracy)
@@ -162,8 +154,6 @@ class PretrainedChordMixerTrainer(Trainer):
                 train_loss = running_loss / log_interval
                 self._log_metrics(train_auc, train_accuracy, train_loss, 'train')
                 running_loss = 0.0
-                targets = []
-                predictions = []
                 accuracies = []
                 aucs = []
 

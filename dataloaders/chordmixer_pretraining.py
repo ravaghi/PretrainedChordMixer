@@ -10,7 +10,7 @@ import pandas as pd
 
 class HG38Dataset(Dataset):
     _DNA_BASE_DICT = {
-        'A': 0, 'C': 1, 'G': 2, 'T': 3, 'N': 4
+        'A': 0, 'C': 1, 'G': 2, 'T': 3
     }
 
     def __init__(self, sequences, dataset_size, sequence_length, mask_ratio):
@@ -50,7 +50,7 @@ class HG38Dataset(Dataset):
         right_position = left_position + self.sequence_length
 
         sequence = sequence[left_position:right_position]
-        if sequence == ("N" * self.sequence_length):
+        if "N" in sequence:
             return self.__getitem__(index)
 
         sequence, mask, label = self._get_sequence_mask_label(sequence)
@@ -103,21 +103,21 @@ class PretrainedChordMixerDataLoader:
         sequences = {chromosome:hg38_dict[chromosome].seq.upper() for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, 80_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, 240_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, 10_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, 10_000, self.sequence_length, self.mask_ratio), 
+            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio), 
             batch_size=self.batch_size, 
             shuffle=True, 
             pin_memory=True
