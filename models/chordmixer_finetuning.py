@@ -7,15 +7,18 @@ from .chordmixer_pretraining import ChordMixerEncoder
 class FineTunedChordMixer(nn.Module):
     """Fine-tuned ChordMixer"""
 
-    def __init__(self, model, hidden_size, freeze, variable_length, n_class):
+    def __init__(self, model_path, hidden_size, freeze, variable_length, n_class):
         super(FineTunedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder.from_pretrained(
-            model=model,
+            model_path=model_path,
             freeze=freeze,
             variable_length=variable_length
         )
-        self.hidden = nn.Linear(self.encoder.prelinear_out_features, hidden_size)
-        self.classifier = nn.Linear(hidden_size, n_class)
+        self.classifier = nn.Sequential(
+            nn.Linear(self.encoder.prelinear_out_features, hidden_size),
+            nn.ReLU(),
+            nn.Linear(hidden_size, n_class)
+        )
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
@@ -23,7 +26,6 @@ class FineTunedChordMixer(nn.Module):
             lengths = input_data["seq_len"]
 
             y_hat = self.encoder(x, lengths)
-            y_hat = self.hidden(y_hat)
             y_hat = self.classifier(y_hat)
             y_hat = y_hat.view(-1)
 
@@ -38,8 +40,7 @@ class FineTunedChordMixer(nn.Module):
             y_hat_2 = self.encoder(x2)
             
             y_hat = y_hat_1 - y_hat_2
-            y_hat = torch.mean(y_hat, dim=1)    
-            y_hat = self.hidden(y_hat)       
+            y_hat = torch.mean(y_hat, dim=1)       
             y_hat = self.classifier(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
@@ -56,7 +57,6 @@ class FineTunedChordMixer(nn.Module):
             y_hat = y_hat[:, 400:600, :]
             
             y_hat = torch.mean(y_hat, dim=1)
-            y_hat = self.hidden(y_hat)
             y_hat = self.classifier(y_hat)
 
             return y_hat
