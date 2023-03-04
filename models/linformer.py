@@ -61,7 +61,7 @@ class Linformer(nn.Module):
             y_hat_2 = self.positional_encoder(positions2) + y_hat_2
             y_hat_2 = self.linformer(y_hat_2)
 
-            y_hat = y_hat_2 - y_hat_1
+            y_hat = y_hat_1 - y_hat_2
             y_hat = y_hat.view(y_hat.size(0), -1)
             y_hat = self.classifier(y_hat)
 
