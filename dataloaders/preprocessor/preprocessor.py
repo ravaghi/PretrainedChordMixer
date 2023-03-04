@@ -72,7 +72,7 @@ class Preprocessor(ABC):
             dataframe with one hot encoded sequences
         """
         label_binarizer = LabelBinarizer()
-        label_binarizer.fit(["A", "C", "G", "T", "N"])
+        label_binarizer.fit(["A", "C", "G", "T"])
         dataframe[column] = dataframe[column].apply(list)
         dataframe[column] = dataframe[column].apply(label_binarizer.transform)
         return dataframe
