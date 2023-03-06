@@ -1,6 +1,5 @@
 program: train.py
 method: bayes
-run_cap: 100
 metric:
   goal: maximize
   name: test_auc
@@ -14,13 +13,17 @@ parameters:
     q: 2
     distribution: q_uniform
   optimizer.lr:
-    max: 0.001
-    min: 0.000001
+    max: 0.005
+    min: 0.00001
+    distribution: uniform
+  scheduler.eta_min:
+    max: 0.0001
+    min: 0.0000001
     distribution: uniform
   model.hidden_size:
     max: 1000
     min: 50
-    q: 10
+    q: 50
     distribution: q_uniform
 
 command:

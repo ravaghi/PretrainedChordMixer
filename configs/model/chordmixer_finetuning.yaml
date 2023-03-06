@@ -1,5 +1,5 @@
 _target_: models.chordmixer_finetuning.FineTunedChordMixer
-model_path: ${hydra:runtime.cwd}/models/23Feb2023_044225-TestAuc-0.8239-TestAcc-0.4263.pt
+model_path: ${hydra:runtime.cwd}/logs/checkpoints/PretrainedChordMixer/04Mar2023_174053-ValAuc-0.7146-ValAcc-0.4398.pt
 hidden_size: 300
 freeze: True
 variable_length: ${dataset.variable_length}
