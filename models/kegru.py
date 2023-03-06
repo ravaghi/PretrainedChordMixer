@@ -33,7 +33,11 @@ class KeGru(nn.Module):
                           bidirectional=True,
                           batch_first=True,
                           dropout=dropout)
-        self.linear = nn.Linear(hidden_size * 2, num_class)
+        self.classifier = nn.Sequential(
+            nn.Linear(hidden_size * 2, 200),
+            nn.ReLU(),
+            nn.Linear(200, num_class)
+        )
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
@@ -43,7 +47,7 @@ class KeGru(nn.Module):
             y_hat = self.embedding(x)
             y_hat, _ = self.gru(y_hat, h0)
             y_hat = y_hat[:, -1, :]
-            y_hat = self.linear(y_hat)
+            y_hat = self.classifier(y_hat)
             y_hat = y_hat.view(-1)
             return y_hat
 
@@ -55,16 +59,14 @@ class KeGru(nn.Module):
             h0_1 = torch.zeros(self.num_layers * 2, x1.size(0), self.hidden_size).to(self.device)
             y_hat_1 = self.embedding(x1)
             y_hat_1, _ = self.gru(y_hat_1, h0_1)
-            y_hat_1 = y_hat_1[:, -1, :]
-            y_hat_1 = self.linear(y_hat_1)
 
             h0_2 = torch.zeros(self.num_layers * 2, x2.size(0), self.hidden_size).to(self.device)
             y_hat_2 = self.embedding(x2)
             y_hat_2, _ = self.gru(y_hat_2, h0_2)
-            y_hat_2 = y_hat_2[:, -1, :]
-            y_hat_2 = self.linear(y_hat_2)
 
             y_hat = y_hat_1 - y_hat_2
+            y_hat = y_hat[:, -1, :]
+            y_hat = self.classifier(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
             y_hat = torch.gather(y_hat, 1, tissue)
@@ -79,7 +81,7 @@ class KeGru(nn.Module):
             y_hat = self.embedding(x)
             y_hat, _ = self.gru(y_hat, h0)
             y_hat = y_hat[:, -1, :]
-            y_hat = self.linear(y_hat)
+            y_hat = self.classifier(y_hat)
 
             return y_hat
 

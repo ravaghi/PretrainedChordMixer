@@ -226,7 +226,8 @@ class KeGruDataLoader(Preprocessor):
         return DataLoader(
             dataset=dataset,
             batch_size=self.batch_size,
-            shuffle=True
+            shuffle=True,
+            drop_last=True
         )
 
     def create_plant_variant_effect_prediction_dataloader(self,
