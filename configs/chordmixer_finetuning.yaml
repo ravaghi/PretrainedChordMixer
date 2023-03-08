@@ -9,19 +9,19 @@ defaults:
 
 optimizer:
   _target_: torch.optim.Adam
-  lr: 0.001
+  lr: 0.00008
 
 scheduler:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
-  eta_min: 0.00001
+  eta_min: 0.000001
 
 general:
   name: FineTunedChordMixer
   seed: 42
   device_id: 0
-  batch_size: 2
-  max_epochs: 30
-  log_to_wandb: false
+  batch_size: 50
+  max_epochs: 50
+  log_to_wandb: true
   use_multi_gpu: false
   use_scheduler: true
   save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}/${dataset.type}/${dataset.name}
