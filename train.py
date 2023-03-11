@@ -30,12 +30,12 @@ def main(config: DictConfig) -> None:
     criterion = instantiate(config=config.loss)
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
     if config.general.use_scheduler:
-        # Only CosineAnnealingLR is supported for now
+        # Only cosine_schedule_with_warmup is supported for now
         scheduler = instantiate(
             config=config.scheduler,
             optimizer=optimizer,
-            T_max=len(train_dataloader) * config.general.max_epochs,
-            eta_min=config.scheduler.eta_min
+            num_warmup_steps=int(len(train_dataloader) * config.general.max_epochs * 0.1),
+            num_training_steps=len(train_dataloader) * config.general.max_epochs,
         )
     else:
         scheduler = None
