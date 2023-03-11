@@ -1,5 +1,10 @@
 # PretrainedChordMixer
 
+![python](https://user-images.githubusercontent.com/44374191/224485239-3e013eff-f76e-46a4-90a7-e55fa0a6b3a7.svg)
+![torch](https://user-images.githubusercontent.com/44374191/224485304-0b0f25c6-e31f-48a9-8cec-1767bffee1e6.svg)
+
+
+
 ## Getting started
 All of the requirements and their versions are available in `requirements.txt`, and can be installed by running:
 ```bash
