@@ -1,14 +1,15 @@
-import os
-import torch
-from Bio import SeqIO
-from tqdm import tqdm
-from typing import Tuple
-import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+import torch.nn.functional as F
+from typing import Tuple
+from tqdm import tqdm
+from Bio import SeqIO
 import random
-import pandas as pd
+import torch
+import os
+
 
 class HG38Dataset(Dataset):
+    """Dataset for the pretrained ChordMixer model"""
     _DNA_BASE_DICT = {
         'A': 0, 'C': 1, 'G': 2, 'T': 3
     }
@@ -39,12 +40,11 @@ class HG38Dataset(Dataset):
 
         return sequence_ids, mask, label
 
-
     def __getitem__(self, index):
-        random_id = random.randint(0, len(self.sequences)-1)
+        random_id = random.randint(0, len(self.sequences) - 1)
         chromosome = list(self.sequences.keys())[random_id]
         sequence = self.sequences[chromosome]
-        
+
         chromosome_length = len(sequence)
         left_position = random.randint(0, chromosome_length - self.sequence_length)
         right_position = left_position + self.sequence_length
@@ -71,15 +71,15 @@ class PretrainedChordMixerDataLoader:
     ]
 
     def __init__(self,
-                 batch_size,
-                 data_path,
-                 dataset_type,
-                 dataset_name,
-                 train_dataset,
-                 val_dataset,
-                 test_dataset,
-                 mask_ratio,
-                 sequence_length,
+                 batch_size: int,
+                 data_path: str,
+                 dataset_type: str,
+                 dataset_name: str,
+                 train_dataset: str,
+                 val_dataset: str,
+                 test_dataset: str,
+                 mask_ratio: float,
+                 sequence_length: int
                  ):
         self.batch_size = batch_size
         self.data_path = data_path
@@ -91,7 +91,6 @@ class PretrainedChordMixerDataLoader:
         self.mask_ratio = mask_ratio
         self.sequence_length = sequence_length
 
-
     def create_dataloaders(self) -> Tuple[DataLoader, DataLoader, DataLoader]:
         """
         Processes the dataset and creates dataloaders for the train, validation, and test sets
@@ -100,26 +99,27 @@ class PretrainedChordMixerDataLoader:
             Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, validation, and test dataloaders
         """
         hg38_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(self.data_path, self.dataset_name), "fasta"))
-        sequences = {chromosome:hg38_dict[chromosome].seq.upper() for chromosome in tqdm(self._CHROMOSOMES, desc="Loading sequences")}
+        sequences = {chromosome: hg38_dict[chromosome].seq.upper() for chromosome in
+                     tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, 240_000, self.sequence_length, self.mask_ratio), 
-            batch_size=self.batch_size, 
-            shuffle=True, 
+            HG38Dataset(sequences, 240_000, self.sequence_length, self.mask_ratio),
+            batch_size=self.batch_size,
+            shuffle=True,
             pin_memory=True
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio), 
-            batch_size=self.batch_size, 
-            shuffle=True, 
+            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
+            batch_size=self.batch_size,
+            shuffle=True,
             pin_memory=True
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio), 
-            batch_size=self.batch_size, 
-            shuffle=True, 
+            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
+            batch_size=self.batch_size,
+            shuffle=True,
             pin_memory=True
         )
 

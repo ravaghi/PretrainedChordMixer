@@ -7,12 +7,12 @@ class Linformer(nn.Module):
     def __init__(self, vocab_size, embedding_size, num_heads, num_layers, dataset_type, n_class, device_id):
         super(Linformer, self).__init__()
         self.device = f"cuda:{device_id}" if torch.cuda.is_available() else "cpu"
-        
+
         if dataset_type == "TaxonomyClassification":
             self.sequence_length = 25000
         else:
             self.sequence_length = 1000
-        
+
         self.embedding = nn.Embedding(vocab_size, embedding_size)
         self.positional_encoder = nn.Embedding(self.sequence_length, embedding_size)
         self.linformer = LinformerModel(

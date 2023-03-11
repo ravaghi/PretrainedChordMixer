@@ -5,9 +5,15 @@ from .chordmixer_pretraining import ChordMixerEncoder
 
 
 class FineTunedChordMixer(nn.Module):
-    """Fine-tuned ChordMixer"""
+    """ChordMixer fine-tuning model."""
 
-    def __init__(self, model_path, hidden_size, freeze, variable_length, n_class):
+    def __init__(self,
+                 model_path: str,
+                 hidden_size: int,
+                 freeze: bool,
+                 variable_length: bool,
+                 n_class: int
+                 ):
         super(FineTunedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder.from_pretrained(
             model_path=model_path,
@@ -38,9 +44,9 @@ class FineTunedChordMixer(nn.Module):
 
             y_hat_1 = self.encoder(x1)
             y_hat_2 = self.encoder(x2)
-            
+
             y_hat = y_hat_1 - y_hat_2
-            y_hat = torch.mean(y_hat, dim=1)       
+            y_hat = torch.mean(y_hat, dim=1)
             y_hat = self.classifier(y_hat)
 
             tissue = tissue.unsqueeze(0).t()
@@ -55,7 +61,7 @@ class FineTunedChordMixer(nn.Module):
             y_hat = self.encoder(x)
 
             y_hat = y_hat[:, 400:600, :]
-            
+
             y_hat = torch.mean(y_hat, dim=1)
             y_hat = self.classifier(y_hat)
 

@@ -7,7 +7,6 @@ class Transformer(nn.Module):
         super(Transformer, self).__init__()
         self.device = "cuda:{}".format(device_id) if torch.cuda.is_available() else "cpu"
 
-
         if dataset_type == "TaxonomyClassification":
             self.sequence_length = 25000
         else:
@@ -32,7 +31,7 @@ class Transformer(nn.Module):
             y_hat = y_hat.view(y_hat.size(0), -1)
             y_hat = self.classifier(y_hat)
             y_hat = y_hat.view(-1)
-            
+
             return y_hat
 
         elif input_data["task"] == "HumanVariantEffectPrediction":
@@ -75,7 +74,7 @@ class Transformer(nn.Module):
             y_hat = self.transformer_encoder(y_hat)
             y_hat = y_hat.view(y_hat.size(0), -1)
             y_hat = self.classifier(y_hat)
-            
+
             return y_hat
 
         else:

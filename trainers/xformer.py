@@ -2,4 +2,4 @@ from .trainer.trainer import Trainer
 
 
 class XFormerTrainer(Trainer):
-    """XFormerTrainer class"""
+    """Trainer for XFormer models."""

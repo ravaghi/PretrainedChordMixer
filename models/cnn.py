@@ -21,7 +21,9 @@ class CNN(nn.Module):
             nn.Conv1d(320, 320, kernel_size=conv_kernel_size),
             nn.ReLU(inplace=True),
             nn.MaxPool1d(
-                kernel_size=pool_kernel_size, stride=pool_kernel_size),
+                kernel_size=pool_kernel_size,
+                stride=pool_kernel_size
+            ),
             nn.BatchNorm1d(320),
 
             nn.Conv1d(320, 480, kernel_size=conv_kernel_size),
@@ -29,7 +31,9 @@ class CNN(nn.Module):
             nn.Conv1d(480, 480, kernel_size=conv_kernel_size),
             nn.ReLU(inplace=True),
             nn.MaxPool1d(
-                kernel_size=pool_kernel_size, stride=pool_kernel_size),
+                kernel_size=pool_kernel_size,
+                stride=pool_kernel_size
+            ),
             nn.BatchNorm1d(480),
             nn.Dropout(p=0.2),
 

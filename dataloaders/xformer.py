@@ -62,7 +62,11 @@ class XFormerDataLoader(Dataloader, Preprocessor):
     """ XFormer dataloader class """
 
     def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="Xformer", max_sequence_length=25_000)
+        dataframe = self.process_taxonomy_classification_dataframe(
+            dataframe=dataframe,
+            model_name="Xformer",
+            max_sequence_length=25_000
+        )
         dataset = TaxonomyClassificationDataset(dataframe=dataframe)
 
         return DataLoader(
@@ -72,7 +76,10 @@ class XFormerDataLoader(Dataloader, Preprocessor):
         )
 
     def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_human_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="Xformer")
+        dataframe = self.process_human_variant_effect_prediction_dataframe(
+            dataframe=dataframe,
+            model_name="Xformer"
+        )
         dataset = HumanVariantEffectPredictionDataset(dataframe=dataframe)
 
         return DataLoader(
@@ -82,7 +89,10 @@ class XFormerDataLoader(Dataloader, Preprocessor):
         )
 
     def create_plant_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_plant_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="Xformer")
+        dataframe = self.process_plant_variant_effect_prediction_dataframe(
+            dataframe=dataframe,
+            model_name="Xformer"
+        )
         dataset = PlantVariantEffectPredictionDataset(dataframe=dataframe)
 
         return DataLoader(

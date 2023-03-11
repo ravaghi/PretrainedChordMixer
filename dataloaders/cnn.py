@@ -28,7 +28,11 @@ class CNNDataLoader(Dataloader, Preprocessor):
     """CNN dataloader class"""
 
     def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="CNN", max_sequence_length=25_000)
+        dataframe = self.process_taxonomy_classification_dataframe(
+            dataframe=dataframe,
+            model_name="CNN",
+            max_sequence_length=25_000
+        )
 
         sequences = torch.tensor(np.array(dataframe.sequence.values.tolist(), dtype=np.float32))
         labels = torch.tensor(dataframe.label.values).float()

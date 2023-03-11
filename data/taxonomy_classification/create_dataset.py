@@ -12,9 +12,9 @@ def pickle_to_parquet(train_data: str, test_data: str, dataset_name: str) -> Non
     Converts and joins two pickled dataframes to parquet format and splits them into train, val and test sets.
 
     Args:
-        train_data: path to the train dataframe
-        test_data: path to the test dataframe
-        dataset_name: name of the new dataset
+        train_data: path to the train dataframe.
+        test_data: path to the test dataframe.
+        dataset_name: name of the new dataset.
 
     Returns:
         None

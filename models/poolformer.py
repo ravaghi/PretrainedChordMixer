@@ -140,7 +140,7 @@ class Poolformer(nn.Module):
     def __init__(self, vocab_size, embedding_size, num_layers, dataset_type, n_class, device_id):
         super(Poolformer, self).__init__()
         self.device = "cuda:{}".format(device_id) if torch.cuda.is_available() else "cpu"
-        
+
         if dataset_type == "TaxonomyClassification":
             self.sequence_length = 25000
         else:

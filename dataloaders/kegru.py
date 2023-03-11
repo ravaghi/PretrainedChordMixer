@@ -14,11 +14,11 @@ def convert_data_to_index(kmers: List, embeddings: KeyedVectors) -> List:
     Converts a list of kmer sequences to a list of indices.
 
     Args:
-        kmers: list of kmer sequences
-        embeddings: pretrained embeddings
+        kmers: list of kmer sequences.
+        embeddings: pretrained embeddings.
 
     Returns:
-        list of indices
+        list of indices.
     """
     idx_data = []
     for kmer in kmers:
@@ -34,12 +34,12 @@ def generate_kmers(sequences: List, kmer_length: int, stride: int) -> List:
     Generates kmers from a list of sequences.
 
     Args:
-        sequences: list of sequences
-        kmer_length: length of the kmers
-        stride: stride of the kmers
+        sequences: list of sequences.
+        kmer_length: length of the kmers.
+        stride: stride of the kmers.
 
     Returns:
-        list of kmers
+        list of kmers.
     """
     kmers = []
     for sequence in sequences:
@@ -131,18 +131,18 @@ class KeGruDataLoader(Preprocessor):
     """KeGRU data loader class"""
 
     def __init__(self,
-                 batch_size,
-                 data_path,
-                 dataset_type,
-                 dataset_name,
-                 train_dataset,
-                 val_dataset,
-                 test_dataset,
-                 kmer_length,
-                 stride,
-                 embedding_size,
-                 kmer_embedding_path,
-                 kmer_embedding_name
+                 batch_size: int,
+                 data_path: str,
+                 dataset_type: str,
+                 dataset_name: str,
+                 train_dataset: str,
+                 val_dataset: str,
+                 test_dataset: str,
+                 kmer_length: int,
+                 stride: int,
+                 embedding_size: int,
+                 kmer_embedding_path: str,
+                 kmer_embedding_name: str
                  ):
         self.batch_size = batch_size
         self.data_path = data_path
@@ -159,16 +159,16 @@ class KeGruDataLoader(Preprocessor):
 
     def read_data(self, filename: str) -> pd.DataFrame:
         """
-        Read data from a parquet file
+        Reads data from a parquet file.
 
         Args:
-            filename: name of the dataset file
+            filename: name of the dataset file.
 
         Returns:
-            dataframe
+            dataframe.
 
         Raises:
-            FileNotFoundError: if the file is not found
+            FileNotFoundError: if the file is not found.
         """
         path = os.path.join(self.data_path, filename)
         if os.path.exists(path):
@@ -177,19 +177,24 @@ class KeGruDataLoader(Preprocessor):
             raise FileNotFoundError(f"File {path} not found.")
         return dataframe
 
-    def create_taxonomy_classification_dataloader(self, 
+    def create_taxonomy_classification_dataloader(self,
                                                   dataframe: pd.DataFrame,
-                                                  word_vectors: KeyedVectors) -> DataLoader:
+                                                  word_vectors: KeyedVectors
+                                                  ) -> DataLoader:
         """
-        Process taxonomy classification dataset and create a dataloader
+        Processes taxonomy classification dataset and create a dataloader.
 
         Args:
-            dataframe: dataframe containing the dataset
+            dataframe: dataframe containing the dataset.
 
         Returns:
-            dataloader
+            dataloader.
         """
-        dataframe = self.process_taxonomy_classification_dataframe(dataframe=dataframe, model_name="KeGRU", max_sequence_length=10_000)
+        dataframe = self.process_taxonomy_classification_dataframe(
+            dataframe=dataframe,
+            model_name="KeGRU",
+            max_sequence_length=10_000
+        )
         dataset = TaxonomyClassificationDataset(
             dataframe=dataframe,
             embeddings=word_vectors,
@@ -205,15 +210,16 @@ class KeGruDataLoader(Preprocessor):
 
     def create_human_variant_effect_prediction_dataloader(self,
                                                           dataframe: pd.DataFrame,
-                                                          word_vectors: KeyedVectors) -> DataLoader:
+                                                          word_vectors: KeyedVectors
+                                                          ) -> DataLoader:
         """
-        Process human variant effect prediction dataset and create a dataloader
+        Processes human variant effect prediction dataset and create a dataloader.
 
         Args:
-            dataframe: dataframe containing the dataset
+            dataframe: dataframe containing the dataset.
 
         Returns:
-            dataloader
+            dataloader.
         """
         dataframe = self.process_human_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="KeGRU")
         dataset = HumanVariantEffectPredictionDataset(
@@ -232,15 +238,16 @@ class KeGruDataLoader(Preprocessor):
 
     def create_plant_variant_effect_prediction_dataloader(self,
                                                           dataframe: pd.DataFrame,
-                                                          word_vectors: KeyedVectors) -> DataLoader:
+                                                          word_vectors: KeyedVectors
+                                                          ) -> DataLoader:
         """
-        Process plant variant effect prediction dataset and create a dataloader
+        Processes plant variant effect prediction dataset and create a dataloader.
 
         Args:
-            dataframe: dataframe containing the dataset
+            dataframe: dataframe containing the dataset.
 
         Returns:
-            dataloader
+            dataloader.
         """
         dataset = PlantVariantEffectPredictionDataset(
             dataframe=dataframe,
@@ -257,13 +264,13 @@ class KeGruDataLoader(Preprocessor):
 
     def create_dataloaders(self):
         """
-        Create dataloaders for the train, validation and test sets
+        Creates dataloaders for the train, validation and test sets.
 
         Returns:
-            train, validation and test dataloaders
+            train, validation and test dataloaders.
 
         Raises:
-            ValueError: if the dataset type is not supported
+            ValueError: if the dataset type is not supported.
         """
         train_dataframe = self.read_data(self.train_dataset)
         val_dataframe = self.read_data(self.val_dataset)

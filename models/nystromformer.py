@@ -7,7 +7,7 @@ class Nystromformer(nn.Module):
     def __init__(self, vocab_size, embedding_size, num_heads, num_layers, dataset_type, n_class, device_id):
         super(Nystromformer, self).__init__()
         self.device = f"cuda:{device_id}" if torch.cuda.is_available() else "cpu"
-        
+
         if dataset_type == "TaxonomyClassification":
             self.sequence_length = 25000
         else:
@@ -38,7 +38,7 @@ class Nystromformer(nn.Module):
             y_hat = y_hat.view(y_hat.size(0), -1)
             y_hat = self.classifier(y_hat)
             y_hat = y_hat.view(-1)
-            
+
             return y_hat
 
         elif input_data["task"] == "HumanVariantEffectPrediction":
@@ -67,7 +67,7 @@ class Nystromformer(nn.Module):
             tissue = tissue.unsqueeze(0).t()
             y_hat = torch.gather(y_hat, 1, tissue)
             y_hat = y_hat.reshape(-1)
-            
+
             return y_hat
 
 

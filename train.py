@@ -2,7 +2,6 @@ import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig
 from torch.nn import DataParallel
-import torch
 
 from utils.utils import init_run, print_model_params
 
@@ -15,7 +14,7 @@ def main(config: DictConfig) -> None:
         model = DataParallel(instantiate(config=config.model)).to(device)
     else:
         model = instantiate(config=config.model).to(device)
-    
+
     print_model_params(model)
 
     dataloader = instantiate(
@@ -31,13 +30,14 @@ def main(config: DictConfig) -> None:
     criterion = instantiate(config=config.loss)
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
     if config.general.use_scheduler:
+        # Only CosineAnnealingLR is supported for now
         scheduler = instantiate(
             config=config.scheduler,
             optimizer=optimizer,
             T_max=len(train_dataloader) * config.general.max_epochs,
             eta_min=config.scheduler.eta_min
         )
-    else: 
+    else:
         scheduler = None
 
     trainer = instantiate(

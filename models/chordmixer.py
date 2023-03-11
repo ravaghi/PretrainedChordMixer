@@ -192,7 +192,7 @@ class ChordMixer(nn.Module):
             tissue = tissue.unsqueeze(0).t()
             y_hat = torch.gather(y_hat, 1, tissue)
             y_hat = y_hat.reshape(-1)
-            
+
             return y_hat
 
         elif input_data["task"] == "PlantVariantEffectPrediction":

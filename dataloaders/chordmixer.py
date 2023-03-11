@@ -12,11 +12,11 @@ def complete_batch(dataframe: pd.DataFrame, batch_size: int) -> pd.DataFrame:
     """
     Completes the last batch by copying the first example (batch_size - remainder) times.
     Args:
-        dataframe:  dataframe with the sequences
-        batch_size: batch size
+        dataframe:  dataframe with the sequences.
+        batch_size: batch size.
 
     Returns:
-        dataframe with the sequences and the batch_id
+        dataframe with the sequences and the batch_id.
     """
     complete_bins = []
     bins = [bin_df for _, bin_df in dataframe.groupby('bin')]
@@ -41,13 +41,13 @@ def complete_batch(dataframe: pd.DataFrame, batch_size: int) -> pd.DataFrame:
 
 def shuffle_batches(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
-    Shuffles the batches
+    Shuffles the batches.
     
     Args:
-        dataframe: dataframe with the sequences and the batch_id
+        dataframe: dataframe with the sequences and the batch_id.
 
     Returns:
-        dataframe with the sequences and the batch_id
+        dataframe with the sequences and the batch_id.
     """
     batch_bins = [df_new for _, df_new in dataframe.groupby('batch_id')]
     random.shuffle(batch_bins)
@@ -59,10 +59,10 @@ def concater_collate(batch: List) -> Tuple:
     Collate function for the dataloader. It concatenates the sequences and returns the labels, lengths and bins.
     
     Args:
-        batch: list of tuples (sequence, label, length, bin) 
+        batch: list of tuples (sequence, label, length, bin) .
 
     Returns:
-        tuple of concatenated sequences, lengths. bins and labels
+        tuple of concatenated sequences, lengths. bins and labels.
     """
     (sequence, _len, _bin, label) = zip(*batch)
     sequence = torch.cat(sequence, 0)

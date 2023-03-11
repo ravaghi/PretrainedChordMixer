@@ -12,7 +12,8 @@ def get_sequences_list(fasta_file_path: str, max_sequence_length: int) -> list:
     Collects sequences from a fasta file and returns them as a list of strings.
 
     Args:
-        fasta_file_path: Path to the fasta file.
+        fasta_file_path: The path to the fasta file.
+        max_sequence_length: The maximum length of a sequence.
 
     Returns:
         A list of strings, each string is a sequence.

@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from torch import nn
 from collections import OrderedDict
-from typing import Dict
+from typing import Dict, List, Tuple
 
 from .chordmixer import ChordMixerBlock
 
@@ -12,14 +12,14 @@ class ChordMixerEncoder(nn.Module):
     """ChordMixerEncoder, to be used as a pretrained model in subsequent downstream tasks."""
 
     def __init__(self,
-                 vocab_size,
-                 n_blocks,
-                 track_size,
-                 hidden_size,
-                 prelinear_out_features,
-                 mlp_dropout,
-                 layer_dropout,
-                 variable_length=False
+                 vocab_size: int,
+                 n_blocks: int,
+                 track_size: int,
+                 hidden_size: int,
+                 prelinear_out_features: int,
+                 mlp_dropout: float,
+                 layer_dropout: float,
+                 variable_length: bool = False
                  ):
         super(ChordMixerEncoder, self).__init__()
         self.variable_length = variable_length
@@ -37,7 +37,7 @@ class ChordMixerEncoder(nn.Module):
     @staticmethod
     def _get_encoder_state_dict(model: Dict) -> Dict:
         """
-        Get the state dict of the encoder from a pretrained model.
+        Gets the state dict of the encoder from a pretrained model.
 
         Args:
             model: The state dict of the pretrained model.
@@ -55,7 +55,7 @@ class ChordMixerEncoder(nn.Module):
     @classmethod
     def from_pretrained(cls, model_path: str, freeze: bool = True, variable_length: bool = False) -> nn.Module:
         """
-        Load a pretrained model and return the encoder.
+        Loads a pretrained model and return the encoder.
 
         Args:
             model_path: The path to the pretrained model.
@@ -88,7 +88,7 @@ class ChordMixerEncoder(nn.Module):
 
         return encoder
 
-    def forward(self, data, lengths=None):
+    def forward(self, data, lengths):
         if lengths:
             n_layers = math.ceil(np.log2(lengths[0]))
         else:
@@ -109,14 +109,14 @@ class ChordMixerDecoder(nn.Module):
     """ChordMixerDecoder, used only during pretraining"""
 
     def __init__(self,
-                 vocab_size,
-                 n_blocks,
-                 track_size,
-                 hidden_size,
-                 prelinear_in_features,
-                 prelinear_out_features,
-                 mlp_dropout,
-                 layer_dropout
+                 vocab_size: int,
+                 n_blocks: int,
+                 track_size: int,
+                 hidden_size: int,
+                 prelinear_in_features: int,
+                 prelinear_out_features: int,
+                 mlp_dropout: float,
+                 layer_dropout: float
                  ):
         super(ChordMixerDecoder, self).__init__()
         self.n_blocks = n_blocks
@@ -144,32 +144,37 @@ class PretrainedChordMixer(nn.Module):
     """Complete architecture of the pretrained model."""
 
     def __init__(self,
-                 vocab_size,
-                 n_blocks,
-                 encoder_track_size,
-                 decoder_track_size,
-                 encoder_prelinear_out_features,
-                 decoder_prelinear_in_features,
-                 decoder_prelinear_out_features,
-                 hidden_size,
-                 mlp_dropout,
-                 layer_dropout):
+                 vocab_size: int,
+                 n_blocks: int,
+                 encoder_track_size: int,
+                 decoder_track_size: int,
+                 encoder_prelinear_out_features: int,
+                 decoder_prelinear_in_features: int,
+                 decoder_prelinear_out_features: int,
+                 hidden_size: int,
+                 mlp_dropout: float,
+                 layer_dropout: float
+                 ):
         super(PretrainedChordMixer, self).__init__()
-        self.encoder = ChordMixerEncoder(vocab_size,
-                                         n_blocks,
-                                         encoder_track_size,
-                                         hidden_size,
-                                         encoder_prelinear_out_features,
-                                         mlp_dropout,
-                                         layer_dropout)
-        self.decoder = ChordMixerDecoder(vocab_size,
-                                         n_blocks,
-                                         decoder_track_size,
-                                         hidden_size,
-                                         decoder_prelinear_in_features,
-                                         decoder_prelinear_out_features,
-                                         mlp_dropout,
-                                         layer_dropout)
+        self.encoder = ChordMixerEncoder(
+            vocab_size,
+            n_blocks,
+            encoder_track_size,
+            hidden_size,
+            encoder_prelinear_out_features,
+            mlp_dropout,
+            layer_dropout
+        )
+        self.decoder = ChordMixerDecoder(
+            vocab_size,
+            n_blocks,
+            decoder_track_size,
+            hidden_size,
+            decoder_prelinear_in_features,
+            decoder_prelinear_out_features,
+            mlp_dropout,
+            layer_dropout
+        )
 
     def forward(self, sequence_ids):
         encoded = self.encoder(sequence_ids)

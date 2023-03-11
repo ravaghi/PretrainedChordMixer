@@ -5,20 +5,20 @@ from .trainer.trainer import Trainer
 
 
 class ChordMixerTrainer(Trainer):
-    """ChordMixerTrainer class"""
+    """Trainer for the ChordMixer model."""
 
     def calculate_y_hat(self, batch: Tuple) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Calculate y_hat for a batch depnding on the task
+        Calculates y_hat for a batch depending on the task.
 
         Args:
-            batch (tuple): One batch of data
+            batch (Tuple): A batch of data.
 
         Returns:
             tuple: y and y_hat
 
         Raises:
-            ValueError: If the task is not supported
+            ValueError: If the task is not supported.
         """
         if self.task == "TaxonomyClassification":
             x, _len, _, y = batch

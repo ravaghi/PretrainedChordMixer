@@ -11,40 +11,40 @@ from .trainer.trainer import Trainer
 
 
 class PretrainedChordMixerTrainer(Trainer):
-    """ Trainer for the pretrained ChordMixer model """
+    """Trainer for pretrained model."""
 
     def _calculate_y_hat(self, batch: Tuple[Tensor, Tensor, Tensor]) -> Tuple[Tensor, Tensor, Tensor]:
         """
-        Calculates y_hat for a batch
+        Calculates y_hat for a batch.
 
         Args:
-            batch Tuple[Tensor, Tensor, Tensor]: A batch of data
+            batch Tuple[Tensor, Tensor, Tensor]: A batch of data, containing the sequence ids, masks and labels
 
         Returns:
             Tuple[Tensor, Tensor, Tensor]: Tuple containing y, y_hat and masks
         """
         sequence_ids, masks, labels = batch
 
-        x: Tensor = sequence_ids.to(self.device)
-        y: Tensor = labels.to(self.device)
-        masks: Tensor = masks.to(self.device)
+        x = sequence_ids.to(self.device)
+        y = labels.to(self.device)
+        masks = masks.to(self.device)
 
-        y_hat: Tensor = self.model(x)
+        y_hat = self.model(x)
 
         return y, y_hat, masks
 
     @staticmethod
     def _calcualte_predictions(y: Tensor, y_hat: Tensor, mask: Tensor) -> Tuple[Tensor, Tensor]:
         """
-        Selects the predictions and labels based on the mask positions
+        returns predictions and labels, only at the masked positions.
 
         Args:
-            y (Tensor): The labels
-            y_hat (Tensor): The predictions
-            mask (Tensor): The mask
+            y (Tensor): Labels.
+            y_hat (Tensor): Model predictions.
+            mask (Tensor): Mask.
 
         Returns:
-            Tuple[Tensor, Tensor]: Tuple containing the labels and predictions
+            Tuple[Tensor, Tensor]: Tuple containing the labels and predictions.
         """
         y = y.masked_select(mask)
         y_hat = y_hat.argmax(dim=-1).masked_select(mask)
@@ -53,15 +53,15 @@ class PretrainedChordMixerTrainer(Trainer):
     @staticmethod
     def _calculate_auc(y: Tensor, y_hat: Tensor, mask: Tensor) -> float:
         """
-        Calculates the AUC for a batch
+        Calculates the ROC-AUC score for a batch.
 
         Args:
-            y (Tensor): The labels
-            y_hat (Tensor): The predictions
-            mask (Tensor): The mask
+            y (Tensor): Labels.
+            y_hat (Tensor): Model predictions.
+            mask (Tensor): Mask.
 
         Returns:
-            float: The AUC
+            float: ROC-AUC score for a batch.
         """
         try:
             target = y.masked_select(mask).detach().cpu().numpy()
@@ -74,13 +74,13 @@ class PretrainedChordMixerTrainer(Trainer):
     @staticmethod
     def _log_metrics(auc: float, accuracy: float, loss: float, metric_type: str) -> None:
         """
-        Log metrics to wandb
+        Logs metrics to wandb.
 
         Args:
-            auc (float): Area under the curve
-            accuracy (float): Accuracy
-            loss (float): Loss
-            metric_type (str): Type of metric
+            auc (float): ROC-AUC score.
+            accuracy (float): Accuracy.
+            loss (float): Loss.
+            metric_type (str): Type of metric, either train, val or test.
 
         Returns:
             None
@@ -103,6 +103,15 @@ class PretrainedChordMixerTrainer(Trainer):
             wandb.run.summary['test_loss'] = loss
 
     def train(self, current_epoch_nr: int) -> None:
+        """
+        Trains the model for one epoch.
+
+        Args:
+            current_epoch_nr (int): Current epoch number.
+
+        Returns:
+            None
+        """
         self.model.train()
 
         num_batches = len(self.train_dataloader)
@@ -133,7 +142,7 @@ class PretrainedChordMixerTrainer(Trainer):
             target, prediction = self._calcualte_predictions(y, y_hat, masks)
 
             current_accuracy = metrics.accuracy_score(
-                target.detach().cpu().numpy(), 
+                target.detach().cpu().numpy(),
                 prediction.detach().cpu().numpy()
             )
             current_auc = self._calculate_auc(y, y_hat, masks)
@@ -144,7 +153,7 @@ class PretrainedChordMixerTrainer(Trainer):
             loop.set_description(f'Epoch {current_epoch_nr}')
             loop.set_postfix(train_acc=round(current_accuracy, 5),
                              train_loss=round(current_loss, 5))
-            
+
             if self.scheduler is not None:
                 self.scheduler.step()
 
@@ -158,6 +167,15 @@ class PretrainedChordMixerTrainer(Trainer):
                 aucs = []
 
     def evaluate(self, current_epoch_nr) -> None:
+        """
+        Evaluates the model on the validation set.
+
+        Args:
+            current_epoch_nr (int): Current epoch number.
+
+        Returns:
+            None
+        """
         self.model.eval()
 
         num_batches = len(self.val_dataloader)
@@ -202,6 +220,15 @@ class PretrainedChordMixerTrainer(Trainer):
             self.save_model(model=self.model, name=model_name)
 
     def test(self) -> None:
+        """
+        Tests the model on the test set.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.model.eval()
 
         num_batches = len(self.test_dataloader)

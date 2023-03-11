@@ -1,4 +1,5 @@
 from sklearn.metrics import roc_auc_score
+from torch.utils.data import DataLoader
 from datetime import datetime
 from typing import Tuple
 from tqdm import tqdm
@@ -9,19 +10,19 @@ import os
 
 
 class Trainer(ABC):
-    """Trainer class"""
+    """Base class for all trainers."""
 
     def __init__(self,
-                 device,
-                 model,
-                 criterion,
-                 optimizer,
-                 task,
-                 train_dataloader,
-                 val_dataloader,
-                 test_dataloader,
-                 log_to_wandb,
-                 save_dir,
+                 device: str,
+                 model: torch.nn.Module,
+                 criterion: torch.nn.Module,
+                 optimizer: torch.optim.Optimizer,
+                 task: str,
+                 train_dataloader: DataLoader,
+                 val_dataloader: DataLoader,
+                 test_dataloader: DataLoader,
+                 log_to_wandb: bool,
+                 save_dir: str,
                  scheduler=None
                  ):
         self.device = device
@@ -38,11 +39,11 @@ class Trainer(ABC):
 
     def save_model(self, model: torch.nn.Module, name: str) -> None:
         """
-        Save the model to disk, and log it to wandb as an artifact of the run
+        Saves the model to disk, and logs it to wandb as an artifact of the run.
 
         Args:
-            model (torch.nn.Module): Model to save
-            name (str): Name of the model
+            model (torch.nn.Module): Model checkpoint.
+            name (str): Name of the model.
 
         Returns:
             None
@@ -63,11 +64,11 @@ class Trainer(ABC):
 
         model_path = os.path.join(self.save_dir, name + ".pt")
 
-        # Save model to disk
+        # Saves the model to disk
         torch.save(model.state_dict(), model_path)
 
         if self.log_to_wandb:
-            # Save model to wandb
+            # Saves the model as an artifact to wandb
             artifact = wandb.Artifact(_parse_model_name(), type='model')
             artifact.add_file(model_path)
             wandb.run.log_artifact(artifact)
@@ -75,14 +76,14 @@ class Trainer(ABC):
     @staticmethod
     def log_metrics(auc: float, accuracy: float, loss: float, current_epoch_nr: int, metric_type: str) -> None:
         """
-        Log metrics to wandb
+        Logs metrics to wandb.
 
         Args:
-            auc (float): Area under the curve
-            accuracy (float): Accuracy
-            loss (float): Loss
-            current_epoch_nr (int): Current epoch number
-            metric_type (str): Type of metric, train, val or test
+            auc (float): ROC-AUC score.
+            accuracy (float): Accuracy.
+            loss (float): Loss.
+            current_epoch_nr (int): Current epoch number.
+            metric_type (str): Type of metric, train, val or test.
 
         Returns:
             None
@@ -106,16 +107,16 @@ class Trainer(ABC):
 
     def calculate_y_hat(self, batch: Tuple) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Calculate y_hat for a batch depnding on the task
+        Calculates y_hat for a batch depnding on the task.
 
         Args:
-            batch (tuple): One batch of data
+            batch (Tuple): One batch of data.
 
         Returns:
-            tuple: y and y_hat
+            Tuple: y and y_hat.
 
         Raises:
-            ValueError: If the task is not supported
+            ValueError: If the task is not supported.
         """
         if self.task in ["TaxonomyClassification", "PlantVariantEffectPrediction"]:
             x, y = batch
@@ -143,14 +144,14 @@ class Trainer(ABC):
 
     def calculate_predictions(self, y: torch.Tensor, y_hat: torch.Tensor) -> Tuple[torch.Tensor, int]:
         """
-        Calculate predictions and the number of correct predictions
+        Calculates predictions and the number of correct predictions.
 
         Args:
-            y (torch.Tensor): The y
-            y_hat (torch.Tensor): The y_hat
+            y (torch.Tensor): Labels.
+            y_hat (torch.Tensor): Predictions.
 
         Returns:
-            tuple: Predictions and the number of correct predictions
+            Tuple: Predictions and the number of correct predictions.
         """
         if self.task in ["TaxonomyClassification", "HumanVariantEffectPrediction"]:
             predicted = torch.sigmoid(y_hat)
@@ -167,10 +168,10 @@ class Trainer(ABC):
 
     def train(self, current_epoch_nr: int) -> None:
         """
-        Train the model for one epoch
+        Trains the model for one epoch.
 
         Args:
-            current_epoch_nr (int): Current epoch number
+            current_epoch_nr (int): Current epoch number.
 
         Returns:
             None
@@ -228,10 +229,10 @@ class Trainer(ABC):
 
     def evaluate(self, current_epoch_nr: int) -> None:
         """
-        Evaluate the model for one epoch
+        Evaluates the model on the validation set.
 
         Args:
-            current_epoch_nr (int): Current epoch number
+            current_epoch_nr (int): Current epoch number.
 
         Returns:
             None
@@ -283,7 +284,7 @@ class Trainer(ABC):
 
     def test(self) -> None:
         """
-        Test the model after training
+        Tests the model on the test set.
 
         Returns:
             None

@@ -27,7 +27,7 @@ def seed_everything(seed: int = 42) -> None:
 
 def init_wandb(config: DictConfig) -> None:
     """
-    Initialize a new run on Weights & Biases.
+    Initializes a new run on Weights & Biases.
 
     Args:
         config (DictConfig): Configuration file.
@@ -46,7 +46,7 @@ def init_wandb(config: DictConfig) -> None:
 
 def init_run(config: DictConfig) -> str:
     """
-    Initialize a new run on Weights & Biases. Set random seeds and select cuda device.
+    Initializes a new run on Weights & Biases. Sets random seeds and selects cuda device.
 
     Args:
         config (DictConfig): Configuration file.
@@ -56,23 +56,23 @@ def init_run(config: DictConfig) -> str:
     """
     seed_everything(config.general.seed)
 
-    # Initiate wandb run
+    # Initiates wandb run
     if config.general.log_to_wandb:
         print(f"Logging to Weights & Biases: {config.wandb.project}/{config.wandb.name}")
         init_wandb(config=config)
     else:
         print(f"Skipping Weights & Biases logging. Set log_to_wandb to True in config to enable it.")
 
-    # Print config file content
+    # Prints config file content
     print("-" * 30 + " config " + "-" * 30)
     print(OmegaConf.to_yaml(config))
     print("-" * 30 + " config " + "-" * 30)
 
-    # Select cuda device
+    # Selects cuda device
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     try:
-        # Use a specific GPU if id is specified
+        # Uses a specific GPU if id is specified
         device = f'{device}:{config.general.device_id}'
     except AttributeError:
         pass
@@ -84,7 +84,7 @@ def init_run(config: DictConfig) -> str:
 
 def print_model_params(model: torch.nn.Module) -> None:
     """
-    Print number of model parameters.
+    Prints number of model parameters.
 
     Args:
         model (torch.nn.Module): Model to print parameters from.

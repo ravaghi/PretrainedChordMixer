@@ -2,4 +2,4 @@ from .trainer.trainer import Trainer
 
 
 class KeGruTrainer(Trainer):
-    """KeGruTrainer class"""
+    """Trainer for KeGru model."""
