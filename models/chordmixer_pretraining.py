@@ -88,7 +88,7 @@ class ChordMixerEncoder(nn.Module):
 
         return encoder
 
-    def forward(self, data, lengths):
+    def forward(self, data, lengths=None):
         if lengths:
             n_layers = math.ceil(np.log2(lengths[0]))
         else:
