@@ -15,7 +15,7 @@ general:
   name: Poolformer
   seed: 42
   device_id: 0
-  batch_size: 4
+  batch_size: 8
   max_epochs: 30
   log_to_wandb: false
   use_multi_gpu: false
