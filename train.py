@@ -31,11 +31,16 @@ def main(config: DictConfig) -> None:
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
     if config.general.use_scheduler:
         # Only cosine_schedule_with_warmup is supported for now
+        # scheduler = instantiate(
+        #     config=config.scheduler,
+        #     optimizer=optimizer,
+        #     num_warmup_steps=int(len(train_dataloader) * config.general.max_epochs * 0.1),
+        #     num_training_steps=len(train_dataloader) * config.general.max_epochs,
+        # )
         scheduler = instantiate(
             config=config.scheduler,
             optimizer=optimizer,
-            num_warmup_steps=int(len(train_dataloader) * config.general.max_epochs * 0.1),
-            num_training_steps=len(train_dataloader) * config.general.max_epochs,
+            T_max=config.general.max_epochs * len(train_dataloader)
         )
     else:
         scheduler = None

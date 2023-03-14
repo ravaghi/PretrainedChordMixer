@@ -17,6 +17,10 @@ optimizer:
   _target_: torch.optim.Adam
   lr: 0.0001
 
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  eta_min: 0.000001
+
 wandb: 
   entity: ravaghi
   project: PretrainedChordMixer
@@ -26,8 +30,8 @@ general:
   name: PretrainedChordMixer
   seed: 42
   batch_size: 4
-  max_epochs: 30
-  log_to_wandb: true
+  max_epochs: 50
+  log_to_wandb: false
   use_multi_gpu: true
   use_scheduler: false
   save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}
