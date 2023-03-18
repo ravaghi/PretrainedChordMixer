@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 
-from .chordmixer_pretraining import ChordMixerEncoder
+from .chordmixer_pretraining import ChordMixerEncoder, ChordMixerClassifier
 
 
 class FineTunedChordMixer(nn.Module):
@@ -20,11 +20,16 @@ class FineTunedChordMixer(nn.Module):
             freeze=freeze,
             variable_length=variable_length
         )
-        self.classifier = nn.Sequential(
-            nn.Linear(self.encoder.prelinear_out_features, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, n_class)
+        self.decoder = ChordMixerClassifier(
+            n_blocks=self.encoder.n_blocks,
+            track_size=self.encoder.track_size,
+            hidden_size=self.encoder.hidden_size,
+            prelinear_out_features=self.encoder.prelinear_out_features,
+            mlp_dropout=self.encoder.mlp_dropout,
+            layer_dropout=self.encoder.layer_dropout,
+            variable_length=False
         )
+        self.classifier = nn.Linear(self.encoder.prelinear_out_features, n_class)
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
@@ -32,6 +37,7 @@ class FineTunedChordMixer(nn.Module):
             lengths = input_data["seq_len"]
 
             y_hat = self.encoder(x, lengths)
+            y_hat = self.decoder(y_hat)
             y_hat = self.classifier(y_hat)
             y_hat = y_hat.view(-1)
 
@@ -44,6 +50,9 @@ class FineTunedChordMixer(nn.Module):
 
             y_hat_1 = self.encoder(x1)
             y_hat_2 = self.encoder(x2)
+
+            y_hat_1 = self.decoder(y_hat_1)
+            y_hat_2 = self.decoder(y_hat_2)
 
             y_hat = y_hat_1 - y_hat_2
             y_hat = torch.mean(y_hat, dim=1)
@@ -59,6 +68,7 @@ class FineTunedChordMixer(nn.Module):
             x = input_data["x"].float()
 
             y_hat = self.encoder(x)
+            y_hat = self.decoder(y_hat)
 
             y_hat = y_hat[:, 400:600, :]
 

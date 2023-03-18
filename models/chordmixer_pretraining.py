@@ -22,9 +22,14 @@ class ChordMixerEncoder(nn.Module):
                  variable_length: bool = False
                  ):
         super(ChordMixerEncoder, self).__init__()
-        self.variable_length = variable_length
-        self.prelinear_out_features = prelinear_out_features
+        self.vocab_size = vocab_size
         self.n_blocks = n_blocks
+        self.track_size = track_size
+        self.hidden_size = hidden_size
+        self.prelinear_out_features = prelinear_out_features
+        self.mlp_dropout = mlp_dropout
+        self.layer_dropout = layer_dropout
+        self.variable_length = variable_length
 
         self.prelinear = nn.Linear(vocab_size, prelinear_out_features)
         self.chordmixer_blocks = nn.ModuleList(
@@ -137,6 +142,46 @@ class ChordMixerDecoder(nn.Module):
             data = self.chordmixer_blocks[layer](data)
         data = self.mlm_classifier(data)
         data = self.softmax(data)
+        return data
+
+
+class ChordMixerClassifier(nn.Module):
+    """ChordMixerClassifier, used for fine-tuning"""
+
+    def __init__(self,
+                 n_blocks: int,
+                 track_size: int,
+                 hidden_size: int,
+                 prelinear_out_features: int,
+                 mlp_dropout: float,
+                 layer_dropout: float,
+                 variable_length: bool = False
+                 ):
+        super(ChordMixerClassifier, self).__init__()
+        self.variable_length = variable_length
+        self.prelinear_out_features = prelinear_out_features
+        self.n_blocks = n_blocks
+
+        self.chordmixer_blocks = nn.ModuleList(
+            [
+                ChordMixerBlock(prelinear_out_features, n_blocks, track_size, hidden_size, mlp_dropout, layer_dropout)
+                for _ in range(n_blocks)
+            ]
+        )
+
+    def forward(self, data, lengths=None):
+        if lengths:
+            n_layers = math.ceil(np.log2(lengths[0]))
+        else:
+            n_layers = self.n_blocks
+
+        for layer in range(n_layers):
+            data = self.chordmixer_blocks[layer](data, lengths)
+
+        if lengths:
+            data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
+            data = torch.stack(data)
+
         return data
 
 
