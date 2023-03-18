@@ -169,19 +169,9 @@ class ChordMixerClassifier(nn.Module):
             ]
         )
 
-    def forward(self, data, lengths=None):
-        if lengths:
-            n_layers = math.ceil(np.log2(lengths[0]))
-        else:
-            n_layers = self.n_blocks
-
-        for layer in range(n_layers):
-            data = self.chordmixer_blocks[layer](data, lengths)
-
-        if lengths:
-            data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
-            data = torch.stack(data)
-
+    def forward(self, data):
+        for layer in range(self.n_blocks):
+            data = self.chordmixer_blocks[layer](data, None)
         return data
 
 

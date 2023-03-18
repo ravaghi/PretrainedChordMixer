@@ -21,7 +21,7 @@ class FineTunedChordMixer(nn.Module):
             variable_length=variable_length
         )
         self.decoder = ChordMixerClassifier(
-            n_blocks=self.encoder.n_blocks,
+            n_blocks=10,
             track_size=self.encoder.track_size,
             hidden_size=self.encoder.hidden_size,
             prelinear_out_features=self.encoder.prelinear_out_features,
