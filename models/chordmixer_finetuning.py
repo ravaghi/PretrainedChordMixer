@@ -9,7 +9,6 @@ class FineTunedChordMixer(nn.Module):
 
     def __init__(self,
                  model_path: str,
-                 hidden_size: int,
                  freeze: bool,
                  variable_length: bool,
                  n_class: int
@@ -21,7 +20,7 @@ class FineTunedChordMixer(nn.Module):
             variable_length=variable_length
         )
         self.decoder = ChordMixerClassifier(
-            n_blocks=10,
+            n_blocks=self.encoder.n_blocks,
             track_size=self.encoder.track_size,
             hidden_size=self.encoder.hidden_size,
             prelinear_out_features=self.encoder.prelinear_out_features,
