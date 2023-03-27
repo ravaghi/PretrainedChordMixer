@@ -1,5 +1,10 @@
 _target_: models.chordmixer_finetuning.FineTunedChordMixer
-model_path: ${hydra:runtime.cwd}/models/PCM.pt
+model_path: /cluster/home/mahdih/PretrainedChordMixer/logs/checkpoints/PretrainedChordMixer/22Mar2023_165757-TestAuc-0.7343-TestAcc-0.4478.pt
 freeze: True
 variable_length: ${dataset.variable_length}
 n_class: ${dataset.n_class}
+decoder_n_blocks: 20
+decoder_track_size: 16
+decoder_hidden_size: 196
+decoder_mlp_dropout: 0.0
+decoder_layer_dropout: 0.0

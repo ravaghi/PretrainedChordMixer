@@ -8,7 +8,7 @@ parameters:
   wandb.name:
     value: ""
   general.batch_size:
-    max: 64
+    max: 256
     min: 2
     q: 2
     distribution: q_uniform
@@ -16,14 +16,25 @@ parameters:
     max: 0.005
     min: 0.00001
     distribution: uniform
-  scheduler.eta_min:
-    max: 0.0001
-    min: 0.0000001
-    distribution: uniform
-  model.hidden_size:
+  model.decoder_n_blocks: 
+    max: 20
+    min: 1
+    q: 1
+    distribution: q_uniform
+  model.decoder_hidden_size: 
     max: 1000
     min: 50
     q: 50
+    distribution: q_uniform
+  model.decoder_mlp_dropout: 
+    max: 0.5
+    min: 0.0
+    q: 0.05
+    distribution: q_uniform
+  model.decoder_layer_dropout: 
+    max: 0.5
+    min: 0.0
+    q: 0.05
     distribution: q_uniform
 
 command:
@@ -31,5 +42,8 @@ command:
   - python
   - ${program}
   - --config-name=chordmixer_finetuning
-  - dataset=taxonomy_classification_cvl
+  #- dataset=taxonomy_classification_svb
+  #- dataset=vep_human_homo_sapien
+  - dataset=vep_plant_arabidopsis_thaliana
+  - general.log_to_wandb=true
   - ${args_no_hyphens}

@@ -103,24 +103,21 @@ class PretrainedChordMixerDataLoader:
                      tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, 240_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 80_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
-            shuffle=True,
-            pin_memory=True
+            shuffle=True
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 10_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
-            shuffle=True,
-            pin_memory=True
+            shuffle=True
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 10_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
-            shuffle=True,
-            pin_memory=True
+            shuffle=True
         )
 
         return train_dataloader, val_dataloader, test_dataloader

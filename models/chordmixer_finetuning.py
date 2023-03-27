@@ -8,11 +8,16 @@ class FineTunedChordMixer(nn.Module):
     """ChordMixer fine-tuning model."""
 
     def __init__(self,
-                 model_path: str,
-                 freeze: bool,
-                 variable_length: bool,
-                 n_class: int
-                 ):
+                model_path: str,
+                freeze: bool,
+                variable_length: bool,
+                n_class: int,
+                decoder_n_blocks: int,
+                decoder_track_size: int,
+                decoder_hidden_size: int,
+                decoder_mlp_dropout: float,
+                decoder_layer_dropout: float
+                ):
         super(FineTunedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder.from_pretrained(
             model_path=model_path,
@@ -20,12 +25,12 @@ class FineTunedChordMixer(nn.Module):
             variable_length=variable_length
         )
         self.decoder = ChordMixerClassifier(
-            n_blocks=self.encoder.n_blocks,
-            track_size=self.encoder.track_size,
-            hidden_size=self.encoder.hidden_size,
+            n_blocks=decoder_n_blocks,
+            track_size=decoder_track_size,
+            hidden_size=decoder_hidden_size,
             prelinear_out_features=self.encoder.prelinear_out_features,
-            mlp_dropout=self.encoder.mlp_dropout,
-            layer_dropout=self.encoder.layer_dropout,
+            mlp_dropout=decoder_mlp_dropout,
+            layer_dropout=decoder_layer_dropout,
             variable_length=False
         )
         self.classifier = nn.Linear(self.encoder.prelinear_out_features, n_class)
@@ -37,6 +42,10 @@ class FineTunedChordMixer(nn.Module):
 
             y_hat = self.encoder(x, lengths)
             y_hat = self.decoder(y_hat)
+    
+            y_hat = [torch.mean(t, dim=0) for t in torch.split(y_hat, lengths)]
+            y_hat = torch.stack(y_hat)
+            
             y_hat = self.classifier(y_hat)
             y_hat = y_hat.view(-1)
 

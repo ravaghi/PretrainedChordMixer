@@ -101,12 +101,7 @@ class ChordMixerEncoder(nn.Module):
 
         data = self.prelinear(data)
         for layer in range(n_layers):
-            data = self.chordmixer_blocks[layer](data, lengths)
-
-        if lengths:
-            data = [torch.mean(t, dim=0) for t in torch.split(data, lengths)]
-            data = torch.stack(data)
-
+            data = self.chordmixer_blocks[layer](data, lengths)            
         return data
 
 
@@ -186,29 +181,32 @@ class PretrainedChordMixer(nn.Module):
                  encoder_prelinear_out_features: int,
                  decoder_prelinear_in_features: int,
                  decoder_prelinear_out_features: int,
-                 hidden_size: int,
-                 mlp_dropout: float,
-                 layer_dropout: float
+                 encoder_hidden_size: int,
+                 encoder_mlp_dropout: float,
+                 encoder_layer_dropout: float,
+                 decoder_hidden_size: int,
+                 decoder_mlp_dropout: float,
+                 decoder_layer_dropout: float
                  ):
         super(PretrainedChordMixer, self).__init__()
         self.encoder = ChordMixerEncoder(
             vocab_size,
             n_blocks,
             encoder_track_size,
-            hidden_size,
+            encoder_hidden_size,
             encoder_prelinear_out_features,
-            mlp_dropout,
-            layer_dropout
+            encoder_mlp_dropout,
+            encoder_layer_dropout
         )
         self.decoder = ChordMixerDecoder(
             vocab_size,
             n_blocks,
             decoder_track_size,
-            hidden_size,
+            decoder_hidden_size,
             decoder_prelinear_in_features,
             decoder_prelinear_out_features,
-            mlp_dropout,
-            layer_dropout
+            decoder_mlp_dropout,
+            decoder_layer_dropout
         )
 
     def forward(self, sequence_ids):
