@@ -29,16 +29,6 @@ def main(config: DictConfig) -> None:
 
     criterion = instantiate(config=config.loss)
     optimizer = instantiate(config=config.optimizer, params=model.parameters())
-    if config.general.use_scheduler:
-        # Only cosine_schedule_with_warmup is supported for now
-        scheduler = instantiate(
-            config=config.scheduler,
-            optimizer=optimizer,
-            num_warmup_steps=int(len(train_dataloader) * config.general.max_epochs * 0.2),
-            num_training_steps=len(train_dataloader) * config.general.max_epochs,
-        )
-    else:
-        scheduler = None
 
     trainer = instantiate(
         config=config.trainer,
@@ -52,7 +42,7 @@ def main(config: DictConfig) -> None:
         test_dataloader=test_dataloader,
         log_to_wandb=config.general.log_to_wandb,
         save_dir=config.general.save_dir,
-        scheduler=scheduler
+        scheduler=None
     )
 
     for epoch in range(1, config.general.max_epochs + 1):
