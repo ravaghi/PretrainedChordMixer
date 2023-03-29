@@ -1,14 +1,12 @@
 _target_: models.chordmixer_pretraining.PretrainedChordMixer
 vocab_size: 4
-n_blocks: 20
 encoder_track_size: 16
-decoder_track_size: 4
-encoder_prelinear_out_features: 950
-decoder_prelinear_in_features: ${model.encoder_prelinear_out_features}
-decoder_prelinear_out_features: 50
 encoder_hidden_size: 196
 encoder_mlp_dropout: 0
 encoder_layer_dropout: 0
+decoder_track_size: 4
 decoder_hidden_size: 196
 decoder_mlp_dropout: 0
 decoder_layer_dropout: 0
+max_seq_len: 1000
+variable_length: false

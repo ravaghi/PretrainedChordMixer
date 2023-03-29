@@ -27,7 +27,7 @@ wandb:
   name: ${general.name}
 
 general:
-  name: PretrainedChordMixer
+  name: PretrainedChordMixerCL1000
   seed: 42
   batch_size: 4
   max_epochs: 30
