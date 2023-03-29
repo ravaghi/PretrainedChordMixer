@@ -18,7 +18,7 @@ parameters:
     q: 0.05
     distribution: q_uniform
   optimizer.lr:
-    max: 0.0006
+    max: 0.001
     min: 0.000001
     distribution: uniform
   model.encoder_track_size:
@@ -57,6 +57,7 @@ command:
   - python
   - ${program}
   - --config-name=chordmixer_pretraining
-  - general.max_epochs=10
+  - general.max_epochs=30
   - general.log_to_wandb=true
+  - general.use_multi_gpu=true
   - ${args_no_hyphens}
