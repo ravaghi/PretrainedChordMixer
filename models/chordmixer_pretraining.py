@@ -95,7 +95,7 @@ class ChordMixerEncoder(nn.Module):
         return encoder
 
     def forward(self, data, lengths=None):
-        if lengths:
+        if self.variable_length:
             n_layers = math.ceil(np.log2(lengths[0]))
         else:
             n_layers = self.n_layers
@@ -180,7 +180,12 @@ class PretrainedChordMixer(nn.Module):
             max_seq_len=max_seq_len
         )
 
-    def forward(self, sequence_ids):
-        encoded = self.encoder(sequence_ids)
+    def forward(self, sequence_ids, lengths):
+        if lengths:
+            lengths = [length.item() for length in lengths]
+            sequence_ids = sequence_ids.squeeze()
+        encoded = self.encoder(sequence_ids, lengths)
         decoded = self.decoder(encoded)
+        if lengths:
+            decoded = decoded.unsqueeze(0)
         return decoded

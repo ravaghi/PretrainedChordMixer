@@ -1,0 +1,58 @@
+program: train.py
+method: bayes
+metric:
+  goal: maximize
+  name: test_auc
+
+parameters:
+  wandb.name:
+    value: ""
+  dataloader.mask_ratio:
+    max: 0.95
+    min: 0.05
+    q: 0.05
+    distribution: q_uniform
+  optimizer.lr:
+    max: 0.001
+    min: 0.000001
+    distribution: uniform
+  model.encoder_track_size:
+    values: [4, 8, 16]
+  model.decoder_track_size:
+    values: [4, 8, 16]
+  model.encoder_hidden_size:
+    max: 1000
+    min: 50
+    q: 50
+    distribution: q_uniform
+  model.decoder_hidden_size:
+    max: 1000
+    min: 50
+    q: 50
+    distribution: q_uniform
+  model.encoder_mlp_dropout:
+    max: 0.5
+    min: 0
+    distribution: uniform
+  model.decoder_mlp_dropout:
+    max: 0.5
+    min: 0
+    distribution: uniform
+  model.encoder_layer_dropout:
+    max: 0.5
+    min: 0
+    distribution: uniform
+  model.decoder_layer_dropout:
+    max: 0.5
+    min: 0
+    distribution: uniform
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - --config-name=chordmixer_pretraining_vl
+  - general.max_epochs=30
+  - general.log_to_wandb=true
+  - general.use_multi_gpu=false
+  - ${args_no_hyphens}

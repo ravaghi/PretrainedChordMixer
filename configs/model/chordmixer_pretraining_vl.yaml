@@ -1,0 +1,12 @@
+_target_: models.chordmixer_pretraining.PretrainedChordMixer
+vocab_size: 4
+encoder_track_size: 16
+encoder_hidden_size: 196
+encoder_mlp_dropout: 0
+encoder_layer_dropout: 0
+decoder_track_size: 4
+decoder_hidden_size: 196
+decoder_mlp_dropout: 0
+decoder_layer_dropout: 0
+max_seq_len: 100000
+variable_length: true

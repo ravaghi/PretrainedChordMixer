@@ -1,0 +1,37 @@
+defaults:
+  - _self_
+  - model: chordmixer_pretraining_vl
+  - loss: nllloss
+  - dataloader: chordmixer_pretraining_vl
+  - trainer: chordmixer_pretraining
+
+dataset:
+  path: ${hydra:runtime.cwd}/data/taxonomy_classification/sus_bos
+  type: pretraining
+  name: pretraining_vl
+  train_data: sus_bos_train.parquet
+  val_data: sus_bos_val.parquet
+  test_data: sus_bos_test.parquet
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0001
+
+wandb: 
+  entity: ravaghi
+  project: PretrainedChordMixer
+  name: ${general.name}
+
+general:
+  name: PretrainedChordMixerVL
+  seed: 42
+  batch_size: 1
+  max_epochs: 30
+  log_to_wandb: false
+  use_multi_gpu: false
+  use_scheduler: false
+  save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}
+
+hydra:
+  run:
+    dir: ${hydra:runtime.cwd}/logs/hydra/outputs

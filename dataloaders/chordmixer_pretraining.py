@@ -55,7 +55,7 @@ class HG38Dataset(Dataset):
 
         sequence, mask, label = self._get_sequence_mask_label(sequence)
 
-        return sequence.float(), mask, label.long()
+        return sequence.float(), mask, label.long(), []
 
     def __len__(self):
         return self.dataset_size
@@ -103,19 +103,19 @@ class PretrainedChordMixerDataLoader:
                      tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, 240_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 120_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 15_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 15_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )

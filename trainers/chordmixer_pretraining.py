@@ -13,23 +13,23 @@ from .trainer.trainer import Trainer
 class PretrainedChordMixerTrainer(Trainer):
     """Trainer for pretrained model."""
 
-    def _calculate_y_hat(self, batch: Tuple[Tensor, Tensor, Tensor]) -> Tuple[Tensor, Tensor, Tensor]:
+    def _calculate_y_hat(self, batch: Tuple[Tensor, Tensor, Tensor, Tensor]) -> Tuple[Tensor, Tensor, Tensor]:
         """
         Calculates y_hat for a batch.
 
         Args:
-            batch Tuple[Tensor, Tensor, Tensor]: A batch of data, containing the sequence ids, masks and labels
+            batch Tuple[Tensor, Tensor, Tensor, Tensor]: A batch of data, containing the sequence ids, masks, labels and lengths.
 
         Returns:
             Tuple[Tensor, Tensor, Tensor]: Tuple containing y, y_hat and masks
         """
-        sequence_ids, masks, labels = batch
+        sequence_ids, masks, labels, lengths = batch
 
         x = sequence_ids.to(self.device)
         y = labels.to(self.device)
         masks = masks.to(self.device)
 
-        y_hat = self.model(x)
+        y_hat = self.model(x, lengths)
 
         return y, y_hat, masks
 
