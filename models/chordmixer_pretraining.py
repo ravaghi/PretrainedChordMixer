@@ -55,7 +55,10 @@ class ChordMixerEncoder(nn.Module):
         state_dict = OrderedDict()
         for key, value in model.items():
             if "encoder" in key:
-                new_key = key.replace("module.encoder.", "")
+                if "module.encoder." in key:
+                    new_key = key.replace("module.encoder.", "")
+                else:
+                    new_key = key.replace("encoder.", "")
                 state_dict[new_key] = value
         return state_dict
 
