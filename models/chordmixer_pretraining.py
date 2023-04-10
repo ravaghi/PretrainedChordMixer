@@ -55,7 +55,7 @@ class ChordMixerEncoder(nn.Module):
         state_dict = OrderedDict()
         for key, value in model.items():
             if "encoder" in key:
-                new_key = key.replace("encoder.", "")
+                new_key = key.replace("module.encoder.", "")
                 state_dict[new_key] = value
         return state_dict
 
@@ -75,16 +75,27 @@ class ChordMixerEncoder(nn.Module):
         print(f"Loading pretrained model: {model_path}")
         model = torch.load(model_path)
         encoder_state_dict = cls._get_encoder_state_dict(model=model)
-
-        encoder = cls(
-            vocab_size=4,
-            track_size=16,
-            hidden_size=196,
-            mlp_dropout=0.0,
-            layer_dropout=0.0,
-            max_seq_len=1000,
-            variable_length=variable_length
-        )
+    
+        if variable_length:
+            encoder = cls(
+                vocab_size=4,
+                track_size=16,
+                hidden_size=350,
+                mlp_dropout=0.0,
+                layer_dropout=0.1,
+                max_seq_len=1000,
+                variable_length=variable_length
+            )
+        else:
+            encoder = cls(
+                vocab_size=4,
+                track_size=16,
+                hidden_size=750,
+                mlp_dropout=0.0,
+                layer_dropout=0.1,
+                max_seq_len=1000,
+                variable_length=variable_length
+            )
 
         encoder.load_state_dict(encoder_state_dict)
 

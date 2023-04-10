@@ -11,7 +11,7 @@ from .preprocessor.preprocessor import Preprocessor
 
 
 class BySequenceLengthSampler(Sampler):
-    def __init__(self, lengths, bucket_boundaries, batch_size=4):
+    def __init__(self, lengths, bucket_boundaries, batch_size=2):
         ind_n_len = []
         for i, l in enumerate(lengths):
             ind_n_len.append((i, l))
@@ -139,19 +139,19 @@ class PretrainedChordMixerDataLoader(Preprocessor):
         train_sampler = BySequenceLengthSampler(
             lengths=list(train_dataframe["len"]),
             bucket_boundaries=BUCKET_BOUNDARIES,
-            batch_size=4
+            batch_size=2
         )
 
         val_sampler = BySequenceLengthSampler(
             lengths=list(val_dataframe["len"]),
             bucket_boundaries=BUCKET_BOUNDARIES,
-            batch_size=4
+            batch_size=2
         )
 
         test_sampler = BySequenceLengthSampler(
             lengths=list(test_dataframe["len"]),
             bucket_boundaries=BUCKET_BOUNDARIES,
-            batch_size=4
+            batch_size=2
         )
 
         train_dataloader = DataLoader(
@@ -181,4 +181,4 @@ class PretrainedChordMixerDataLoader(Preprocessor):
             num_workers=1
         )
 
-        return train_dataloader, val_dataloader, test_dataloader
+        return train_dataloader, val_dataloader, val_dataloader

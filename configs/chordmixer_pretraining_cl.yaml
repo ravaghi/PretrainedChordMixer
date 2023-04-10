@@ -1,0 +1,37 @@
+defaults:
+  - _self_
+  - model: chordmixer_pretraining_cl
+  - loss: nllloss
+  - dataloader: chordmixer_pretraining_cl
+  - trainer: chordmixer_pretraining
+
+dataset:
+  path: ${hydra:runtime.cwd}/data/variant_effect_prediction/human
+  type: pretraining
+  name: hg38.fa
+  train_data: label811_49_train.csv
+  val_data: label811_49_val.csv
+  test_data: label811_49_test.csv
+
+optimizer:
+  _target_: torch.optim.Adam
+  lr: 0.0005
+
+wandb: 
+  entity: ravaghi
+  project: PretrainedChordMixer
+  name: ${general.name}
+
+general:
+  name: PretrainedChordMixerCL1000
+  seed: 42
+  batch_size: 416
+  max_epochs: 50
+  log_to_wandb: false
+  use_multi_gpu: false
+  use_scheduler: false
+  save_dir: ${hydra:runtime.cwd}/logs/checkpoints/${general.name}
+
+hydra:
+  run:
+    dir: ${hydra:runtime.cwd}/logs/hydra/outputs
