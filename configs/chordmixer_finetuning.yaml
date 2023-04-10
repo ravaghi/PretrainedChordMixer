@@ -11,9 +11,6 @@ optimizer:
   _target_: torch.optim.Adam
   lr: 0.0001
 
-scheduler:
-  _target_: transformers.get_cosine_schedule_with_warmup
-
 general:
   name: ProbedChordMixer
   seed: 42
