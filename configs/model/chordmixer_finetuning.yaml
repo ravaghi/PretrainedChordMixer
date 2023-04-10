@@ -4,6 +4,6 @@ freeze: True
 variable_length: ${dataset.variable_length}
 n_class: ${dataset.n_class}
 decoder_track_size: 16
-decoder_hidden_size: 196
-decoder_mlp_dropout: 0.0
-decoder_layer_dropout: 0.0
+decoder_hidden_size: 100
+decoder_mlp_dropout: 0.2
+decoder_layer_dropout: 0.2

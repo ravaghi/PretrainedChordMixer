@@ -80,19 +80,19 @@ class ChordMixerEncoder(nn.Module):
             encoder = cls(
                 vocab_size=4,
                 track_size=16,
-                hidden_size=350,
-                mlp_dropout=0.0,
+                hidden_size=750,
+                mlp_dropout=0.05,
                 layer_dropout=0.1,
-                max_seq_len=1000,
+                max_seq_len=100_000,
                 variable_length=variable_length
             )
         else:
             encoder = cls(
                 vocab_size=4,
                 track_size=16,
-                hidden_size=750,
+                hidden_size=350,
                 mlp_dropout=0.0,
-                layer_dropout=0.1,
+                layer_dropout=0.13,
                 max_seq_len=1000,
                 variable_length=variable_length
             )
