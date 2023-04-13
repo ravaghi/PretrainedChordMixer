@@ -61,37 +61,48 @@ class GenbankDataset(Dataset):
     def __init__(self, dataframe, mask_ratio):
         self.dataframe = dataframe[['sequence', 'label', 'len']]
         self.mask_ratio = mask_ratio
-
+        self.one_hot_encoder = LabelBinarizer().fit([0, 1, 2, 3])
+    
     def __getitem__(self, index):
         """
         Returns: tuple (sample, target)
         """
         dataframe = self.dataframe.iloc[index, :]
-        labels = dataframe['sequence'].to_list()
+        sequence = dataframe['sequence'].to_list()
         lengths = dataframe['len'].to_list()
-        sum_lengths = sum(lengths)
 
-        labels = np.concatenate(labels) 
-        labels[labels > 3] = 0 # Non ACGT bases are set to 0
+        sequence = np.concatenate(sequence)
+        sequence[sequence > 3] = 0 # Non ACGT bases are set to 0
+        label = sequence.copy()
 
-        sample_pix = np.random.randint(low=0, high=sum_lengths,
-                                       size=int(sum_lengths * self.mask_ratio)) 
-        masks = np.ones_like(labels)
-        masks[sample_pix] = 0 
-        sequence_ids = labels.copy()
-        sequence_ids[sample_pix] = -1
+        sequence = self.one_hot_encoder.transform(sequence)
 
-        label_binarizer = LabelBinarizer()
-        label_binarizer.fit([0, 1, 2, 3])
-        sequence_ids = label_binarizer.transform(sequence_ids)
+        # 1. get binary-encoded masked indexes and masked positions
+        # random_masked_ratio = (1 - self.real_mask_ratio) / 2
+        uniform_vec = np.random.rand(len(sequence))
+        uniform_vec = uniform_vec <= self.mask_ratio
+        masked_vec = uniform_vec.astype(int)
 
-        masks = ~masks.astype(bool)
+        # 2. get real and random binary-encoded masked indexes
+        uniform_vec2 = np.random.rand(len(sequence))
+        random_vec = np.zeros(len(sequence))
+        same_vec = np.zeros(len(sequence))
+        random_vec[(masked_vec == 1) & (uniform_vec2 <= 0.1)] = 1
+        same_vec[(masked_vec == 1) & (uniform_vec2 >= 0.9)] = 1
+        real_vec = abs(masked_vec - random_vec - same_vec)
+        random_vec = np.array(random_vec).astype(bool)
+        real_vec = np.array(real_vec).astype(bool)
 
-        labels = torch.from_numpy(labels) 
-        masks = torch.from_numpy(masks)
-        sequence_ids = torch.from_numpy(sequence_ids)
+        # 3. masking with all zeros.
+        sequence[real_vec,:] = [0, 0, 0, 0]
+        # 4. masking with random one-hot encode
+        sequence[random_vec,:] = np.eye(4)[np.random.choice(4, 1)]
 
-        return sequence_ids.float(), masks, labels.long(), lengths
+        sequence = torch.tensor(sequence, dtype=torch.float32)
+        mask = torch.tensor(masked_vec, dtype=torch.bool)
+        label = torch.tensor(label, dtype=torch.int64)
+
+        return sequence.float(), mask, label.long(), lengths
 
     def __len__(self):
         return len(self.dataframe)

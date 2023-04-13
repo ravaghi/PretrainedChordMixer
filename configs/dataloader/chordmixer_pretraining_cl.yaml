@@ -2,5 +2,5 @@ _target_: dataloaders.chordmixer_pretraining_cl.PretrainedChordMixerDataLoader
 batch_size: ${general.batch_size}
 data_path: ${dataset.path}
 dataset_name: ${dataset.name}
-mask_ratio: 0.4
+mask_ratio: 0.3
 sequence_length: 1000
