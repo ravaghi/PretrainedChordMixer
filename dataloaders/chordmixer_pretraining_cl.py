@@ -1,8 +1,10 @@
 from torch.utils.data import Dataset, DataLoader
+from sklearn.preprocessing import LabelBinarizer
 import torch.nn.functional as F
 from typing import Tuple
 from tqdm import tqdm
 from Bio import SeqIO
+import numpy as np
 import random
 import torch
 import os
@@ -19,26 +21,39 @@ class HG38Dataset(Dataset):
         self.dataset_size = dataset_size
         self.sequence_length = sequence_length
         self.mask_ratio = mask_ratio
-
+        self.one_hot_encoder = LabelBinarizer().fit([0, 1, 2, 3])
+    
     def _get_sequence_mask_label(self, sequence):
         def _get_base_index(base):
             return self._DNA_BASE_DICT[base]
 
-        sequence_ids = torch.tensor(list(map(_get_base_index, [*sequence])), dtype=torch.int64)
-        label = sequence_ids.clone()
+        sequence_ids = list(map(_get_base_index, [*sequence]))
+        label = sequence_ids
 
-        # Creating masks
-        rand = torch.rand(sequence_ids.shape[0])
-        mask = rand < self.mask_ratio
+        sequence_ids = self.one_hot_encoder.transform(sequence_ids)
 
-        # One hot encoding
-        sequence_ids = F.one_hot(sequence_ids, num_classes=len(self._DNA_BASE_DICT))
+        # 1. get binary-encoded masked indexes and masked positions
+        # random_masked_ratio = (1 - self.real_mask_ratio) / 2
+        uniform_vec = np.random.rand(len(sequence_ids))
+        uniform_vec = uniform_vec <= self.mask_ratio
+        masked_vec = uniform_vec.astype(int)
 
-        # Masking
-        selection = torch.flatten(mask.nonzero()).tolist()
-        sequence_ids[selection] = 0
+        # 2. get real and random binary-encoded masked indexes
+        uniform_vec2 = np.random.rand(len(sequence_ids))
+        random_vec = np.zeros(len(sequence_ids))
+        same_vec = np.zeros(len(sequence_ids))
+        random_vec[(masked_vec == 1) & (uniform_vec2 <= 0.1)] = 1
+        same_vec[(masked_vec == 1) & (uniform_vec2 >= 0.9)] = 1
+        real_vec = abs(masked_vec - random_vec - same_vec)
+        random_vec = np.array(random_vec).astype(bool)
+        real_vec = np.array(real_vec).astype(bool)
 
-        return sequence_ids, mask, label
+        # 3. masking with all zeros.
+        sequence_ids[real_vec,:] = [0, 0, 0, 0]
+        # 4. masking with random one-hot encode
+        sequence_ids[random_vec,:] = np.eye(4)[np.random.choice(4, 1)]
+
+        return sequence_ids, masked_vec, label
 
     def __getitem__(self, index):
         random_id = random.randint(0, len(self.sequences) - 1)
@@ -54,6 +69,10 @@ class HG38Dataset(Dataset):
             return self.__getitem__(index)
 
         sequence, mask, label = self._get_sequence_mask_label(sequence)
+
+        sequence = torch.tensor(sequence, dtype=torch.float32)
+        mask = torch.tensor(mask, dtype=torch.bool)
+        label = torch.tensor(label, dtype=torch.int64)
 
         return sequence.float(), mask, label.long(), []
 
@@ -103,19 +122,19 @@ class PretrainedChordMixerDataLoader:
                      tqdm(self._CHROMOSOMES, desc="Loading sequences")}
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, 120_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 240_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, 15_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, 15_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )
