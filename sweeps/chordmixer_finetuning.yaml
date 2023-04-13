@@ -7,20 +7,12 @@ metric:
 parameters:
   wandb.name:
     value: ""
-  general.batch_size:
-    max: 256
-    min: 2
-    q: 2
-    distribution: q_uniform
   optimizer.lr:
     max: 0.005
-    min: 0.00001
+    min: 0.000001
     distribution: uniform
-  model.decoder_n_blocks: 
-    max: 20
-    min: 1
-    q: 1
-    distribution: q_uniform
+  model.decoder_track_size:
+    values: [4, 8, 16]
   model.decoder_hidden_size: 
     max: 1000
     min: 50
@@ -42,8 +34,8 @@ command:
   - python
   - ${program}
   - --config-name=chordmixer_finetuning
-  #- dataset=taxonomy_classification_svb
-  #- dataset=vep_human_homo_sapien
-  - dataset=vep_plant_arabidopsis_thaliana
+  - dataset=taxonomy_classification_svb
+  - model.model_path=/cluster/home/mahdih/PretrainedChordMixer/models/pcm-vl.pt
   - general.log_to_wandb=true
+  - general.batch_size=2
   - ${args_no_hyphens}

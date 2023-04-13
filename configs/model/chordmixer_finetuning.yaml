@@ -1,5 +1,5 @@
 _target_: models.chordmixer_finetuning.FineTunedChordMixer
-model_path: ${hydra:runtime.cwd}/models/pcm-cl-1000.pt
+model_path: ${hydra:runtime.cwd}/models/pcm-vl.pt
 freeze: True
 variable_length: ${dataset.variable_length}
 n_class: ${dataset.n_class}

@@ -84,8 +84,8 @@ class ChordMixerEncoder(nn.Module):
                 vocab_size=4,
                 track_size=16,
                 hidden_size=750,
-                mlp_dropout=0.05,
-                layer_dropout=0.1,
+                mlp_dropout=0.0,
+                layer_dropout=0.0,
                 max_seq_len=100_000,
                 variable_length=variable_length
             )
@@ -94,8 +94,8 @@ class ChordMixerEncoder(nn.Module):
                 vocab_size=4,
                 track_size=16,
                 hidden_size=350,
-                mlp_dropout=0.0,
-                layer_dropout=0.13,
+                mlp_dropout=0.05,
+                layer_dropout=0.1,
                 max_seq_len=1000,
                 variable_length=variable_length
             )
