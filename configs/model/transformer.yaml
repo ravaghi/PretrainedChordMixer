@@ -1,8 +1,8 @@
 _target_: models.transformer.Transformer
-vocab_size: ${dataset.vocab_size}
-embedding_size: 4
-num_heads: 4
-num_layers: 4
+vocab_size: 10
+embedding_size: 44
+num_heads: 2
+num_layers: 8
 dataset_type: ${dataset.type}
 n_class: ${dataset.n_class}
 device_id: ${general.device_id}
