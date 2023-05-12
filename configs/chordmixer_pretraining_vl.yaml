@@ -6,12 +6,12 @@ defaults:
   - trainer: chordmixer_pretraining
 
 dataset:
-  path: ${hydra:runtime.cwd}/data/taxonomy_classification/sus_bos
+  path: ${hydra:runtime.cwd}/data/taxonomy_classification/danio_cyprinus
   type: pretraining
   name: pretraining_vl
-  train_data: sus_bos_train.parquet
-  val_data: sus_bos_val.parquet
-  test_data: sus_bos_test.parquet
+  train_data: danio_cyprinus_train.parquet
+  val_data: danio_cyprinus_val.parquet
+  test_data: danio_cyprinus_test.parquet
 
 optimizer:
   _target_: torch.optim.Adam

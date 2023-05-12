@@ -8,5 +8,5 @@ decoder_track_size: 8
 decoder_hidden_size: 600
 decoder_mlp_dropout: 0.02
 decoder_layer_dropout: 0.07
-max_seq_len: 100000
+max_seq_len: 261943
 variable_length: true
