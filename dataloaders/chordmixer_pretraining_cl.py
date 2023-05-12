@@ -56,15 +56,13 @@ class HG38Dataset(Dataset):
         return sequence_ids, masked_vec, label
 
     def __getitem__(self, index):
-        random_id = random.randint(0, len(self.sequences) - 1)
-        chromosome = list(self.sequences.keys())[random_id]
-        sequence = self.sequences[chromosome]
+        random_id = random.randint(0, len(self.dataframe) - 1)
+        row = self.dataframe.iloc[random_id]
+        chromosome = row["chr"]
+        position = row["pos"]
 
-        chromosome_length = len(sequence)
-        left_position = random.randint(0, chromosome_length - self.sequence_length)
-        right_position = left_position + self.sequence_length
+        sequence = self.sequences[chromosome][position - int(self.sequence_length / 2):position + int(self.sequence_length / 2)]
 
-        sequence = sequence[left_position:right_position]
         if "N" in sequence:
             return self.__getitem__(index)
 
