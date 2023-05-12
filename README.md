@@ -31,7 +31,7 @@ class FineTunedChordMixer(nn.Module):
             freeze=freeze,
             variable_length=variable_length
         )
-        self.classifier = nn.Linear(self.encoder.prelinear_out_features, n_class)
+        self.classifier = ...
 
     def forward(self, batch):
         ...
