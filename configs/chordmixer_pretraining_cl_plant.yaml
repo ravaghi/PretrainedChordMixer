@@ -2,16 +2,11 @@ defaults:
   - _self_
   - model: chordmixer_pretraining_cl
   - loss: nllloss
-  - dataloader: chordmixer_pretraining_cl
+  - dataloader: chordmixer_pretraining_cl_plant
   - trainer: chordmixer_pretraining
 
 dataset:
-  path: ${hydra:runtime.cwd}/data/variant_effect_prediction
-  type: pretraining
-  name: hg38.fa
-  train_data: label811_49_train.csv
-  val_data: label811_49_val.csv
-  test_data: label811_49_test.csv
+  path: ${hydra:runtime.cwd}/data/plant_ocr_prediction
 
 optimizer:
   _target_: torch.optim.Adam
@@ -23,7 +18,7 @@ wandb:
   name: ${general.name}
 
 general:
-  name: PretrainedChordMixerCL1000
+  name: PretrainedChordMixerCL1000Plant
   seed: 42
   batch_size: 416
   max_epochs: 50

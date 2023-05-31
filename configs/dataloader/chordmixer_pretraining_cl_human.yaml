@@ -1,4 +1,4 @@
-_target_: dataloaders.chordmixer_pretraining_cl.PretrainedChordMixerDataLoader
+_target_: dataloaders.chordmixer_pretraining_cl_human.PretrainedChordMixerDataLoader
 batch_size: ${general.batch_size}
 data_path: ${dataset.path}
 dataset_name: ${dataset.name}
