@@ -43,7 +43,7 @@ class Dataloader(ABC):
             dataframe = pd.read_parquet(path)
         else:
             raise FileNotFoundError(f"File {path} not found.")
-        return dataframe[:2000]
+        return dataframe
 
     def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
         """
