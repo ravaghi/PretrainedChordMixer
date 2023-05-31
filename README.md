@@ -16,6 +16,8 @@
 ---
 
 ## Results
+The following tables show `ROC-AUC x 100%` of ChordMixer with and without pretraining, compared with other models.
+
 
 ### Variant Effect Prediction in Human Genome
 
