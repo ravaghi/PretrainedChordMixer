@@ -69,7 +69,12 @@ class FineTunedChordMixer(nn.Module):
             max_seq_len=self.encoder.max_seq_len,
             variable_length=variable_length
         )
-        self.classifier = nn.Linear(self.decoder.prelinear_output_size, n_class)
+        #self.classifier = nn.Linear(self.decoder.prelinear_output_size, n_class)
+        self.classifier = nn.Sequential(
+            nn.Linear(4 * self.decoder.prelinear_output_size, self.decoder.prelinear_output_size // 2),
+            nn.ReLU(),
+            nn.Linear(self.decoder.prelinear_output_size // 2, n_class)
+        )
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
@@ -98,8 +103,10 @@ class FineTunedChordMixer(nn.Module):
             y_hat_1 = self.decoder(y_hat_1)
             y_hat_2 = self.decoder(y_hat_2)
 
-            y_hat = y_hat_1 - y_hat_2
-            y_hat = torch.mean(y_hat, dim=1)
+            y_hat_1 = torch.mean(y_hat_1, dim=1)
+            y_hat_2 = torch.mean(y_hat_2, dim=1)
+
+            y_hat = torch.cat([y_hat_1, y_hat_2, y_hat_1 * y_hat_2, y_hat_1 - y_hat_2], dim=1)
             y_hat = self.classifier(y_hat)
 
             tissue = tissue.unsqueeze(0).t()

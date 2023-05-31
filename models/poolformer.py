@@ -149,7 +149,12 @@ class Poolformer(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embedding_size)
         self.positional_encoder = nn.Embedding(self.sequence_length, embedding_size)
         self.poolformer = PoolFormerModel(embedding_size, num_layers)
-        self.classifier = nn.Linear(embedding_size * self.sequence_length, n_class)
+
+        self.classifier = nn.Sequential(
+            nn.Linear(4 * embedding_size, embedding_size // 2),
+            nn.ReLU(),
+            nn.Linear(embedding_size // 2, n_class)
+        )
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
@@ -192,8 +197,10 @@ class Poolformer(nn.Module):
             y_hat_2 = self.poolformer(y_hat_2)
             y_hat_2 = torch.permute(y_hat_2, (0, 2, 1))
 
-            y_hat = y_hat_1 - y_hat_2
-            y_hat = y_hat.view(y_hat.size(0), -1)
+            y_hat_1 = torch.mean(y_hat_1, dim=1)
+            y_hat_2 = torch.mean(y_hat_2, dim=1)
+
+            y_hat = torch.cat([y_hat_1, y_hat_2, y_hat_1 * y_hat_2, y_hat_1 - y_hat_2], dim=1)
             y_hat = self.classifier(y_hat)
 
             tissue = tissue.unsqueeze(0).t()

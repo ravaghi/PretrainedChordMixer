@@ -23,7 +23,12 @@ class Nystromformer(nn.Module):
             num_landmarks=256,
             pinv_iterations=6
         )
-        self.classifier = nn.Linear(embedding_size * self.sequence_length, n_class)
+
+        self.classifier = nn.Sequential(
+            nn.Linear(4 * embedding_size, embedding_size // 2),
+            nn.ReLU(),
+            nn.Linear(embedding_size // 2, n_class)
+        )
 
     def forward(self, input_data):
         if input_data["task"] == "TaxonomyClassification":
@@ -60,10 +65,12 @@ class Nystromformer(nn.Module):
             y_hat_2 = self.positional_encoder(positions2) + y_hat_2
             y_hat_2 = self.nystromformer(y_hat_2)
 
-            y_hat = y_hat_1 - y_hat_2
-            y_hat = y_hat.view(y_hat.size(0), -1)
-            y_hat = self.classifier(y_hat)
+            y_hat_1 = torch.mean(y_hat_1, dim=1)
+            y_hat_2 = torch.mean(y_hat_2, dim=1)
 
+            y_hat = torch.cat([y_hat_1, y_hat_2, y_hat_1 * y_hat_2, y_hat_1 - y_hat_2], dim=1)
+            y_hat = self.classifier(y_hat)
+            
             tissue = tissue.unsqueeze(0).t()
             y_hat = torch.gather(y_hat, 1, tissue)
             y_hat = y_hat.reshape(-1)
