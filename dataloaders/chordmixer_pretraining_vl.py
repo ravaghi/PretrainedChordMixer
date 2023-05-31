@@ -192,4 +192,4 @@ class PretrainedChordMixerDataLoader(Preprocessor):
             num_workers=1
         )
 
-        return train_dataloader, val_dataloader, val_dataloader
+        return train_dataloader, val_dataloader, test_dataloader

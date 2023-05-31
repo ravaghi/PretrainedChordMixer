@@ -7,6 +7,11 @@ defaults:
 
 dataset:
   path: ${hydra:runtime.cwd}/data/plant_ocr_prediction
+  type: pretraining
+  name: not_in_use
+  train_data: not_in_use
+  val_data: not_in_use
+  test_data: not_in_use
 
 optimizer:
   _target_: torch.optim.Adam

@@ -1,9 +1,9 @@
 from torch.utils.data import Dataset, DataLoader
 from sklearn.preprocessing import LabelBinarizer
-import torch.nn.functional as F
 from typing import Tuple
 from tqdm import tqdm
 from Bio import SeqIO
+import pandas as pd
 import numpy as np
 import random
 import torch
@@ -16,8 +16,9 @@ class HG38Dataset(Dataset):
         'A': 0, 'C': 1, 'G': 2, 'T': 3
     }
 
-    def __init__(self, sequences, dataset_size, sequence_length, mask_ratio):
+    def __init__(self, sequences, dataframe, dataset_size, sequence_length, mask_ratio):
         self.sequences = sequences
+        self.dataframe = dataframe
         self.dataset_size = dataset_size
         self.sequence_length = sequence_length
         self.mask_ratio = mask_ratio
@@ -118,21 +119,27 @@ class PretrainedChordMixerDataLoader:
         hg38_dict = SeqIO.to_dict(SeqIO.parse(os.path.join(self.data_path, self.dataset_name), "fasta"))
         sequences = {chromosome: hg38_dict[chromosome].seq.upper() for chromosome in
                      tqdm(self._CHROMOSOMES, desc="Loading sequences")}
+        
+        dataframe = pd.concat([
+            pd.read_csv(os.path.join(self.data_path, self.train_dataset)),
+            pd.read_csv(os.path.join(self.data_path, self.val_dataset)),
+            pd.read_csv(os.path.join(self.data_path, self.test_dataset))
+        ]).reset_index(drop=True)
 
         train_dataloader = DataLoader(
-            HG38Dataset(sequences, 240_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, dataframe, 240_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )
 
         val_dataloader = DataLoader(
-            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, dataframe, 30_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )
 
         test_dataloader = DataLoader(
-            HG38Dataset(sequences, 30_000, self.sequence_length, self.mask_ratio),
+            HG38Dataset(sequences, dataframe, 30_000, self.sequence_length, self.mask_ratio),
             batch_size=self.batch_size,
             shuffle=True
         )

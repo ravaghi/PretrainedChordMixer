@@ -3,7 +3,7 @@ from sklearn.preprocessing import LabelBinarizer
 from typing import Tuple
 import pandas as pd
 import numpy as np
-import random
+import string
 import torch
 import glob
 
@@ -72,7 +72,13 @@ class PretrainedChordMixerDataLoader:
     def __init__(self,
                  batch_size: int,
                  data_path: str,
-                 mask_ratio: float
+                 dataset_type: str,
+                 dataset_name: str,
+                 train_dataset: str,
+                 val_dataset: str,
+                 test_dataset: str,
+                 mask_ratio: float,
+                 sequence_length: int
                  ):
         self.batch_size = batch_size
         self.data_path = data_path
@@ -86,8 +92,9 @@ class PretrainedChordMixerDataLoader:
             Tuple[DataLoader, DataLoader, DataLoader]: Tuple containing the train, validation, and test dataloaders
         """
         parquet_files = glob.glob(self.data_path + "/**/*.parquet", recursive=True)
-        combined_df = pd.concat([pd.read_parquet(f) for f in parquet_files])
+        combined_df = pd.concat([pd.read_parquet(f)["sequence"] for f in parquet_files])
 
+        combined_df = combined_df[~combined_df['sequence'].str.contains("|".join(list(set(list(string.ascii_uppercase)) - set(["A", "C", "G", "T"]))))]
 
         train_dataloader = DataLoader(
             PlantDataset(combined_df, 240_000, self.mask_ratio),

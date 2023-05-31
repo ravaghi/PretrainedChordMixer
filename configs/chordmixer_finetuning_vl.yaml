@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - model: chordmixer_finetuning
+  - model: chordmixer_finetuning_vl
   - loss: binary_cross_entropy_with_logits
   - dataset: ???
   - dataloader: chordmixer_finetuning
