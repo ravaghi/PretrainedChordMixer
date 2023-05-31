@@ -19,32 +19,47 @@
 
 ### Variant Effect Prediction in Human Genome
 
-| Dataset                   |   FineTunedChordMixer |   ProbedChordMixer |   ChordMixer |   KeGRU |DeeperDeepSEA |   Transformer |   Nyströmformer |   Poolformer |   Linformer |
-|---------------------------|-----------------------|--------------------|--------------|---------|--------------|---------------|-----------------|--------------|-------------| 
-| GRCh38                    |                 89.87 |              86.28 |        84.90 |   70.16 |        86.93 |         68.69 |           82.58 |        76.00 |       83.22 |
-
+| **Model/Dataset**       | **GRCh38** |
+|-------------------------|:----------:|
+| **FineTunedChordMixer** |    89.87   |
+| **ProbedChordMixer**    |    86.28   |
+| **ChordMixer**          |    84.90   |
+| **KeGRU**               |    70.16   |
+| **DeeperDeepSEA**       |    86.93   |
+| **Transformer**         |    68.69   |
+| **Nyströmformer**       |    82.58   |
+| **Poolformer**          |    76.00   |
+| **Linformer**           |    83.22   |
 
 
 ### Open Chromatin Region Prediction in Plant Tissues
 
-| Dataset                   |   FineTunedChordMixer |   ProbedChordMixer |   ChordMixer |   KeGRU |DeeperDeepSEA |   Transformer |   Nyströmformer |   Poolformer |   Linformer |
-|---------------------------|-----------------------|--------------------|--------------|---------|--------------|---------------|-----------------|--------------|-------------|     
-| Arabidopsis Thaliana      |                 93.01 |              91.51 |        89.53 |   90.83 |        90.12 |         62.51 |           73.54 |        74.81 |       60.33 |
-| Brachypodium Distachyon   |                 93.50 |              93.25 |        91.14 |   92.35 |        90.05 |         75.98 |           81.21 |        79.64 |       72.75 |
-| Oryza Sativa MH           |                 93.99 |              92.73 |        90.95 |   92.15 |        91.02 |         71.40 |           77.89 |        74.56 |       62.39 |
-| Oryza Sativa ZS           |                 93.52 |              92.40 |        90.79 |   92.14 |        89.70 |         75.01 |           76.85 |        76.20 |       71.04 |
-| Setaria Italica           |                 94.50 |              93.18 |        91.93 |   92.99 |        91.92 |         82.31 |           83.55 |        81.22 |       70.98 |
-| Sorghum Bicolor           |                 96.59 |              95.53 |        94.52 |   95.84 |        94.54 |         82.47 |           87.17 |        83.69 |       78.05 |
-| Zea Mays                  |                 96.69 |              96.98 |        92.98 |   94.64 |        94.84 |         60.96 |           76.95 |        74.21 |       53.14 |
+| **Model/Dataset**       | **A. Thaliana** | **B. Distachyon** | **O. Sativa MH** | **O.Sativa ZS** | **S. Italica** | **S. Bicolor** | **Z. Mays** |
+|-------------------------|:---------------:|:-----------------:|:----------------:|:---------------:|:--------------:|:--------------:|:-----------:|
+| **FineTunedChordMixer** |      93.01      |       93.50       |       93.99      |      93.52      |      94.50     |      96.59     |    96.69    |
+| **ProbedChordMixer**    |      91.51      |       93.25       |       92.73      |      92.40      |      93.18     |      95.53     |    96.98    |
+| **ChordMixer**          |      89.53      |       91.14       |       90.95      |      90.79      |      91.93     |      94.52     |    92.98    |
+| **KeGRU**               |      90.83      |       92.35       |       92.15      |      92.14      |      92.99     |      95.84     |    94.64    |
+| **DeeperDeepSEA**       |      90.12      |       90.05       |       91.02      |      89.70      |      91.92     |      94.54     |    94.84    |
+| **Transformer**         |      62.51      |       75.98       |       71.40      |      75.01      |      82.31     |      82.47     |    60.96    |
+| **Nyströmformer**       |      73.54      |       81.21       |       77.89      |      76.85      |      83.55     |      87.17     |    76.95    |
+| **Poolformer**          |      74.81      |       79.64       |       74.56      |      76.20      |      81.22     |      83.69     |    74.21    |
+| **Linformer**           |      60.33      |       72.75       |       62.39      |      71.04      |      70.98     |      78.05     |    53.14    |
 
 
 
 ### DNA Sequence-Based Taxonomy Classification
-| Dataset                   |   FineTunedChordMixer |   ProbedChordMixer |   ChordMixer |   KeGRU |DeeperDeepSEA |   Transformer |   Nyströmformer |   Poolformer |   Linformer |
-|---------------------------|-----------------------|--------------------|--------------|---------|--------------|---------------|-----------------|--------------|-------------|
-| Carassius vs. Labeo       |                 97.35 |              97.55 |        97.19 |   97.02 |        97.49 |         92.19 |           89.85 |        90.72 |       86.44 |
-| Sus vs. Bos               |                 96.59 |              96.67 |        95.70 |   94.36 |        96.53 |         86.70 |           91.62 |        86.55 |       87.88 |
-| Danio vs. Cyprinus        |                 98.67 |              98.62 |        98.93 |   98.74 |        99.12 |         90.06 |           94.31 |        92.81 |       87.00 |
+| **Model/Dataset**       | **Carassius vs. Labeo** | **Sus vs. Bos** | **Danio vs. Cyprinus** |
+|-------------------------|:-----------------------:|:---------------:|:----------------------:|
+| **FineTunedChordMixer** |          97.35          |      96.59      |          98.67         |
+| **ProbedChordMixer**    |          97.55          |      96.67      |          98.62         |
+| **ChordMixer**          |          97.19          |      95.70      |          98.93         |
+| **KeGRU**               |          97.02          |      94.36      |          98.74         |
+| **DeeperDeepSEA**       |          97.49          |      96.53      |          99.12         |
+| **Transformer**         |          92.19          |      86.70      |          90.06         |
+| **Nyströmformer**       |          89.85          |      91.62      |          94.31         |
+| **Poolformer**          |          90.72          |      86.55      |          92.81         |
+| **Linformer**           |          86.44          |      87.88      |          87.00         |
 
 
 
