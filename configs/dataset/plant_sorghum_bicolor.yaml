@@ -1,6 +1,6 @@
-type: PlantVariantEffectPrediction
+type: PlantOcrPrediction
 name: SorghumBicolor
-path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/sorghum_bicolor
+path: ${hydra:runtime.cwd}/data/plant_ocr_prediction/sorghum_bicolor
 train_data: sorghum_bicolor_train.parquet
 val_data: sorghum_bicolor_val.parquet
 test_data: sorghum_bicolor_test.parquet

@@ -23,8 +23,8 @@ class TaxonomyClassificationDataset(Dataset):
         return len(self.dataframe)
 
 
-class HumanVariantEffectPredictionDataset(Dataset):
-    """Human variant effect prediction dataset class"""
+class VariantEffectPredictionDataset(Dataset):
+    """Variant effect prediction dataset class"""
 
     def __init__(self, dataframe):
         self.dataframe = dataframe
@@ -41,7 +41,7 @@ class HumanVariantEffectPredictionDataset(Dataset):
         return len(self.dataframe)
 
 
-class PlantVariantEffectPredictionDataset(Dataset):
+class PlantOcrPredictionDataset(Dataset):
     """Plant variant effect prediction dataset class"""
 
     def __init__(self, dataframe):
@@ -75,12 +75,12 @@ class XFormerDataLoader(Dataloader, Preprocessor):
             shuffle=True
         )
 
-    def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_human_variant_effect_prediction_dataframe(
+    def create_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_variant_effect_prediction_dataframe(
             dataframe=dataframe,
             model_name="Xformer"
         )
-        dataset = HumanVariantEffectPredictionDataset(dataframe=dataframe)
+        dataset = VariantEffectPredictionDataset(dataframe=dataframe)
 
         return DataLoader(
             dataset=dataset,
@@ -88,12 +88,12 @@ class XFormerDataLoader(Dataloader, Preprocessor):
             shuffle=True
         )
 
-    def create_plant_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_plant_variant_effect_prediction_dataframe(
+    def create_plant_ocr_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_plant_ocr_prediction_dataframe(
             dataframe=dataframe,
             model_name="Xformer"
         )
-        dataset = PlantVariantEffectPredictionDataset(dataframe=dataframe)
+        dataset = PlantOcrPredictionDataset(dataframe=dataframe)
 
         return DataLoader(
             dataset=dataset,

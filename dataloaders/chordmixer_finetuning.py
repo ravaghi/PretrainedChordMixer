@@ -6,8 +6,8 @@ from .preprocessor.preprocessor import Preprocessor
 from .chordmixer import (
     concater_collate,
     TaxonomyClassificationDataset,
-    HumanVariantEffectPredictionDataset,
-    PlantVariantEffectPredictionDataset
+    VariantEffectPredictionDataset,
+    PlantOcrPredictionDataset
 )
 
 
@@ -25,9 +25,9 @@ class FineTunedChordMixerDataLoader(Dataloader, Preprocessor):
             collate_fn=concater_collate
         )
 
-    def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_human_variant_effect_prediction_dataframe(dataframe, model_name="FineTunedChordMixer")
-        dataset = HumanVariantEffectPredictionDataset(dataframe=dataframe)
+    def create_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_variant_effect_prediction_dataframe(dataframe, model_name="FineTunedChordMixer")
+        dataset = VariantEffectPredictionDataset(dataframe=dataframe)
 
         return DataLoader(
             dataset=dataset,
@@ -35,9 +35,9 @@ class FineTunedChordMixerDataLoader(Dataloader, Preprocessor):
             shuffle=True
         )
 
-    def create_plant_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_plant_variant_effect_prediction_dataframe(dataframe, model_name="FineTunedChordMixer")
-        dataset = PlantVariantEffectPredictionDataset(dataframe=dataframe)
+    def create_plant_ocr_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_plant_ocr_prediction_dataframe(dataframe, model_name="FineTunedChordMixer")
+        dataset = PlantOcrPredictionDataset(dataframe=dataframe)
 
         return DataLoader(
             dataset=dataset,

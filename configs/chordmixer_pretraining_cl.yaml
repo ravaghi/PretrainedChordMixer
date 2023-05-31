@@ -6,7 +6,7 @@ defaults:
   - trainer: chordmixer_pretraining
 
 dataset:
-  path: ${hydra:runtime.cwd}/data/variant_effect_prediction/human
+  path: ${hydra:runtime.cwd}/data/variant_effect_prediction
   type: pretraining
   name: hg38.fa
   train_data: label811_49_train.csv

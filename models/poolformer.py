@@ -174,7 +174,7 @@ class Poolformer(nn.Module):
 
             return y_hat
 
-        elif input_data["task"] == "HumanVariantEffectPrediction":
+        elif input_data["task"] == "VariantEffectPrediction":
             x1 = input_data["x1"]
             x2 = input_data["x2"]
             tissue = input_data["tissue"]
@@ -209,7 +209,7 @@ class Poolformer(nn.Module):
 
             return y_hat
 
-        elif input_data["task"] == "PlantVariantEffectPrediction":
+        elif input_data["task"] == "PlantOcrPrediction":
             x = input_data["x"]
 
             y_hat = self.embedding(x).squeeze(-2)

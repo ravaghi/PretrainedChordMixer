@@ -1,6 +1,6 @@
-type: PlantVariantEffectPrediction
+type: PlantOcrPrediction
 name: ZeaMays
-path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/zea_mays
+path: ${hydra:runtime.cwd}/data/plant_ocr_prediction/zea_mays
 train_data: zea_mays_train.parquet
 val_data: zea_mays_val.parquet
 test_data: zea_mays_test.parquet

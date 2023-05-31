@@ -1,0 +1,10 @@
+type: VariantEffectPrediction
+name: HomoSapien
+path: ${hydra:runtime.cwd}/data/variant_effect_prediction
+train_data: variant_effect_prediction_train.parquet
+val_data: variant_effect_prediction_val.parquet
+test_data: variant_effect_prediction_test.parquet
+variable_length: false
+max_seq_len: 1000
+vocab_size: 20
+n_class: 49

@@ -1,6 +1,6 @@
-type: PlantVariantEffectPrediction
+type: PlantOcrPrediction
 name: ArabidopsisThaliana
-path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/arabidopsis_thaliana
+path: ${hydra:runtime.cwd}/data/plant_ocr_prediction/arabidopsis_thaliana
 train_data: arabidopsis_thaliana_train.parquet
 val_data: arabidopsis_thaliana_val.parquet
 test_data: arabidopsis_thaliana_test.parquet

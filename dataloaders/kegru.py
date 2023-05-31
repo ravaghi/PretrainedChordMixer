@@ -73,8 +73,8 @@ class TaxonomyClassificationDataset(Dataset):
         return len(self.labels)
 
 
-class HumanVariantEffectPredictionDataset(Dataset):
-    """ Human Variant Effect Prediction Dataset """
+class VariantEffectPredictionDataset(Dataset):
+    """ Variant Effect Prediction Dataset """
 
     def __init__(self, dataframe, embeddings, kmer_length, stride):
         self.embeddings = embeddings
@@ -103,8 +103,8 @@ class HumanVariantEffectPredictionDataset(Dataset):
         return len(self.labels)
 
 
-class PlantVariantEffectPredictionDataset(Dataset):
-    """ Plant Variant Effect Prediction Dataset """
+class PlantOcrPredictionDataset(Dataset):
+    """ Plant OCR Prediction Dataset """
 
     def __init__(self, dataframe, embeddings, kmer_length, stride):
         self.embeddings = embeddings
@@ -208,12 +208,12 @@ class KeGruDataLoader(Preprocessor):
             shuffle=True
         )
 
-    def create_human_variant_effect_prediction_dataloader(self,
+    def process_variant_effect_prediction_dataframe(self,
                                                           dataframe: pd.DataFrame,
                                                           word_vectors: KeyedVectors
                                                           ) -> DataLoader:
         """
-        Processes human variant effect prediction dataset and create a dataloader.
+        Processes variant effect prediction dataset and create a dataloader.
 
         Args:
             dataframe: dataframe containing the dataset.
@@ -221,8 +221,8 @@ class KeGruDataLoader(Preprocessor):
         Returns:
             dataloader.
         """
-        dataframe = self.process_human_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="KeGRU")
-        dataset = HumanVariantEffectPredictionDataset(
+        dataframe = self.process_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="KeGRU")
+        dataset = VariantEffectPredictionDataset(
             dataframe=dataframe,
             embeddings=word_vectors,
             kmer_length=self.kmer_length,
@@ -236,12 +236,12 @@ class KeGruDataLoader(Preprocessor):
             drop_last=True
         )
 
-    def create_plant_variant_effect_prediction_dataloader(self,
+    def create_plant_ocr_prediction_dataloader(self,
                                                           dataframe: pd.DataFrame,
                                                           word_vectors: KeyedVectors
                                                           ) -> DataLoader:
         """
-        Processes plant variant effect prediction dataset and create a dataloader.
+        Processes plant ocr prediction dataset and create a dataloader.
 
         Args:
             dataframe: dataframe containing the dataset.
@@ -249,7 +249,7 @@ class KeGruDataLoader(Preprocessor):
         Returns:
             dataloader.
         """
-        dataset = PlantVariantEffectPredictionDataset(
+        dataset = PlantOcrPredictionDataset(
             dataframe=dataframe,
             embeddings=word_vectors,
             kmer_length=self.kmer_length,
@@ -285,14 +285,14 @@ class KeGruDataLoader(Preprocessor):
             train_dataloader = self.create_taxonomy_classification_dataloader(train_dataframe, word_vectors)
             val_dataloader = self.create_taxonomy_classification_dataloader(val_dataframe, word_vectors)
             test_dataloader = self.create_taxonomy_classification_dataloader(test_dataframe, word_vectors)
-        elif self.dataset_type == "HumanVariantEffectPrediction":
-            train_dataloader = self.create_human_variant_effect_prediction_dataloader(train_dataframe, word_vectors)
-            val_dataloader = self.create_human_variant_effect_prediction_dataloader(val_dataframe, word_vectors)
-            test_dataloader = self.create_human_variant_effect_prediction_dataloader(test_dataframe, word_vectors)
-        elif self.dataset_type == "PlantVariantEffectPrediction":
-            train_dataloader = self.create_plant_variant_effect_prediction_dataloader(train_dataframe, word_vectors)
-            val_dataloader = self.create_plant_variant_effect_prediction_dataloader(val_dataframe, word_vectors)
-            test_dataloader = self.create_plant_variant_effect_prediction_dataloader(test_dataframe, word_vectors)
+        elif self.dataset_type == "VariantEffectPrediction":
+            train_dataloader = self.process_variant_effect_prediction_dataframe(train_dataframe, word_vectors)
+            val_dataloader = self.process_variant_effect_prediction_dataframe(val_dataframe, word_vectors)
+            test_dataloader = self.process_variant_effect_prediction_dataframe(test_dataframe, word_vectors)
+        elif self.dataset_type == "PlantOcrPrediction":
+            train_dataloader = self.create_plant_ocr_prediction_dataloader(train_dataframe, word_vectors)
+            val_dataloader = self.create_plant_ocr_prediction_dataloader(val_dataframe, word_vectors)
+            test_dataloader = self.create_plant_ocr_prediction_dataloader(test_dataframe, word_vectors)
         else:
             raise ValueError(f"Dataset type {self.dataset_type} not supported.")
 

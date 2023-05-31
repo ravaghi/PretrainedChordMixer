@@ -1,6 +1,6 @@
-type: PlantVariantEffectPrediction
+type: PlantOcrPrediction
 name: BrachypodiumDistachyon
-path: ${hydra:runtime.cwd}/data/variant_effect_prediction/plant/brachypodium_distachyon
+path: ${hydra:runtime.cwd}/data/plant_ocr_prediction/brachypodium_distachyon
 train_data: brachypodium_distachyon_train.parquet
 val_data: brachypodium_distachyon_val.parquet
 test_data: brachypodium_distachyon_test.parquet

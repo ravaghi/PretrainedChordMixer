@@ -43,7 +43,7 @@ class Dataloader(ABC):
             dataframe = pd.read_parquet(path)
         else:
             raise FileNotFoundError(f"File {path} not found.")
-        return dataframe
+        return dataframe[:2000]
 
     def create_taxonomy_classification_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
         """
@@ -57,9 +57,9 @@ class Dataloader(ABC):
         """
         raise NotImplementedError
 
-    def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+    def create_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
         """
-        Processes human variant effect prediction dataset and create a dataloader.
+        Processes variant effect prediction dataset and create a dataloader.
 
         Args:
             dataframe: dataframe containing the dataset.
@@ -69,9 +69,9 @@ class Dataloader(ABC):
         """
         raise NotImplementedError
 
-    def create_plant_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+    def create_plant_ocr_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
         """
-        Processes plant variant effect prediction dataset and create a dataloader.
+        Processes plant ocr prediction dataset and create a dataloader.
 
         Args:
             dataframe: dataframe containing the dataset.
@@ -99,14 +99,14 @@ class Dataloader(ABC):
             train_dataloader = self.create_taxonomy_classification_dataloader(train_dataframe)
             val_dataloader = self.create_taxonomy_classification_dataloader(val_dataframe)
             test_dataloader = self.create_taxonomy_classification_dataloader(test_dataframe)
-        elif self.dataset_type == "HumanVariantEffectPrediction":
-            train_dataloader = self.create_human_variant_effect_prediction_dataloader(train_dataframe)
-            val_dataloader = self.create_human_variant_effect_prediction_dataloader(val_dataframe)
-            test_dataloader = self.create_human_variant_effect_prediction_dataloader(test_dataframe)
-        elif self.dataset_type == "PlantVariantEffectPrediction":
-            train_dataloader = self.create_plant_variant_effect_prediction_dataloader(train_dataframe)
-            val_dataloader = self.create_plant_variant_effect_prediction_dataloader(val_dataframe)
-            test_dataloader = self.create_plant_variant_effect_prediction_dataloader(test_dataframe)
+        elif self.dataset_type == "VariantEffectPrediction":
+            train_dataloader = self.create_variant_effect_prediction_dataloader(train_dataframe)
+            val_dataloader = self.create_variant_effect_prediction_dataloader(val_dataframe)
+            test_dataloader = self.create_variant_effect_prediction_dataloader(test_dataframe)
+        elif self.dataset_type == "PlantOcrPrediction":
+            train_dataloader = self.create_plant_ocr_prediction_dataloader(train_dataframe)
+            val_dataloader = self.create_plant_ocr_prediction_dataloader(val_dataframe)
+            test_dataloader = self.create_plant_ocr_prediction_dataloader(test_dataframe)
         else:
             raise ValueError(f"Dataset type {self.dataset_type} not supported.")
 

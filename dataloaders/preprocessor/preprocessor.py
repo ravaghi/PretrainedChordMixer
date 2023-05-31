@@ -136,12 +136,12 @@ class Preprocessor(ABC):
 
         return dataframe
 
-    def process_human_variant_effect_prediction_dataframe(self,
+    def process_variant_effect_prediction_dataframe(self,
                                                           dataframe: pd.DataFrame,
                                                           model_name: str
                                                           ) -> pd.DataFrame:
         """
-        Processes the human variant effect prediction dataset for a specific model.
+        Processes the variant effect prediction dataset for a specific model.
 
         Args:
             dataframe: dataframe to process.
@@ -171,12 +171,12 @@ class Preprocessor(ABC):
 
         return dataframe
 
-    def process_plant_variant_effect_prediction_dataframe(self,
+    def process_plant_ocr_prediction_dataframe(self,
                                                           dataframe: pd.DataFrame,
                                                           model_name: str
                                                           ) -> pd.DataFrame:
         """
-        Processes the plant variant effect prediction dataset for a specific model.
+        Processes the plant ocr prediction dataset for a specific model.
 
         Args:
             dataframe: dataframe to process.

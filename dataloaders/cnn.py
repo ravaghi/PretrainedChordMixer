@@ -7,8 +7,8 @@ from .dataloader.dataloader import Dataloader
 from .preprocessor.preprocessor import Preprocessor
 
 
-class PlantVariantEffectPredictionDataset(Dataset):
-    """Plant variant effect prediction dataset class"""
+class PlantOcrPredictionDataset(Dataset):
+    """Plant ocr prediction dataset class"""
 
     def __init__(self, dataframe):
         self.sequences = np.array(dataframe.sequence.values.tolist())
@@ -44,8 +44,8 @@ class CNNDataLoader(Dataloader, Preprocessor):
             shuffle=True
         )
 
-    def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_human_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="CNN")
+    def create_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="CNN")
 
         references = torch.tensor(np.array(dataframe.reference.values.tolist(), dtype=np.float32))
         alternatives = torch.tensor(np.array(dataframe.alternate.values.tolist(), dtype=np.float32))
@@ -59,9 +59,9 @@ class CNNDataLoader(Dataloader, Preprocessor):
             shuffle=True
         )
 
-    def create_plant_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_plant_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="CNN")
-        dataset = PlantVariantEffectPredictionDataset(dataframe=dataframe)
+    def create_plant_ocr_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_plant_ocr_prediction_dataframe(dataframe=dataframe, model_name="CNN")
+        dataset = PlantOcrPredictionDataset(dataframe=dataframe)
 
         return DataLoader(
             dataset=dataset,

@@ -30,7 +30,7 @@ class ChordMixerTrainer(Trainer):
                 "seq_len": _len
             })
 
-        elif self.task == "HumanVariantEffectPrediction":
+        elif self.task == "VariantEffectPrediction":
             x1, x2, tissue, y = batch
             x1, x2, tissue, y = x1.to(self.device), x2.to(self.device), tissue.to(self.device), y.to(self.device)
 
@@ -41,7 +41,7 @@ class ChordMixerTrainer(Trainer):
                 "tissue": tissue
             })
 
-        elif self.task == "PlantVariantEffectPrediction":
+        elif self.task == "PlantOcrPrediction":
             x, y = batch
             x, y = x.to(self.device), y.to(self.device)
 

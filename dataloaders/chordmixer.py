@@ -87,8 +87,8 @@ class TaxonomyClassificationDataset(Dataset):
         return len(self.dataframe)
 
 
-class HumanVariantEffectPredictionDataset(Dataset):
-    """Human variant effect prediction dataset class"""
+class VariantEffectPredictionDataset(Dataset):
+    """Variant effect prediction dataset class"""
 
     def __init__(self, dataframe):
         self.references = dataframe["reference"].values
@@ -107,8 +107,8 @@ class HumanVariantEffectPredictionDataset(Dataset):
         return len(self.references)
 
 
-class PlantVariantEffectPredictionDataset(Dataset):
-    """Plant variant effect prediction dataset class"""
+class PlantOcrPredictionDataset(Dataset):
+    """Plant ocr prediction dataset class"""
 
     def __init__(self, dataframe):
         self.sequences = dataframe["sequence"].values
@@ -138,9 +138,9 @@ class ChordMixerDataLoader(Dataloader, Preprocessor):
             collate_fn=concater_collate
         )
 
-    def create_human_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_human_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="ChordMixer")
-        dataset = HumanVariantEffectPredictionDataset(dataframe=dataframe)
+    def create_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="ChordMixer")
+        dataset = VariantEffectPredictionDataset(dataframe=dataframe)
 
         return DataLoader(
             dataset=dataset,
@@ -148,9 +148,9 @@ class ChordMixerDataLoader(Dataloader, Preprocessor):
             shuffle=True
         )
 
-    def create_plant_variant_effect_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
-        dataframe = self.process_plant_variant_effect_prediction_dataframe(dataframe=dataframe, model_name="ChordMixer")
-        dataset = PlantVariantEffectPredictionDataset(dataframe=dataframe)
+    def create_plant_ocr_prediction_dataloader(self, dataframe: pd.DataFrame) -> DataLoader:
+        dataframe = self.process_plant_ocr_prediction_dataframe(dataframe=dataframe, model_name="ChordMixer")
+        dataset = PlantOcrPredictionDataset(dataframe=dataframe)
 
         return DataLoader(
             dataset=dataset,

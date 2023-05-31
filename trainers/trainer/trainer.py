@@ -118,7 +118,7 @@ class Trainer(ABC):
         Raises:
             ValueError: If the task is not supported.
         """
-        if self.task in ["TaxonomyClassification", "PlantVariantEffectPrediction"]:
+        if self.task in ["TaxonomyClassification", "PlantOcrPrediction"]:
             x, y = batch
             x, y = x.to(self.device), y.to(self.device)
             y_hat = self.model({
@@ -126,7 +126,7 @@ class Trainer(ABC):
                 "x": x
             })
 
-        elif self.task == "HumanVariantEffectPrediction":
+        elif self.task == "VariantEffectPrediction":
             x1, x2, tissue, y = batch
             x1, x2, tissue, y = x1.to(self.device), x2.to(self.device), tissue.to(self.device), y.to(self.device)
 
@@ -153,11 +153,11 @@ class Trainer(ABC):
         Returns:
             Tuple: Predictions and the number of correct predictions.
         """
-        if self.task in ["TaxonomyClassification", "HumanVariantEffectPrediction"]:
+        if self.task in ["TaxonomyClassification", "VariantEffectPrediction"]:
             predicted = torch.sigmoid(y_hat)
             correct_predictions = torch.round(predicted).eq(y).sum().item()
 
-        elif self.task == "PlantVariantEffectPrediction":
+        elif self.task == "PlantOcrPrediction":
             predicted = torch.sigmoid(y_hat)
             correct_predictions = round(torch.round(predicted).eq(y).sum().item() / y.size(1))
 
