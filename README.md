@@ -36,7 +36,7 @@ The following tables show `ROC-AUC x 100%` of ChordMixer with and without pretra
 
 ### Open Chromatin Region Prediction in Plant Tissues
 
-| **Model/Dataset**       | **A. Thaliana** | **B. Distachyon** | **O. Sativa MH** | **O.Sativa ZS** | **S. Italica** | **S. Bicolor** | **Z. Mays** |
+| **Model/Dataset**       | **A. Thaliana** | **B. Distachyon** | **O. Sativa MH** | **O. Sativa ZS** | **S. Italica** | **S. Bicolor** | **Z. Mays** |
 |-------------------------|:---------------:|:-----------------:|:----------------:|:---------------:|:--------------:|:--------------:|:-----------:|
 | **FineTunedChordMixer** |      93.01      |       93.50       |       93.99      |      93.52      |      94.50     |      96.59     |    96.69    |
 | **ProbedChordMixer**    |      91.51      |       93.25       |       92.73      |      92.40      |      93.18     |      95.53     |    96.98    |
